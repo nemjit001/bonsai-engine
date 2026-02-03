@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
 project("Bonsai Renderer")
-enable_testing()
 
 # Options
 option(BUILD_TESTS "Enable unit tests" ON)
@@ -15,4 +14,4 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Configure sub projects
-# 
+add_subdirectory(bonsai-viewer)

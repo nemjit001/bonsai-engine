@@ -16,19 +16,74 @@
       }
     },
     {
+      "name": "msvc-x64",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "toolset": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "environment": {
+        "CC": "cl",
+        "CXX": "cl"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ]
+        }
+      }
+    },
+    {
+      "name": "gcc-x64",
+      "inherits": "base",
+      "toolset": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      }
+    },
+    {
       "name": "clang-x64",
       "inherits": "base",
       "toolset": {
         "strategy": "external",
         "value": "x64"
       },
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
+      "environment": {
+        "CC": "clang",
+        "CXX": "clang++"
       }
     }
   ],
   "buildPresets": [
+    {
+      "name": "msvc-debug",
+      "configurePreset": "msvc-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "msvc-release",
+      "inherits": "msvc-debug",
+      "configuration": "Release"
+    },
+    {
+      "name": "gcc-debug",
+      "configurePreset": "gcc-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "gcc-release",
+      "inherits": "gcc-debug",
+      "configuration": "Release"
+    },
     {
       "name": "clang-debug",
       "configurePreset": "clang-x64",
