@@ -1,5 +1,10 @@
 {
   "name": "bonsai-renderer",
   "version": "0.1.0",
-  "dependencies": []
+  "dependencies": [
+    "glad",
+    "glm",
+    "sdl3",
+    "cereal"
+  ]
 }
