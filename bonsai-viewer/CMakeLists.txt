@@ -18,3 +18,8 @@ target_compile_features(bonsai_viewer PRIVATE cxx_std_17)
 target_link_libraries(bonsai_viewer PRIVATE cereal::cereal glad::glad glm::glm SDL3::SDL3)
 target_extended_warnings(bonsai_viewer)
 target_track_runtime_dll_dependencies(bonsai_viewer)
+
+add_custom_target(bonsai_viewer_assets ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:bonsai_viewer>/assets
+)
+add_dependencies(bonsai_viewer bonsai_viewer_assets)
