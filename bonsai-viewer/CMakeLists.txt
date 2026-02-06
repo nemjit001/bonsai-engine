@@ -6,6 +6,8 @@ find_package(glm REQUIRED)
 find_package(SDL3 REQUIRED)
 
 add_executable(bonsai_viewer
+        src/core/filesystem.cpp
+        src/core/filesystem.hpp
         src/assets/mesh.cpp
         src/assets/mesh.hpp
         src/assets/shader.cpp
