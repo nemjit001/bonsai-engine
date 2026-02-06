@@ -14,11 +14,12 @@ namespace bonsai::assets
         glm::vec3 position;
         glm::vec3 normal;
         glm::vec3 tangent;
+        glm::vec3 color;
         glm::vec2 tex_coord;
     };
 
-    /// @brief The mesh class is used to store mesh assets. Mesh assets are imported from DCC tools through mesh importers.
-    class Mesh
+    /// @brief The sub mesh class contains a single mesh segment.
+    class SubMesh
     {
     public:
         template<class Archive>
@@ -29,13 +30,30 @@ namespace bonsai::assets
         std::vector<uint32_t> indices;
     };
 
+    /// @brief The mesh class is used to store mesh assets. Mesh assets are imported from DCC tools through mesh importers.
+    class Mesh
+    {
+    public:
+        template<class Archive>
+        void serialize(Archive& archive);
+
+    public:
+        std::vector<SubMesh> sub_meshes;
+    };
+
     template<class Archive>
-    void Mesh::serialize(Archive& archive)
+    void SubMesh::serialize(Archive& archive)
     {
         archive(
             CEREAL_NVP(vertices),
             CEREAL_NVP(indices)
         );
+    }
+
+    template<class Archive>
+    void Mesh::serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(sub_meshes));
     }
 } // namespace bonsai::assets
 

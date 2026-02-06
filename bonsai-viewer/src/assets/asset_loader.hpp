@@ -6,6 +6,8 @@
 
 namespace bonsai::assets
 {
+    /// @brief Asset loader template. Specialize this to provide loading functionality for asset types.
+    /// @tparam AssetType 
     template<class AssetType>
     struct AssetLoader
     {
