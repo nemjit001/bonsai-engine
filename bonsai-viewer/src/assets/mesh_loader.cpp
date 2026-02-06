@@ -7,7 +7,7 @@
 namespace bonsai::assets
 {
     template<>
-    Mesh AssetLoader<Mesh>::load(core::Path const& path)
+    std::optional<Mesh> AssetLoader<Mesh>::load(core::Path const& path)
     {
         std::string const& ext = path.extension().string();
         if (ext == WavefrontMeshLoader::FILE_EXTENSION)
@@ -18,7 +18,7 @@ namespace bonsai::assets
         return {};
     }
 
-    Mesh WavefrontMeshLoader::load(core::Path const& path)
+    std::optional<Mesh> WavefrontMeshLoader::load(core::Path const& path)
     {
         tinyobj::ObjReader reader{};
         tinyobj::ObjReaderConfig config{};
