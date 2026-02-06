@@ -2,9 +2,10 @@
   "name": "bonsai-renderer",
   "version": "0.1.0",
   "dependencies": [
+    "cereal",
     "glad",
     "glm",
     "sdl3",
-    "cereal"
+    "tinyobjloader"
   ]
 }
