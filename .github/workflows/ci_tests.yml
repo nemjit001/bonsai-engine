@@ -43,8 +43,15 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - name: Set VCPKG
+    - name: Do VCPKG Setup
       uses: lukka/run-vcpkg@v11
+
+    - name: Install Linux Packages
+      if: matrix.os == 'ubuntu-latest'
+      run: >
+        sudo apt-get install -y \
+          cmake clang gcc \
+          autoconf autoconf-archive automake libtool libltdl-dev
 
     - name: Set reusable strings
       id: strings
