@@ -13,6 +13,9 @@ namespace bonsai::assets
     template<class AssetType>
     struct AssetLoader
     {
+        /// @brief Load an asset from disk.
+        /// @param path Path to use for asset loading.
+        /// @return 
         static std::optional<AssetType> load(core::Path const& path);
     };
 } // namespace bonsai::assets
