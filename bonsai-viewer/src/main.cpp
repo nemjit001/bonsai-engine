@@ -7,7 +7,7 @@
 
 int main(int, char*[])
 {
-    printf("Running from \"%s\"\n", bonsai::FileSystem::program_dir().string().c_str());
+    printf("Running from \"%s\"\n", bonsai::core::FileSystem::program_dir().string().c_str());
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {

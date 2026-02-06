@@ -7,6 +7,8 @@
 
 namespace bonsai::assets
 {
+    /// @brief The shader class is used to store shader assets. Shader assets consist of one or more shader files
+    /// that combine into a shader pipeline. Fixed function state for the shader pipeline can also be specified in the shader asset.
     class Shader
     {
     public:

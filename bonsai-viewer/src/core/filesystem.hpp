@@ -3,8 +3,9 @@
 #define BONSAI_VIEWER_CORE_FILESYSTEM_HPP
 
 #include <filesystem>
+#include <string>
 
-namespace bonsai
+namespace bonsai::core
 {
     using Path = std::filesystem::path;
 
@@ -12,7 +13,7 @@ namespace bonsai
     class FileSystem
     {
     public:
-        /// @brief Create a canonical path from a path type.
+        /// @brief Create a canonical path from a given path.
         /// @param path 
         /// @return 
         static Path canonical(Path const& path);
@@ -20,7 +21,12 @@ namespace bonsai
         /// @brief Get the directory for this program.
         /// @return 
         static Path program_dir();
+
+        /// @brief Read a file from a given path.
+        /// @param path 
+        /// @return 
+        static std::string read_file(Path const& path);
     };
-} // namespace bonsai
+} // namespace bonsai::core
 
 #endif //BONSAI_VIEWER_CORE_FILESYSTEM_HPP

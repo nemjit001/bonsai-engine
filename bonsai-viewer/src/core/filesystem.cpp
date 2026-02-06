@@ -1,11 +1,13 @@
 #include "filesystem.hpp"
 
+#include <fstream>
+
 #if _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <Windows.h>
 #endif
 
-namespace bonsai
+namespace bonsai::core
 {
     Path FileSystem::canonical(Path const& path)
     {
@@ -27,5 +29,24 @@ namespace bonsai
 
         return executable_path.parent_path();
     }
-} // namespace bonsai
+
+    std::string FileSystem::read_file(Path const& path)
+    {
+        std::ifstream file(path, std::ios::binary);
+        if (!file)
+        {
+            return {};
+        }
+
+        file.seekg(std::ios::end);
+        size_t const bytes = file.tellg();
+        std::string buffer(bytes, '\0');
+
+        file.seekg(std::ios::beg);
+        file.read(&buffer[0], bytes);
+        file.close();
+
+        return buffer;
+    }
+} // namespace bonsai::core
 

@@ -8,6 +8,7 @@
 
 namespace bonsai::assets
 {
+    /// @brief Static vertex layout for meshes.
     struct Vertex
     {
         glm::vec3 position;
@@ -16,6 +17,7 @@ namespace bonsai::assets
         glm::vec2 tex_coord;
     };
 
+    /// @brief The mesh class is used to store mesh assets. Mesh assets are imported from DCC tools through mesh importers.
     class Mesh
     {
     public:
