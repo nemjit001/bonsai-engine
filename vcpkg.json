@@ -7,6 +7,14 @@
     "glad",
     "glm",
     "sdl3",
-    "tinyobjloader"
+    "tinyobjloader",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "sdl3-binding",
+        "opengl3-binding"
+      ]
+    }
   ]
 }
