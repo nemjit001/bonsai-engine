@@ -1,4 +1,6 @@
 {
-    "vertex_shader": "./shaders/static.vert",
-    "fragment_shader": "./shaders/unlit.frag"
+    "shader": {
+        "vertex_shader": "./shaders/static.vert",
+        "fragment_shader": "./shaders/unlit.frag"
+    }
 }

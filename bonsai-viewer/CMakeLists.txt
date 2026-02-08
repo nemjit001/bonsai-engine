@@ -11,8 +11,6 @@ add_executable(bonsai_viewer
         src/core/filesystem.cpp
         src/core/filesystem.hpp
         src/assets/asset_loader.hpp
-        src/assets/mesh_loader.cpp
-        src/assets/mesh_loader.hpp
         src/assets/mesh.cpp
         src/assets/mesh.hpp
         src/assets/shader.cpp

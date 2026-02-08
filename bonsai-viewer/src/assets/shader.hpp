@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cereal/cereal.hpp>
+#include "asset_loader.hpp"
 
 namespace bonsai::assets
 {
@@ -13,21 +14,21 @@ namespace bonsai::assets
     {
     public:
         template<class Archive>
-        void serialize(Archive& archive);
+        void serialize(Archive& archive)
+        {
+            archive(
+                CEREAL_NVP(vertex_shader),
+                CEREAL_NVP(fragment_shader)
+            );
+        }
 
     public:
         std::string vertex_shader;
         std::string fragment_shader;
     };
 
-    template<class Archive>
-    void Shader::serialize(Archive& archive)
-    {
-        archive(
-            CEREAL_NVP(vertex_shader),
-            CEREAL_NVP(fragment_shader)
-        );
-    }
+    template<>
+    std::optional<Shader> AssetLoader<Shader>::load(core::Path const& path);
 } // namespace bonsai::assets
 
 #endif //BONSAI_VIEWER_ASSETS_SHADER_HPP
