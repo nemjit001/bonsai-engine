@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BONSAI_VIEWER_ASSETS_MESH_HPP
-#define BONSAI_VIEWER_ASSETS_MESH_HPP
+#ifndef BONSAI_CORE_ASSETS_MESH_HPP
+#define BONSAI_CORE_ASSETS_MESH_HPP
 
 #include <vector>
 #include <cereal/cereal.hpp>
@@ -76,4 +76,4 @@ namespace bonsai::assets
     };
 } // namespace bonsai::assets
 
-#endif //BONSAI_VIEWER_MESH_HPP
+#endif //BONSAI_CORE_ASSETS_MESH_HPP

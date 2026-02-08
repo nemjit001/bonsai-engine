@@ -1,10 +1,10 @@
 #pragma once
-#ifndef BONSAI_VIEWER_ASSETS_ASSET_LOADER_HPP
-#define BONSAI_VIEWER_ASSETS_ASSET_LOADER_HPP
+#ifndef BONSAI_CORE_ASSETS_ASSET_LOADER_HPP
+#define BONSAI_CORE_ASSETS_ASSET_LOADER_HPP
 
 #include <optional>
 
-#include "core/filesystem.hpp"
+#include "bonsai/core/filesystem.hpp"
 
 namespace bonsai::assets
 {
@@ -21,4 +21,4 @@ namespace bonsai::assets
 } // namespace bonsai::assets
 
 
-#endif //BONSAI_VIEWER_ASSETS_ASSET_LOADER_HPP
+#endif //BONSAI_CORE_ASSETS_ASSET_LOADER_HPP

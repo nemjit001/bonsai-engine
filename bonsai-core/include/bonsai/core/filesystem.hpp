@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BONSAI_VIEWER_CORE_FILESYSTEM_HPP
-#define BONSAI_VIEWER_CORE_FILESYSTEM_HPP
+#ifndef BONSAI_CORE_CORE_FILESYSTEM_HPP
+#define BONSAI_CORE_CORE_FILESYSTEM_HPP
 
 #include <filesystem>
 #include <string>
@@ -29,4 +29,4 @@ namespace bonsai::core
     };
 } // namespace bonsai::core
 
-#endif //BONSAI_VIEWER_CORE_FILESYSTEM_HPP
+#endif //BONSAI_CORE_CORE_FILESYSTEM_HPP

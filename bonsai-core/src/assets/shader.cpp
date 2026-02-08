@@ -1,4 +1,4 @@
-#include "shader.hpp"
+#include "bonsai/assets/shader.hpp"
 
 #include <fstream>
 #include <cereal/archives/json.hpp>

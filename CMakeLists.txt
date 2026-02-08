@@ -13,5 +13,10 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if (BUILD_TESTS)
+    enable_testing()
+endif()
+
 # Configure sub projects
+add_subdirectory(bonsai-core)
 add_subdirectory(bonsai-viewer)

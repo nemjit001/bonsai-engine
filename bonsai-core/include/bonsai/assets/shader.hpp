@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BONSAI_VIEWER_ASSETS_SHADER_HPP
-#define BONSAI_VIEWER_ASSETS_SHADER_HPP
+#ifndef BONSAI_CORE_ASSETS_SHADER_HPP
+#define BONSAI_CORE_ASSETS_SHADER_HPP
 
 #include <string>
 #include <cereal/cereal.hpp>
@@ -31,4 +31,4 @@ namespace bonsai::assets
     std::optional<Shader> AssetLoader<Shader>::load(core::Path const& path);
 } // namespace bonsai::assets
 
-#endif //BONSAI_VIEWER_ASSETS_SHADER_HPP
+#endif //BONSAI_CORE_ASSETS_SHADER_HPP

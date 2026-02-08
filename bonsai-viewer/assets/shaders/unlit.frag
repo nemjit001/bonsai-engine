@@ -1,4 +1,5 @@
 #version 450
+#pragma shader_stage(fragment)
 
 layout(location = 1) in VERTEX_OUT {
     vec3 Color;

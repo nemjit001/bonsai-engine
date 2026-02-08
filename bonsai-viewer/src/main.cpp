@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#include "core/filesystem.hpp"
+#include <bonsai/core/filesystem.hpp>
 
 int main(int, char*[])
 {
