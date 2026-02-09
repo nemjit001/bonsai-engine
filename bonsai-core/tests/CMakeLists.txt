@@ -5,6 +5,7 @@ find_package(GTest REQUIRED)
 add_executable(bonsai_core_tests
         src/sanity.cpp
         src/core/filesystem_tests.cpp
+        src/subsystems/engine_subsystem_tests.cpp
         src/subsystems/logging_system_tests.cpp
         src/subsystems/window_system_tests.cpp
 )

@@ -29,10 +29,7 @@ namespace bonsai::subsystems
 
     bool EngineSubsystemRegistry::init()
     {
-        if (s_pImpl == nullptr)
-        {
-            s_pImpl = new Impl{};
-        }
+        s_pImpl = new Impl{};
         return true;
     }
 
@@ -76,7 +73,7 @@ namespace bonsai::subsystems
 
         for (auto const& subsystem : s_pImpl->subsystems)
         {
-            subsystem->notify(event);
+            subsystem->process_event(event);
         }
     }
 } // namespace bonsai::subsystems

@@ -10,7 +10,7 @@ namespace bonsai::subsystems
         
         void shutdown() override {}
 
-        void process_event(EngineEvent const& event)
+        void process_event(EngineEvent const& event) override
         {
             if (event.event_type == BONSAI_ENGINE_EVENT_TYPE_QUIT)
             {
