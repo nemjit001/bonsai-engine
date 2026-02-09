@@ -35,7 +35,7 @@ namespace bonsai::subsystems
         SDL_Window* window = SDL_CreateWindow(title, width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
         if (window == nullptr)
         {
-            return BONSAI_INVALID_WINDOW_ID;
+            return INVALID_WINDOW_ID;
         }
 
         return SDL_GetWindowID(window);

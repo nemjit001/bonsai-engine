@@ -8,7 +8,7 @@
 namespace bonsai::subsystems
 {
     using WindowID = uint32_t;
-    static constexpr WindowID BONSAI_INVALID_WINDOW_ID = ~0U;
+    static constexpr WindowID INVALID_WINDOW_ID = ~0U;
 
     /// @brief The window subsystem manages platform window creation and window event processing.
     class WindowSystem : public IEngineSubsystem

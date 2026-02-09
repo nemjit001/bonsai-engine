@@ -35,6 +35,31 @@ namespace bonsai::subsystems
         /// @param event Event to notify other systems of.
         void notify(EngineEvent const& event);
     };
+
+    /// @brief The engine subsystem registry contains other engine subsystems and provides a static interface for subsystem management.
+    class EngineSubsystemRegistry : public IEngineSubsystem
+    {
+    public:
+        bool init() override;
+
+        void shutdown() override;
+
+        /// @brief Register an engine subsystem.
+        /// @param subsystem 
+        static void register_subsystem(IEngineSubsystem* subsystem);
+
+        /// @brief Unregister an engine subsystem.
+        /// @param subsystem 
+        static void unregister_subsystem(IEngineSubsystem* subsystem);
+
+        /// @brief Notify all registered engine subsystems of an engine event.
+        /// @param event 
+        static void notify_subsystems(EngineEvent const& event);
+
+    private:
+        struct Impl;
+        static Impl* s_pImpl;
+    };
 } // namespace bonsai::subsystems
 
 #endif //BONSAI_CORE_SUBSYSTEMS_ENGINE_SUBSYSTEM_HPP

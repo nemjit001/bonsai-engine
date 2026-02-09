@@ -24,7 +24,7 @@ namespace bonsai::subsystems
         ASSERT_TRUE(windowing_system.init());
 
         WindowID test_window = windowing_system.create_window("Test Window", 512, 512);
-        EXPECT_NE(BONSAI_INVALID_WINDOW_ID, test_window);
+        EXPECT_NE(INVALID_WINDOW_ID, test_window);
 
         windowing_system.run();
 
