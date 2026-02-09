@@ -49,4 +49,3 @@ namespace bonsai::core
         return buffer;
     }
 } // namespace bonsai::core
-

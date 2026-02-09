@@ -67,4 +67,3 @@ namespace bonsai::assets
         return mesh;
     }
 } // namespace bonsai::assets
-

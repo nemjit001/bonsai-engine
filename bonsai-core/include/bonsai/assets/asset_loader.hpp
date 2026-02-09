@@ -20,5 +20,4 @@ namespace bonsai::assets
     };
 } // namespace bonsai::assets
 
-
 #endif //BONSAI_CORE_ASSETS_ASSET_LOADER_HPP

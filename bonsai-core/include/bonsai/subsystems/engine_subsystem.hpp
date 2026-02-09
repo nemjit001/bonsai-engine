@@ -10,10 +10,16 @@ namespace bonsai::subsystems
     class IEngineSubsystem
     {
     public:
+        IEngineSubsystem() = default;
         virtual ~IEngineSubsystem() = default;
 
+        IEngineSubsystem(IEngineSubsystem const&) = delete;
+        IEngineSubsystem& operator=(IEngineSubsystem const&) = delete;
+
         /// @brief Initialize the engine subsystem.
-        virtual void init() = 0;
+        /// @return A boolean indicating successful initialization.
+        [[nodiscard]]
+        virtual bool init() = 0;
 
         /// @brief Shut down the engine subsystem.
         virtual void shutdown() = 0;
@@ -27,7 +33,7 @@ namespace bonsai::subsystems
 
         /// @brief Notify other subsystems of an engine event.
         /// @param event Event to notify other systems of.
-        virtual void notify(EngineEvent const& event) = 0;
+        void notify(EngineEvent const& event);
     };
 } // namespace bonsai::subsystems
 

@@ -20,4 +20,3 @@ namespace bonsai::assets
         return shader;
     }
 } // namespace bonsai::assets
-
