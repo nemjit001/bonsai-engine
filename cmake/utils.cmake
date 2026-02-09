@@ -1,5 +1,5 @@
 function(target_extended_warnings TARGET_NAME)
-    if (WIN32)
+    if (MSVC)
         target_compile_options(${TARGET_NAME} PUBLIC /W4)
     else()
         target_compile_options(${TARGET_NAME} PUBLIC -Wall -Wextra -Wpedantic -Wshadow)
