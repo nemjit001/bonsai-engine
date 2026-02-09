@@ -2,7 +2,17 @@
 
 namespace bonsai::subsystems
 {
+    void IEngineSubsystem::run()
+    {
+        //
+    }
+
     void IEngineSubsystem::notify(EngineEvent const& event)
+    {
+        //
+    }
+
+    void IEngineSubsystem::process_event([[maybe_unused]] EngineEvent const& event)
     {
         //
     }
