@@ -7,6 +7,7 @@
 
 namespace bonsai::subsystems
 {
+    /// @brief The engine event subsystem manages notifying other subsystems of engine events.
     class EngineEventManager : public SingletonSubsystem<EngineEventManager>
     {
     private:
@@ -15,10 +16,16 @@ namespace bonsai::subsystems
         bool init() override;
         void shutdown() override;
 
+        /// @brief Register a subsystem with the event manager.
+        /// @param subsystem 
         void register_subsystem(IEngineSubsystem* subsystem);
 
+        /// @brief Deregister a subsystem from the event manager.
+        /// @param subsystem 
         void unregister_subsystem(IEngineSubsystem* subsystem);
 
+        /// @brief Notify all registered subsystems of an engine event.
+        /// @param event Engine event to publish.
         void notify(EngineEvent const& event);
 
     private:

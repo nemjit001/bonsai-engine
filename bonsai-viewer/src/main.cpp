@@ -1,53 +1,11 @@
-#include <bonsai/subsystems/logging_manager.hpp>
 #include <bonsai/subsystems/engine_event_manager.hpp>
+#include <bonsai/subsystems/logging_manager.hpp>
+#include <bonsai/subsystems/main_loop_manager.hpp>
 #include <bonsai/subsystems/window_manager.hpp>
-namespace bonsai::subsystems
-{
-    class MainLoopManager : public SingletonSubsystem<MainLoopManager>
-    {
-    private:
-        friend SingletonSubsystem;
-    public:
-        bool init() override
-        {
-            m_running = true;
-            return true;
-        }
-
-        void shutdown() override
-        {
-            m_running = false;
-        }
-
-        void run() override
-        {
-            while (m_running)
-            {
-                LoggingManager::get().run();
-                EngineEventManager::get().run();
-                WindowManager::get().run();
-            }
-        }
-
-        void process_event(EngineEvent const& event) override
-        {
-            switch (event.event_type)
-            {
-            case BONSAI_ENGINE_EVENT_TYPE_QUIT:
-                m_running = false;
-                break;
-            default:
-                break;
-            }
-        }
-
-    private:
-        bool m_running = false;
-    };
-} // namespace bonsai::subsystems
 
 int main(int, char*[])
 {
+    // Initialize engine systems
     auto& logging_manager = bonsai::subsystems::LoggingManager::get();
     if (!logging_manager.init()) {
         return 1;
@@ -72,8 +30,10 @@ int main(int, char*[])
     engine_event_manager.register_subsystem(&window_manager);
     engine_event_manager.register_subsystem(&main_loop_manager);
 
+    // Run main loop
     main_loop_manager.run();
 
+    // Shut down engine systems
     main_loop_manager.shutdown();
     window_manager.shutdown();
     engine_event_manager.shutdown();
