@@ -5,6 +5,7 @@ find_package(GTest REQUIRED)
 add_executable(bonsai_core_tests
         src/sanity.cpp
         src/core/filesystem_tests.cpp
+        src/subsystems/engine_event_manager_tests.cpp
         src/subsystems/logging_manager_tests.cpp
 )
 target_compile_features(bonsai_core_tests PRIVATE cxx_std_17)
