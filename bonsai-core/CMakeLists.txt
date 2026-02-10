@@ -8,17 +8,19 @@ find_package(tinyobjloader REQUIRED)
 
 add_library(bonsai_core STATIC
         include/bonsai/core/filesystem.hpp
+        include/bonsai/subsystems/engine_event_manager.hpp
+        include/bonsai/subsystems/engine_event.hpp
         include/bonsai/subsystems/engine_subsystem.hpp
-        include/bonsai/subsystems/logging_system.hpp
-        include/bonsai/subsystems/window_system.hpp
+        include/bonsai/subsystems/logging_manager.hpp
+        include/bonsai/subsystems/window_manager.hpp
         include/bonsai/assets/asset_loader.hpp
         include/bonsai/assets/mesh.hpp
         include/bonsai/assets/shader.hpp
-        include/bonsai/engine_event.hpp
         src/core/filesystem.cpp
+        src/subsystems/engine_event_manager.cpp
         src/subsystems/engine_subsystem.cpp
-        src/subsystems/logging_system.cpp
-        src/subsystems/window_system.cpp
+        src/subsystems/logging_manager.cpp
+        src/subsystems/window_manager.cpp
         src/assets/mesh.cpp
         src/assets/shader.cpp
 )

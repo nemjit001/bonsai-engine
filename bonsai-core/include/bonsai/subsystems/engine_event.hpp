@@ -1,8 +1,8 @@
 #pragma once
-#ifndef BONSAI_CORE_ENGINE_EVENT_HPP
-#define BONSAI_CORE_ENGINE_EVENT_HPP
+#ifndef BONSAI_CORE_SUBSYSTEMS_ENGINE_EVENT_HPP
+#define BONSAI_CORE_SUBSYSTEMS_ENGINE_EVENT_HPP
 
-namespace bonsai
+namespace bonsai::subsystems
 {
     /// @brief Engine event types. All engine events should include an event type.
     enum EngineEventType
@@ -15,6 +15,6 @@ namespace bonsai
     {
         EngineEventType event_type;
     };
-} // namespace bonsai
+} // namespace bonsai::subsystems
 
-#endif //BONSAI_CORE_ENGINE_EVENT_HPP
+#endif //BONSAI_CORE_SUBSYSTEMS_ENGINE_EVENT_HPP

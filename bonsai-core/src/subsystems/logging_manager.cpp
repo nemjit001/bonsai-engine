@@ -1,13 +1,13 @@
-#include "bonsai/subsystems/logging_system.hpp"
+#include "bonsai/subsystems/logging_manager.hpp"
 
 namespace bonsai::subsystems
 {
-    bool LoggingSystem::init()
+    bool LoggingManager::init()
     {
         return true;
     }
 
-    void LoggingSystem::shutdown()
+    void LoggingManager::shutdown()
     {
         //
     }
