@@ -10,6 +10,7 @@ namespace bonsai::subsystems
     {
     private:
         friend SingletonSubsystem;
+        MainLoopManager() = default;
     public:
         bool init() override;
         void shutdown() override;

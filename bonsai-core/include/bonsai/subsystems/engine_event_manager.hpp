@@ -12,6 +12,7 @@ namespace bonsai::subsystems
     {
     private:
         friend SingletonSubsystem;
+        EngineEventManager() = default;
     public:
         bool init() override;
         void shutdown() override;

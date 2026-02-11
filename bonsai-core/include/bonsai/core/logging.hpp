@@ -1,0 +1,8 @@
+#pragma once
+#ifndef BONSAI_CORE_CORE_LOGGER_HPP
+#define BONSAI_CORE_CORE_LOGGER_HPP
+
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
+
+#endif //BONSAI_CORE_CORE_LOGGER_HPP

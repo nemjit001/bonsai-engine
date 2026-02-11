@@ -6,6 +6,7 @@
     "entt",
     "glad",
     "glm",
+    "gtest",
     {
       "name": "imgui",
       "features": [
@@ -16,6 +17,6 @@
     },
     "sdl3",
     "tinyobjloader",
-    "gtest"
+    "spdlog"
   ]
 }

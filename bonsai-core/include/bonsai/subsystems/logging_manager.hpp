@@ -2,6 +2,7 @@
 #ifndef BONSAI_CORE_SUBSYSTEMS_LOGGING_MANAGER_HPP
 #define BONSAI_CORE_SUBSYSTEMS_LOGGING_MANAGER_HPP
 
+#include "bonsai/core/logging.hpp"
 #include "engine_subsystem.hpp"
 
 namespace bonsai::subsystems
@@ -10,7 +11,8 @@ namespace bonsai::subsystems
     class LoggingManager : public SingletonSubsystem<LoggingManager>
     {
     private:
-        friend IEngineSubsystem;
+        friend SingletonSubsystem;
+        LoggingManager() = default;
     public:
         bool init() override;
         void shutdown() override;

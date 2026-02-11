@@ -11,7 +11,8 @@ namespace bonsai::subsystems
     class WindowManager : public SingletonSubsystem<WindowManager>
     {
     private:
-        friend IEngineSubsystem;
+        friend SingletonSubsystem;
+        WindowManager() = default;
     public:
         bool init() override;
         void shutdown() override;

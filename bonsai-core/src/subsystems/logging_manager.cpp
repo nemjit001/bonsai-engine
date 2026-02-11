@@ -4,6 +4,7 @@ namespace bonsai::subsystems
 {
     bool LoggingManager::init()
     {
+        spdlog::set_level(spdlog::level::trace);
         return true;
     }
 
