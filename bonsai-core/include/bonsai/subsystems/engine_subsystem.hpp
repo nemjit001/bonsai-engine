@@ -2,10 +2,10 @@
 #ifndef BONSAI_CORE_SUBSYSTEMS_ENGINE_SUBSYSTEM_HPP
 #define BONSAI_CORE_SUBSYSTEMS_ENGINE_SUBSYSTEM_HPP
 
-#include "bonsai/subsystems/engine_event.hpp"
-
 namespace bonsai::subsystems
 {
+    struct EngineEvent;
+
     /// @brief Engine subsystem interface. Engine systems should implement this to implement subsystem behaviour and receive subsystem events.
     class IEngineSubsystem
     {
@@ -15,6 +15,13 @@ namespace bonsai::subsystems
 
         IEngineSubsystem(IEngineSubsystem const&) = default;
         IEngineSubsystem& operator=(IEngineSubsystem const&) = default;
+
+        /// @brief Initialize the engine subsystem.
+        /// @return A boolean indicating successful initialization.
+        virtual bool init();
+
+        /// @brief Shut down the engine subsystem.
+        virtual void shutdown();
 
         /// @brief Run the engine subsystem a single time.
         virtual void run();
@@ -41,13 +48,6 @@ namespace bonsai::subsystems
         /// @brief Get the static class instance.
         /// @return 
         static SubsystemType& get();
-
-        /// @brief Initialize the engine subsystem.
-        /// @return A boolean indicating successful initialization.
-        virtual bool init() = 0;
-
-        /// @brief Shut down the engine subsystem.
-        virtual void shutdown() = 0;
     };
 
     template<class SubsystemType>

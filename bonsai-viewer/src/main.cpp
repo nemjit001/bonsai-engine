@@ -1,6 +1,7 @@
 #include <bonsai/subsystems/engine_event_manager.hpp>
 #include <bonsai/subsystems/logging_manager.hpp>
 #include <bonsai/subsystems/main_loop_manager.hpp>
+#include <bonsai/subsystems/render_manager.hpp>
 #include <bonsai/subsystems/window_manager.hpp>
 
 int main(int, char*[])
@@ -24,12 +25,22 @@ int main(int, char*[])
         return 1;
     }
 
+    SPDLOG_TRACE("Initializing Render Manager");
+    auto render_manager = bonsai::subsystems::RenderManager(&window_manager);
+    if (!render_manager.init()) {
+        return 1;
+    }
+
     SPDLOG_TRACE("Initializing Main Loop Manager");
     auto main_loop_manager = bonsai::subsystems::MainLoopManager(
         &logging_manager,
         &engine_event_manager,
-        &window_manager
+        &window_manager,
+        &render_manager
     );
+    if (!main_loop_manager.init()) {
+        return 1;
+    }
 
     engine_event_manager.register_subsystem(&logging_manager);
     engine_event_manager.register_subsystem(&window_manager);
@@ -41,6 +52,10 @@ int main(int, char*[])
 
     // Shut down engine systems
     SPDLOG_INFO("Shutting down Bonsai");
+    SPDLOG_TRACE("Shutting down Main Loop Manager");
+    main_loop_manager.shutdown();
+    SPDLOG_TRACE("Shutting down Render Manager");
+    render_manager.shutdown();
     SPDLOG_TRACE("Shutting down Window Manager");
     window_manager.shutdown();
     SPDLOG_TRACE("Shutting down Engine Event Manager");

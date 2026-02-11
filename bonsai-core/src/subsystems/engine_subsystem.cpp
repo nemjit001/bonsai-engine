@@ -2,6 +2,16 @@
 
 namespace bonsai::subsystems
 {
+    bool IEngineSubsystem::init()
+    {
+        return true;
+    }
+
+    void IEngineSubsystem::shutdown()
+    {
+        //
+    }
+
     void IEngineSubsystem::run()
     {
         //

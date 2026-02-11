@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include "bonsai/subsystems/engine_event_manager.hpp"
+#include "bonsai/subsystems/engine_event.hpp"
 
 namespace bonsai::subsystems
 {

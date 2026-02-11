@@ -15,6 +15,7 @@ add_library(bonsai_core STATIC
         include/bonsai/subsystems/engine_subsystem.hpp
         include/bonsai/subsystems/logging_manager.hpp
         include/bonsai/subsystems/main_loop_manager.hpp
+        include/bonsai/subsystems/render_manager.hpp
         include/bonsai/subsystems/window_manager.hpp
         include/bonsai/assets/asset_loader.hpp
         include/bonsai/assets/mesh.hpp
@@ -24,6 +25,7 @@ add_library(bonsai_core STATIC
         src/subsystems/engine_subsystem.cpp
         src/subsystems/logging_manager.cpp
         src/subsystems/main_loop_manager.cpp
+        src/subsystems/render_manager.cpp
         src/subsystems/window_manager.cpp
         src/assets/mesh.cpp
         src/assets/shader.cpp
