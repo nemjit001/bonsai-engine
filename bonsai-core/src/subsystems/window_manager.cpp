@@ -32,4 +32,43 @@ namespace bonsai::subsystems
             }
         }
     }
+
+    WindowID WindowManager::create_window(char const* title, uint32_t width, uint32_t height, WindowConfig const& config)
+    {
+        SDL_WindowFlags flags = 0;
+        if (config.resizable) {
+            flags |= SDL_WINDOW_RESIZABLE;
+        }
+        if (config.allow_high_dpi) {
+            flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+        }
+
+        switch (config.client_api)
+        {
+        case WindowClientAPI::OpenGL:
+            flags |= SDL_WINDOW_OPENGL;
+            break;
+        case WindowClientAPI::Vulkan:
+            flags |= SDL_WINDOW_VULKAN;
+            break;
+        default:
+            break;
+        }
+
+        SDL_Window* window = SDL_CreateWindow(title, width, height, flags);
+        return SDL_GetWindowID(window);
+    }
+
+    void WindowManager::destroy_window(WindowID window)
+    {
+        SDL_DestroyWindow(SDL_GetWindowFromID(window));
+    }
+
+    void WindowManager::get_window_size(WindowID window, uint32_t& width, uint32_t& height)
+    {
+        int w = 0, h = 0;
+        SDL_GetWindowSizeInPixels(SDL_GetWindowFromID(window), &w, &h);
+        width = w;
+        height = h;
+    }
 } // namespace bonsai::subsystems
