@@ -1,29 +1,26 @@
 #include "bonsai/subsystems/main_loop_manager.hpp"
-
-#include "bonsai/subsystems/logging_manager.hpp"
-#include "bonsai/subsystems/engine_event_manager.hpp"
-#include "bonsai/subsystems/window_manager.hpp"
-
 namespace bonsai::subsystems
 {
-    bool MainLoopManager::init()
+    MainLoopManager::MainLoopManager(
+        LoggingManager* logging_manager,
+        EngineEventManager* event_manager,
+        WindowManager* window_manager
+    )
+        :
+        m_logging_manager(logging_manager),
+        m_event_manager(event_manager),
+        m_window_manager(window_manager)
     {
-        m_running = true;
-        return true;
-    }
-
-    void MainLoopManager::shutdown()
-    {
-        m_running = false;
+        //
     }
 
     void MainLoopManager::run()
     {
         while (m_running)
         {
-            EngineEventManager::get().run();
-            LoggingManager::get().run();
-            WindowManager::get().run();
+            m_event_manager->run();
+            m_logging_manager->run();
+            m_window_manager->run();
         }
     }
 

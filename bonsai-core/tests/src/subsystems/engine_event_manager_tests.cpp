@@ -6,9 +6,6 @@ namespace bonsai::subsystems
     class TestSystem : public IEngineSubsystem
     {
     public:
-        bool init() override { return true; }
-        void shutdown() override {}
-
         void process_event(EngineEvent const& event) override
         {
             if (event.event_type == BONSAI_ENGINE_EVENT_TYPE_QUIT)

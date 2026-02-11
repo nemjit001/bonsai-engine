@@ -25,10 +25,11 @@ int main(int, char*[])
     }
 
     SPDLOG_TRACE("Initializing Main Loop Manager");
-    auto& main_loop_manager = bonsai::subsystems::MainLoopManager::get();
-    if (!main_loop_manager.init()) {
-        return 1;
-    }
+    auto main_loop_manager = bonsai::subsystems::MainLoopManager(
+        &logging_manager,
+        &engine_event_manager,
+        &window_manager
+    );
 
     engine_event_manager.register_subsystem(&logging_manager);
     engine_event_manager.register_subsystem(&window_manager);
@@ -40,8 +41,6 @@ int main(int, char*[])
 
     // Shut down engine systems
     SPDLOG_INFO("Shutting down Bonsai");
-    SPDLOG_TRACE("Shutting down Main Loop Manager");
-    main_loop_manager.shutdown();
     SPDLOG_TRACE("Shutting down Window Manager");
     window_manager.shutdown();
     SPDLOG_TRACE("Shutting down Engine Event Manager");
