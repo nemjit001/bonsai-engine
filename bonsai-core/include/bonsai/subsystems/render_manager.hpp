@@ -14,6 +14,10 @@ namespace bonsai::subsystems
     public:
         RenderManager(WindowManager* window_manager);
 
+        bool init() override;
+        void shutdown() override;
+        void run() override;
+
     private:
         WindowManager* m_window_manager = nullptr;
     };

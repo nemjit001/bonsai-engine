@@ -12,7 +12,6 @@ namespace bonsai::subsystems
     /// @brief Window client API to use, required for windowing backend configuration.
     enum class WindowClientAPI
     {
-        OpenGL,
         Vulkan,
     };
 

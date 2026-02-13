@@ -46,9 +46,6 @@ namespace bonsai::subsystems
 
         switch (config.client_api)
         {
-        case WindowClientAPI::OpenGL:
-            flags |= SDL_WINDOW_OPENGL;
-            break;
         case WindowClientAPI::Vulkan:
             flags |= SDL_WINDOW_VULKAN;
             break;

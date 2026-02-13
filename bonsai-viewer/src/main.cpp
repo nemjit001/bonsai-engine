@@ -44,6 +44,7 @@ int main(int, char*[])
 
     engine_event_manager.register_subsystem(&logging_manager);
     engine_event_manager.register_subsystem(&window_manager);
+    engine_event_manager.register_subsystem(&render_manager);
     engine_event_manager.register_subsystem(&main_loop_manager);
     SPDLOG_INFO("Initialized Bonsai");
 
