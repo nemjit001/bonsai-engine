@@ -20,6 +20,7 @@ add_library(bonsai_core STATIC
         include/bonsai/subsystems/window_manager.hpp
         include/bonsai/assets/asset_loader.hpp
         include/bonsai/assets/mesh.hpp
+        include/bonsai/assets/scene.hpp
         include/bonsai/assets/shader.hpp
         include/bonsai/engine_result.hpp
         src/core/filesystem.cpp
@@ -31,6 +32,7 @@ add_library(bonsai_core STATIC
         src/subsystems/render_manager.cpp
         src/subsystems/window_manager.cpp
         src/assets/mesh.cpp
+        src/assets/scene.cpp
         src/assets/shader.cpp
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

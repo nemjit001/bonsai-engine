@@ -1,6 +1,8 @@
 #include "bonsai/assets/mesh.hpp"
 
 #define TINY_OBJ_LOADER_IMPLEMENTATION
+#include <fstream>
+#include <cereal/archives/portable_binary.hpp>
 #include <tiny_obj_loader.h>
 
 namespace bonsai::assets
@@ -8,10 +10,12 @@ namespace bonsai::assets
     template<>
     std::optional<Mesh> AssetLoader<Mesh>::load(core::Path const& path)
     {
-        std::string const& ext = path.extension().string();
-        if (ext == WavefrontMeshImporter::FILE_EXTENSION)
-        {
+        std::string const ext = path.extension().string();
+        if (ext == WavefrontMeshImporter::FILE_EXTENSION) {
             return WavefrontMeshImporter().import(path);
+        }
+        else if (ext == BonsaiMeshImporter::FILE_EXTENSION) {
+            return BonsaiMeshImporter().import(path);
         }
 
         return {};
@@ -25,8 +29,7 @@ namespace bonsai::assets
         config.triangulation_method = "earcut";
         config.vertex_color = true;
 
-        if (reader.ParseFromFile(path.string(), config))
-        {
+        if (reader.ParseFromFile(path.string(), config)) {
             return {};
         }
 
@@ -64,6 +67,19 @@ namespace bonsai::assets
             mesh.sub_meshes.push_back(sub_mesh);
         }
 
+        return mesh;
+    }
+
+    std::optional<Mesh> BonsaiMeshImporter::import(core::Path const& path)
+    {
+        std::ifstream file(path);
+        if (!file) {
+            return {};
+        }
+
+        cereal::PortableBinaryInputArchive archive(file);
+        Mesh mesh{};
+        archive(CEREAL_NVP(mesh));
         return mesh;
     }
 } // namespace bonsai::assets

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp> // Required for std::vector serialization
 #include <glm/glm.hpp>
 #include "asset_loader.hpp"
 
@@ -17,6 +18,12 @@ namespace bonsai::assets
         glm::vec3 tangent;
         glm::vec3 color;
         glm::vec2 tex_coord;
+
+        template<class Archive>
+        void serialize(Archive& archive)
+        {
+            // TODO(nemjit001): Serialize vertex data
+        }
     };
 
     /// @brief The sub mesh class contains a single mesh segment.
@@ -71,6 +78,15 @@ namespace bonsai::assets
     {
     public:
         static constexpr char const* FILE_EXTENSION = ".obj";
+
+        std::optional<Mesh> import(core::Path const& path) override;
+    };
+
+    /// @brief Mesh importer for Bonsai serialized mesh files.
+    class BonsaiMeshImporter : IMeshImporter
+    {
+    public:
+        static constexpr char const* FILE_EXTENSION = ".mesh";
 
         std::optional<Mesh> import(core::Path const& path) override;
     };
