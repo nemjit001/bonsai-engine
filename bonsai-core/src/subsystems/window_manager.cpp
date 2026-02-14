@@ -8,6 +8,10 @@ namespace bonsai::subsystems
 {
     bool WindowManager::init()
     {
+        if (!IEngineSubsystem::init()) {
+            return false;
+        }
+
         return SDL_Init(SDL_INIT_VIDEO);
     }
 

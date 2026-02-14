@@ -18,7 +18,7 @@ namespace bonsai::subsystems
 
         /// @brief Initialize the engine subsystem.
         /// @return A boolean indicating successful initialization.
-        virtual bool init();
+        [[nodiscard]] virtual bool init();
 
         /// @brief Shut down the engine subsystem.
         virtual void shutdown();

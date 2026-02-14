@@ -14,7 +14,7 @@ namespace bonsai::subsystems
     public:
         RenderManager(WindowManager* window_manager);
 
-        bool init() override;
+        [[nodiscard]] bool init() override;
         void shutdown() override;
         void run() override;
 

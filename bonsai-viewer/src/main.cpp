@@ -2,6 +2,7 @@
 #include <bonsai/subsystems/logging_manager.hpp>
 #include <bonsai/subsystems/main_loop_manager.hpp>
 #include <bonsai/subsystems/render_manager.hpp>
+#include <bonsai/subsystems/scene_manager.hpp>
 #include <bonsai/subsystems/window_manager.hpp>
 
 int main(int, char*[])
@@ -20,8 +21,14 @@ int main(int, char*[])
     }
 
     SPDLOG_TRACE("Initializing Window Manager");
-    auto& window_manager = bonsai::subsystems::WindowManager::get();
+    auto window_manager = bonsai::subsystems::WindowManager();
     if (!window_manager.init()) {
+        return 1;
+    }
+
+    SPDLOG_TRACE("Initializing Scene Manager");
+    auto scene_manager = bonsai::subsystems::SceneManager();
+    if (!scene_manager.init({})) {
         return 1;
     }
 
@@ -36,6 +43,7 @@ int main(int, char*[])
         &logging_manager,
         &engine_event_manager,
         &window_manager,
+        &scene_manager,
         &render_manager
     );
     if (!main_loop_manager.init()) {
@@ -44,6 +52,7 @@ int main(int, char*[])
 
     engine_event_manager.register_subsystem(&logging_manager);
     engine_event_manager.register_subsystem(&window_manager);
+    engine_event_manager.register_subsystem(&scene_manager);
     engine_event_manager.register_subsystem(&render_manager);
     engine_event_manager.register_subsystem(&main_loop_manager);
     SPDLOG_INFO("Initialized Bonsai");

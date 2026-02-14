@@ -14,7 +14,7 @@ namespace bonsai::subsystems
         friend SingletonSubsystem;
         LoggingManager() = default;
     public:
-        bool init() override;
+        [[nodiscard]] bool init() override;
         void shutdown() override;
     };
 } // namespace bonsai::subsystems

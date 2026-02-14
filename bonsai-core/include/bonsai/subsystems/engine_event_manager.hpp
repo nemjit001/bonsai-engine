@@ -14,7 +14,7 @@ namespace bonsai::subsystems
         friend SingletonSubsystem;
         EngineEventManager() = default;
     public:
-        bool init() override;
+        [[nodiscard]] bool init() override;
         void shutdown() override;
 
         /// @brief Register a subsystem with the event manager.

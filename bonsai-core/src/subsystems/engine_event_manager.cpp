@@ -4,7 +4,7 @@ namespace bonsai::subsystems
 {
     bool EngineEventManager::init()
     {
-        return true;
+        return SingletonSubsystem::init();
     }
 
     void EngineEventManager::shutdown()

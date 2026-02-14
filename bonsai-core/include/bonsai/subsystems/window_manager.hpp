@@ -24,13 +24,10 @@ namespace bonsai::subsystems
     };
 
     /// @brief The window subsystem manages platform window creation and window event processing.
-    class WindowManager : public SingletonSubsystem<WindowManager>
+    class WindowManager : public IEngineSubsystem
     {
-    private:
-        friend SingletonSubsystem;
-        WindowManager() = default;
     public:
-        bool init() override;
+        [[nodiscard]] bool init() override;
         void shutdown() override;
         void run() override;
 
