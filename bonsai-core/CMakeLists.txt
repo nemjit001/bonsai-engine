@@ -39,5 +39,6 @@ target_link_libraries(bonsai_core PUBLIC cereal::cereal EnTT::EnTT glm::glm spdl
 target_extended_warnings(bonsai_core)
 
 if (BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()

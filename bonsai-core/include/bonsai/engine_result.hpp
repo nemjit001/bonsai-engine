@@ -6,6 +6,7 @@
 
 namespace bonsai
 {
+    /// @brief The engine result enum is used to indicate engine state on program exit.
     enum EngineResult : int32_t
     {
         BONSAI_ENGINE_RESULT_OK                             = 0x0,
