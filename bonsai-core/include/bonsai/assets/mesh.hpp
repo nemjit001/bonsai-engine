@@ -20,9 +20,16 @@ namespace bonsai::assets
         glm::vec2 tex_coord;
 
         template<class Archive>
-        void serialize(Archive& archive)
+        void serialize([[maybe_unused]] Archive& archive)
         {
-            // TODO(nemjit001): Serialize vertex data
+            // NOTE(nemjit001): Binary serialization allows skipping the serialize implementation for math types
+            archive(
+                cereal::make_nvp("position", cereal::binary_data(&position[0], sizeof(position))),
+                cereal::make_nvp("normal", cereal::binary_data(&normal[0], sizeof(normal))),
+                cereal::make_nvp("tangent", cereal::binary_data(&tangent[0], sizeof(tangent))),
+                cereal::make_nvp("color", cereal::binary_data(&color[0], sizeof(color))),
+                cereal::make_nvp("tex_coord", cereal::binary_data(&tex_coord[0], sizeof(tex_coord)))
+            );
         }
     };
 

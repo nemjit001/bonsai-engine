@@ -72,7 +72,7 @@ namespace bonsai::assets
 
     std::optional<Mesh> BonsaiMeshImporter::import(core::Path const& path)
     {
-        std::ifstream file(path);
+        std::ifstream file(path, std::ios::binary);
         if (!file) {
             return {};
         }
