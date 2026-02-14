@@ -1,3 +1,4 @@
+#include <bonsai/engine_result.hpp>
 #include <bonsai/subsystems/engine_event_manager.hpp>
 #include <bonsai/subsystems/logging_manager.hpp>
 #include <bonsai/subsystems/main_loop_manager.hpp>
@@ -5,37 +6,37 @@
 #include <bonsai/subsystems/scene_manager.hpp>
 #include <bonsai/subsystems/window_manager.hpp>
 
-int main(int, char*[])
+int main(int argc, char* argv[])
 {
     // Initialize engine systems
     auto& logging_manager = bonsai::subsystems::LoggingManager::get();
     if (!logging_manager.init()) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_LOGGING_MANAGER_BAD_INIT;
     }
     SPDLOG_TRACE("Initialized Logging Manager");
 
     SPDLOG_TRACE("Initializing Engine Event Manager");
     auto& engine_event_manager = bonsai::subsystems::EngineEventManager::get();
     if (!engine_event_manager.init()) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_ENGINE_EVENT_MANAGER_BAD_INIT;
     }
 
     SPDLOG_TRACE("Initializing Window Manager");
     auto window_manager = bonsai::subsystems::WindowManager();
     if (!window_manager.init()) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_WINDOW_MANAGER_BAD_INIT;
     }
 
     SPDLOG_TRACE("Initializing Scene Manager");
     auto scene_manager = bonsai::subsystems::SceneManager();
     if (!scene_manager.init({})) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_SCENE_MANAGER_BAD_INIT;
     }
 
     SPDLOG_TRACE("Initializing Render Manager");
     auto render_manager = bonsai::subsystems::RenderManager(&window_manager);
     if (!render_manager.init()) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_RENDER_MANAGER_BAD_INIT;
     }
 
     SPDLOG_TRACE("Initializing Main Loop Manager");
@@ -47,7 +48,7 @@ int main(int, char*[])
         &render_manager
     );
     if (!main_loop_manager.init()) {
-        return 1;
+        return bonsai::BONSAI_ENGINE_RESULT_MAIN_LOOP_MANAGER_BAD_INIT;
     }
 
     engine_event_manager.register_subsystem(&logging_manager);
@@ -66,11 +67,14 @@ int main(int, char*[])
     main_loop_manager.shutdown();
     SPDLOG_TRACE("Shutting down Render Manager");
     render_manager.shutdown();
+    SPDLOG_TRACE("Shutting down Scene Manager");
+    scene_manager.shutdown();
     SPDLOG_TRACE("Shutting down Window Manager");
     window_manager.shutdown();
     SPDLOG_TRACE("Shutting down Engine Event Manager");
     engine_event_manager.shutdown();
     SPDLOG_TRACE("Shutting Logging Manager");
     logging_manager.shutdown();
-    return 0;
+
+    return bonsai::BONSAI_ENGINE_RESULT_OK;
 }

@@ -21,6 +21,7 @@ add_library(bonsai_core STATIC
         include/bonsai/assets/asset_loader.hpp
         include/bonsai/assets/mesh.hpp
         include/bonsai/assets/shader.hpp
+        include/bonsai/engine_result.hpp
         src/core/filesystem.cpp
         src/subsystems/engine_event_manager.cpp
         src/subsystems/engine_subsystem.cpp
