@@ -7,14 +7,14 @@ namespace bonsai::subsystems
         if (!SceneManager::init()) {
             return false;
         }
-
+    
         if (initial_scene.has_value())
         {
-            // TODO(nemjit001): Load scene asset from disk
-        }
-        else
-        {
-            // TODO(nemjit001): Initialize empty scene asset
+            std::optional<assets::Scene> loaded_scene = assets::AssetLoader<assets::Scene>::load(*initial_scene);
+            if (loaded_scene.has_value())
+            {
+                *m_scene = std::move(*loaded_scene); // Moves loaded scene into value stored in pointer
+            }
         }
 
         return true;
@@ -22,7 +22,7 @@ namespace bonsai::subsystems
 
     void SceneManager::shutdown()
     {
-        // TODO(nemjit001): Unload active scene from memory
+        m_scene.release();
     }
 
     void SceneManager::run()
@@ -32,6 +32,11 @@ namespace bonsai::subsystems
 
     bool SceneManager::init()
     {
-        return IEngineSubsystem::init();
+        if (!IEngineSubsystem::init()) {
+            return false;
+        }
+
+        m_scene = std::make_unique<assets::Scene>();
+        return true;
     }
 } // namespace bonsai::subsystems

@@ -24,7 +24,14 @@ namespace bonsai::subsystems
         bool m_quit_received = false;
     };
 
-    TEST(EngineEventManagerTests, TestRegisterAndNotifySystem)
+    TEST(EngineEventManagerTests, TestInitEventManager)
+    {
+        auto& event_manager = EngineEventManager::get();
+        ASSERT_TRUE(event_manager.init());
+        event_manager.shutdown();
+    }
+
+    TEST(EngineEventManagerTests, TestRegisterAndNotifySubsystem)
     {
         auto& event_manager = EngineEventManager::get();
         ASSERT_TRUE(event_manager.init());

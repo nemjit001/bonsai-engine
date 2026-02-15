@@ -3,7 +3,7 @@
 
 namespace bonsai::subsystems
 {
-    TEST(LoggingManagerTests, TestInitSystem)
+    TEST(LoggingManagerTests, TestInitLoggingManager)
     {
         auto& logging_system = LoggingManager::get();
         ASSERT_TRUE(logging_system.init());
