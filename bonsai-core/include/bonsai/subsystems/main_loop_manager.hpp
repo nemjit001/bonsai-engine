@@ -6,8 +6,9 @@
 
 namespace bonsai::subsystems
 {
-    class LoggingManager;
+    class ECSManager;
     class EngineEventManager;
+    class LoggingManager;
     class RenderManager;
     class SceneManager;
     class WindowManager;
@@ -21,6 +22,7 @@ namespace bonsai::subsystems
             EngineEventManager* event_manager,
             WindowManager* window_manager,
             SceneManager* scene_manager,
+            ECSManager* ecs_manager,
             RenderManager* render_manager
         );
 
@@ -34,6 +36,7 @@ namespace bonsai::subsystems
         EngineEventManager* m_event_manager = nullptr;
         WindowManager* m_window_manager = nullptr;
         SceneManager* m_scene_manager = nullptr;
+        ECSManager* m_ecs_manager = nullptr;
         RenderManager* m_render_manager = nullptr;
         bool m_running = false;
     };

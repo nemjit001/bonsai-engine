@@ -25,11 +25,6 @@ namespace bonsai::subsystems
         m_scene.release();
     }
 
-    void SceneManager::run()
-    {
-        // TODO(nemjit001): Update active scene state by iteratively running ECS systems through ECS manager
-    }
-
     bool SceneManager::init()
     {
         if (!IEngineSubsystem::init()) {

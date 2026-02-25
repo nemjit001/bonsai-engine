@@ -19,7 +19,6 @@ namespace bonsai::subsystems
         /// @return A boolean indicating successful initialization.
         [[nodiscard]] virtual bool init(std::optional<core::Path> const& initial_scene);
         void shutdown() override;
-        void run() override;
 
         assets::Scene& get_scene() { return *m_scene; }
         assets::Scene const& get_scene() const { return *m_scene; }

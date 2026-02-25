@@ -1,8 +1,8 @@
 #include "bonsai/subsystems/main_loop_manager.hpp"
 
+#include "bonsai/subsystems/ecs_manager.hpp"
 #include "bonsai/subsystems/engine_event_manager.hpp"
 #include "bonsai/subsystems/engine_event.hpp"
-#include "bonsai/subsystems/engine_subsystem.hpp"
 #include "bonsai/subsystems/logging_manager.hpp"
 #include "bonsai/subsystems/render_manager.hpp"
 #include "bonsai/subsystems/scene_manager.hpp"
@@ -15,6 +15,7 @@ namespace bonsai::subsystems
         EngineEventManager* event_manager,
         WindowManager* window_manager,
         SceneManager* scene_manager,
+        ECSManager* ecs_manager,
         RenderManager* render_manager
     )
         :
@@ -22,6 +23,7 @@ namespace bonsai::subsystems
         m_event_manager(event_manager),
         m_window_manager(window_manager),
         m_scene_manager(scene_manager),
+        m_ecs_manager(ecs_manager),
         m_render_manager(render_manager)
     {
         //
@@ -50,6 +52,7 @@ namespace bonsai::subsystems
             m_logging_manager->run();
             m_window_manager->run();
             m_scene_manager->run();
+            m_ecs_manager->run();
             m_render_manager->run();
         }
     }

@@ -17,9 +17,10 @@ namespace bonsai::subsystems
         [[nodiscard]] bool init() override;
         void shutdown() override;
 
-        /// @brief Register a subsystem with the event manager.
+        /// @brief Register a subsystem with the event manager using a builder pattern.
         /// @param subsystem 
-        void register_subsystem(IEngineSubsystem* subsystem);
+        /// @return 
+        EngineEventManager& register_subsystem(IEngineSubsystem* subsystem);
 
         /// @brief Deregister a subsystem from the event manager.
         /// @param subsystem 

@@ -12,9 +12,10 @@ namespace bonsai::subsystems
         m_subsystems.clear();
     }
 
-    void EngineEventManager::register_subsystem(IEngineSubsystem* subsystem)
+    EngineEventManager& EngineEventManager::register_subsystem(IEngineSubsystem* subsystem)
     {
         m_subsystems.push_back(subsystem);
+        return *this;
     }
 
     void EngineEventManager::unregister_subsystem(IEngineSubsystem* subsystem)
