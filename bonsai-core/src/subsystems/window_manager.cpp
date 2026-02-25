@@ -1,6 +1,7 @@
 #include "bonsai/subsystems/window_manager.hpp"
 
 #include <SDL3/SDL.h>
+#include "bonsai/core/logging.hpp"
 #include "bonsai/subsystems/engine_event_manager.hpp"
 #include "bonsai/subsystems/engine_event.hpp"
 
@@ -58,6 +59,12 @@ namespace bonsai::subsystems
         }
 
         SDL_Window* window = SDL_CreateWindow(title, width, height, flags);
+        if (window == nullptr)
+        {
+            SPDLOG_ERROR("Failed to create window: {}", SDL_GetError());
+            return 0;
+        }
+
         return SDL_GetWindowID(window);
     }
 

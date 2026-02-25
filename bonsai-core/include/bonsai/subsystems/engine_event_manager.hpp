@@ -22,9 +22,9 @@ namespace bonsai::subsystems
         /// @return 
         EngineEventManager& register_subsystem(IEngineSubsystem* subsystem);
 
-        /// @brief Deregister a subsystem from the event manager.
+        /// @brief Remove a subsystem from the event manager.
         /// @param subsystem 
-        void unregister_subsystem(IEngineSubsystem* subsystem);
+        void remove_subsystem(IEngineSubsystem* subsystem);
 
         /// @brief Notify all registered subsystems of an engine event.
         /// @param event Engine event to publish.

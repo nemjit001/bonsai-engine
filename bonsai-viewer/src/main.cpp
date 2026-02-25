@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     }
 
     SPDLOG_TRACE("Initializing ECS Manager");
-    auto ecs_manager = bonsai::subsystems::ECSManager();
+    auto ecs_manager = bonsai::subsystems::ECSManager(&scene_manager);
     if (!ecs_manager.init()) {
         return bonsai::BONSAI_ENGINE_RESULT_ECS_MANAGER_BAD_INIT;
     }

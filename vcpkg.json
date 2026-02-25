@@ -15,7 +15,12 @@
         "sdl3-binding"
       ]
     },
-    "sdl3",
+    {
+      "name": "sdl3",
+      "features": [
+        "vulkan"
+      ]
+    },
     "stb",
     "tinyobjloader",
     "spdlog"

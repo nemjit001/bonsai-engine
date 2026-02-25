@@ -14,11 +14,14 @@ namespace bonsai::subsystems
 
     EngineEventManager& EngineEventManager::register_subsystem(IEngineSubsystem* subsystem)
     {
-        m_subsystems.push_back(subsystem);
+        if (std::find(std::begin(m_subsystems), std::end(m_subsystems), subsystem) == std::end(m_subsystems)) {
+            m_subsystems.push_back(subsystem);
+        }
+        
         return *this;
     }
 
-    void EngineEventManager::unregister_subsystem(IEngineSubsystem* subsystem)
+    void EngineEventManager::remove_subsystem(IEngineSubsystem* subsystem)
     {
         m_subsystems.remove(subsystem);
     }

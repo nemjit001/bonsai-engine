@@ -8,6 +8,7 @@
 namespace bonsai::subsystems
 {
     using WindowID = uint32_t;
+    static constexpr WindowID BONSAI_INVALID_WINDOW_ID = 0;
 
     /// @brief Window client API to use, required for windowing backend configuration.
     enum class WindowClientAPI

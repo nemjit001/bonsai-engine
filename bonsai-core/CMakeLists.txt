@@ -29,6 +29,7 @@ add_library(bonsai_core STATIC
         src/assets/mesh.cpp
         src/assets/scene.cpp
         src/assets/shader.cpp
+        src/subsystems/ecs_manager.cpp
         src/subsystems/engine_event_manager.cpp
         src/subsystems/engine_subsystem.cpp
         src/subsystems/logging_manager.cpp
