@@ -13,7 +13,7 @@ TEST(SceneManagerTests, TestDefaultSceneInit)
     auto scene_manager = bonsai::subsystems::SceneManager();
     ASSERT_TRUE(scene_manager.init({}));
 
-    auto& scene = scene_manager.get_scene();
+    bonsai::assets::Scene& scene = scene_manager.active_scene();
     ASSERT_EQ(scene.name, "Bonsai Scene");
 
     scene_manager.shutdown();

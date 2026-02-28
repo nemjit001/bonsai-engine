@@ -14,7 +14,7 @@ namespace bonsai::subsystems
 
     void ECSManager::run()
     {
-        assets::Scene& active_scene = m_scene_manager->get_scene();
+        assets::Scene& active_scene = m_scene_manager->active_scene();
         for (auto const& system : m_ecs_systems)
         {
             if (system == nullptr) {

@@ -20,8 +20,8 @@ namespace bonsai::subsystems
         [[nodiscard]] virtual bool init(std::optional<core::Path> const& initial_scene);
         void shutdown() override;
 
-        assets::Scene& get_scene() { return *m_scene; }
-        assets::Scene const& get_scene() const { return *m_scene; }
+        assets::Scene& active_scene() { return *m_scene; }
+        assets::Scene const& active_scene() const { return *m_scene; }
 
     private:
         [[nodiscard]] bool init() override;
