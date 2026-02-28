@@ -52,6 +52,7 @@ namespace bonsai::assets
     };
 
     /// @brief The mesh class is used to store mesh assets. Mesh assets are imported from DCC tools through mesh importers.
+    /// Meshes store their materials internally as loaded from DCC tools.
     class Mesh
     {
     public:

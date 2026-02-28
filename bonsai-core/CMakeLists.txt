@@ -15,6 +15,7 @@ add_library(bonsai_core STATIC
         include/bonsai/assets/mesh.hpp
         include/bonsai/assets/scene.hpp
         include/bonsai/assets/shader.hpp
+        include/bonsai/ecs/components/mesh_renderer.hpp
         include/bonsai/ecs/components/transform.hpp
         include/bonsai/ecs/system.hpp
         include/bonsai/subsystems/ecs_manager.hpp
