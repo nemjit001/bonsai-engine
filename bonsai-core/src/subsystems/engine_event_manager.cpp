@@ -1,5 +1,7 @@
 #include "bonsai/subsystems/engine_event_manager.hpp"
 
+#include <algorithm>
+
 namespace bonsai::subsystems
 {
     bool EngineEventManager::init()

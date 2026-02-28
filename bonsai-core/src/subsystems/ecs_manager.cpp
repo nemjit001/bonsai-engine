@@ -1,5 +1,6 @@
 #include "bonsai/subsystems/ecs_manager.hpp"
 
+#include <algorithm>
 #include "bonsai/subsystems/scene_manager.hpp"
 
 namespace bonsai::subsystems
@@ -24,7 +25,7 @@ namespace bonsai::subsystems
         }
     }
     
-    ECSManager& ECSManager::register_system(IECSSystem* system)
+    ECSManager& ECSManager::register_system(ecs::ISystem* system)
     {
         if (std::find(std::begin(m_ecs_systems), std::end(m_ecs_systems), system) == std::end(m_ecs_systems)) {
             m_ecs_systems.push_back(system);
@@ -33,7 +34,7 @@ namespace bonsai::subsystems
         return *this;
     }
 
-    void ECSManager::remove_system(IECSSystem* system)
+    void ECSManager::remove_system(ecs::ISystem* system)
     {
         m_ecs_systems.remove(system);
     }
