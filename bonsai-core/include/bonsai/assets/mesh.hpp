@@ -20,7 +20,7 @@ namespace bonsai::assets
         glm::vec2 tex_coord;
 
         template<class Archive>
-        void serialize([[maybe_unused]] Archive& archive)
+        void serialize(Archive& archive)
         {
             // NOTE(nemjit001): Binary serialization allows skipping the serialize implementation for math types
             archive(
