@@ -6,7 +6,9 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> // Required for std::vector serialization
 #include <glm/glm.hpp>
+#include <tiny_obj_loader.h>
 #include "asset_loader.hpp"
+#include "material.hpp"
 
 namespace bonsai::assets
 {
@@ -64,6 +66,7 @@ namespace bonsai::assets
 
     public:
         std::vector<SubMesh> sub_meshes;
+        std::vector<Material> materials;
     };
 
     template<>
@@ -88,6 +91,9 @@ namespace bonsai::assets
         static constexpr char const* FILE_EXTENSION = ".obj";
 
         std::optional<Mesh> import(core::Path const& path) override;
+
+    private:
+        Material process_material(tinyobj::material_t const& material) const;
     };
 
     /// @brief Mesh importer for Bonsai serialized mesh files.

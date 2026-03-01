@@ -17,12 +17,14 @@ namespace bonsai::assets
         void serialize(Archive& archive)
         {
             archive(
+                CEREAL_NVP(name),
                 CEREAL_NVP(vertex_shader),
                 CEREAL_NVP(fragment_shader)
             );
         }
 
     public:
+        std::string name;
         std::string vertex_shader;
         std::string fragment_shader;
     };

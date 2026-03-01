@@ -12,6 +12,7 @@ add_library(bonsai_core STATIC
         include/bonsai/core/filesystem.hpp
         include/bonsai/core/logging.hpp
         include/bonsai/assets/asset_loader.hpp
+        include/bonsai/assets/material.hpp
         include/bonsai/assets/mesh.hpp
         include/bonsai/assets/scene.hpp
         include/bonsai/assets/shader.hpp
@@ -30,6 +31,7 @@ add_library(bonsai_core STATIC
         include/bonsai/subsystems/window_manager.hpp
         include/bonsai/engine_result.hpp
         src/core/filesystem.cpp
+        src/assets/material.cpp
         src/assets/mesh.cpp
         src/assets/scene.cpp
         src/assets/shader.cpp

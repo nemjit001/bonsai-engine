@@ -1,6 +1,7 @@
 #include "bonsai/assets/mesh.hpp"
 
 #define TINY_OBJ_LOADER_IMPLEMENTATION
+#include <cstring>
 #include <fstream>
 #include <cereal/archives/portable_binary.hpp>
 #include <tiny_obj_loader.h>
@@ -33,17 +34,45 @@ namespace bonsai::assets
             return {};
         }
 
-        auto const& attrib = reader.GetAttrib();
-        auto const& shapes = reader.GetShapes();
-        // auto const& materials = reader.GetMaterials(); // TODO(nemjit001): also process materials in model file
+        tinyobj::attrib_t const& attrib = reader.GetAttrib();
+        std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+        std::vector<tinyobj::material_t> const& materials = reader.GetMaterials();
 
         Mesh mesh{};
         for (auto const& shape : shapes)
         {
-            uint32_t vertex_index = 0;
             SubMesh sub_mesh{};
-            for (size_t face_idx = 0; face_idx < shape.mesh.num_face_vertices.size(); face_idx++)
+            Material material{};
+            int current_material_id = -1;
+            if (!shape.mesh.material_ids.empty())
             {
+                current_material_id = shape.mesh.material_ids[0];
+                material = process_material(materials[current_material_id]);
+            }
+
+            uint32_t vertex_index = 0;
+            size_t const num_faces = shape.mesh.num_face_vertices.size();
+            for (size_t face_idx = 0; face_idx < num_faces; face_idx++)
+            {
+                // Check if material changed for this face
+                int const material_id = shape.mesh.material_ids[face_idx];
+                if (material_id != current_material_id)
+                {
+                    // Store previous sub mesh with material
+                    current_material_id = material_id; // Set material ID
+                    vertex_index = 0; // Reset vertex index for sub mesh
+                    mesh.sub_meshes.push_back(sub_mesh);
+                    mesh.materials.push_back(material);
+
+                    // Set up new material and sub mesh
+                    sub_mesh = SubMesh{};
+                    material = Material{};
+                    if (current_material_id != -1) {
+                        material = process_material(materials[current_material_id]);
+                    }
+                }
+
+                // Read vertex data for face
                 uint32_t const& num_face_verts = shape.mesh.num_face_vertices[face_idx];
                 for (uint32_t i = 0; i < num_face_verts; i++)
                 {
@@ -63,11 +92,23 @@ namespace bonsai::assets
 
                 vertex_index += num_face_verts;
             }
-            
+
+            // Push last active mesh and material
             mesh.sub_meshes.push_back(sub_mesh);
+            mesh.materials.push_back(material);
         }
 
         return mesh;
+    }
+
+    Material WavefrontMeshImporter::process_material(tinyobj::material_t const& material) const
+    {
+        Material bonsai_mat{};
+        std::memcpy(bonsai_mat.albedo, material.diffuse, sizeof(bonsai_mat.albedo));
+        bonsai_mat.metallic = material.metallic;
+        bonsai_mat.roughness = material.roughness;
+
+        return bonsai_mat;
     }
 
     std::optional<Mesh> BonsaiMeshImporter::import(core::Path const& path)
