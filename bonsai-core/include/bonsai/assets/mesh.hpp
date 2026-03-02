@@ -6,6 +6,7 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> // Required for std::vector serialization
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <tiny_obj_loader.h>
 #include "asset_loader.hpp"
 #include "material.hpp"
@@ -26,11 +27,11 @@ namespace bonsai::assets
         {
             // NOTE(nemjit001): Binary serialization allows skipping the serialize implementation for math types
             archive(
-                cereal::make_nvp("position", cereal::binary_data(&position[0], sizeof(position))),
-                cereal::make_nvp("normal", cereal::binary_data(&normal[0], sizeof(normal))),
-                cereal::make_nvp("tangent", cereal::binary_data(&tangent[0], sizeof(tangent))),
-                cereal::make_nvp("color", cereal::binary_data(&color[0], sizeof(color))),
-                cereal::make_nvp("tex_coord", cereal::binary_data(&tex_coord[0], sizeof(tex_coord)))
+                cereal::make_nvp("position", cereal::binary_data(glm::value_ptr(position), sizeof(position))),
+                cereal::make_nvp("normal", cereal::binary_data(glm::value_ptr(normal), sizeof(normal))),
+                cereal::make_nvp("tangent", cereal::binary_data(glm::value_ptr(tangent), sizeof(tangent))),
+                cereal::make_nvp("color", cereal::binary_data(glm::value_ptr(color), sizeof(color))),
+                cereal::make_nvp("tex_coord", cereal::binary_data(glm::value_ptr(tex_coord), sizeof(tex_coord)))
             );
         }
     };

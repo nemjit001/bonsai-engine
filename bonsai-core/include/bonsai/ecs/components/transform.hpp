@@ -5,6 +5,7 @@
 #include <cereal/cereal.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace bonsai::ecs
 {
@@ -27,9 +28,9 @@ namespace bonsai::ecs
         void serialize(Archive& archive)
         {
             archive(
-                cereal::make_nvp("position", cereal::binary_data(&position[0], sizeof(position))),
-                cereal::make_nvp("rotation", cereal::binary_data(&rotation[0], sizeof(rotation))),
-                cereal::make_nvp("scale", cereal::binary_data(&scale[0], sizeof(scale))),
+                cereal::make_nvp("position", cereal::binary_data(glm::value_ptr(position), sizeof(position))),
+                cereal::make_nvp("rotation", cereal::binary_data(glm::value_ptr(rotation), sizeof(rotation))),
+                cereal::make_nvp("scale", cereal::binary_data(glm::value_ptr(scale), sizeof(scale))),
             )
         }
     };
