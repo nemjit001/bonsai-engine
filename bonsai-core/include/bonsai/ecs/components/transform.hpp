@@ -19,6 +19,10 @@ namespace bonsai::ecs
         /// @return 
         inline glm::mat4 matrix() const;
 
+        /// @brief Get the view matrix for this transform. The view matrix is the inverse of the world transform, i.e. it sees the world from the view of this transform.
+        /// @return 
+        inline glm::mat4 view_matrix() const;
+
         template<class Archive>
         void serialize(Archive& archive)
         {
@@ -35,6 +39,12 @@ namespace bonsai::ecs
         return glm::translate(glm::identity<glm::mat4>(), position)
             * glm::mat4_cast(rotation)
             * glm::scale(glm::identity<glm::mat4>(), scale);
+    }
+
+    glm::mat4 Transform::view_matrix() const
+    {
+        glm::mat4 const transform = matrix();
+        return glm::inverse(transform);
     }
 } // namespace bonsai::ecs
 

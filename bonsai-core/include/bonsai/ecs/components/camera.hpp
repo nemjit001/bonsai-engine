@@ -15,8 +15,9 @@ namespace bonsai::ecs
         float z_far     = 100.0F;
 
         /// @brief Get the projection matrix for this camera.
+        /// @param aspect_ratio Camera aspect ratio to use for the projection matrix.
         /// @return 
-        inline glm::mat4 projection_matrix() const;
+        inline glm::mat4 projection_matrix(float aspect_ratio) const;
 
         template<class Archive>
         void serialize(Archive& archive)
@@ -29,10 +30,9 @@ namespace bonsai::ecs
         }
     };
 
-    glm::mat4 Camera::projection_matrix() const
+    glm::mat4 Camera::projection_matrix(float aspect_ratio) const
     {
-        // TODO(nemjit001): Use a render target handle for fetching aspect ratio?
-        return glm::perspective(glm::radians(fov), 1.0F, z_near, z_far);
+        return glm::perspective(glm::radians(fov), aspect_ratio, z_near, z_far);
     }
 } // namespace bonsai::ecs
 
