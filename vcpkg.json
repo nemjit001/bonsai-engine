@@ -4,7 +4,6 @@
   "dependencies": [
     "cereal",
     "entt",
-    "glad",
     "glm",
     "gtest",
     {
@@ -21,8 +20,9 @@
         "vulkan"
       ]
     },
+    "spdlog",
     "stb",
     "tinyobjloader",
-    "spdlog"
+    "volk"
   ]
 }
