@@ -1,28 +1,11 @@
 {
-  "name": "bonsai-renderer",
-  "version": "0.1.0",
   "dependencies": [
-    "cereal",
-    "entt",
-    "glm",
-    "gtest",
-    {
-      "name": "imgui",
-      "features": [
-        "docking-experimental",
-        "opengl3-binding",
-        "sdl3-binding"
-      ]
-    },
     {
       "name": "sdl3",
       "features": [
         "vulkan"
       ]
     },
-    "spdlog",
-    "stb",
-    "tinyobjloader",
     "volk"
   ]
 }

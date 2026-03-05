@@ -18,5 +18,4 @@ if (BUILD_TESTS)
 endif()
 
 # Configure sub projects
-add_subdirectory(bonsai-core)
 add_subdirectory(bonsai-viewer)
