@@ -27,11 +27,19 @@ namespace bonsai::ecs
         template<class Archive>
         void serialize(Archive& archive)
         {
+            _position[3] = { position.x, position.y, position.z };
+            _rotation[4] = { rotation.w, rotation.x, rotation.y, rotation.z };
+            _scale[3] = { scale.x, scale.y, scale.z };
+
             archive(
-                cereal::make_nvp("position", cereal::binary_data(glm::value_ptr(position), sizeof(position))),
-                cereal::make_nvp("rotation", cereal::binary_data(glm::value_ptr(rotation), sizeof(rotation))),
-                cereal::make_nvp("scale", cereal::binary_data(glm::value_ptr(scale), sizeof(scale))),
-            )
+                cereal::make_nvp("position", _position),
+                cereal::make_nvp("rotation", _rotation),
+                cereal::make_nvp("scale", _scale)
+            );
+
+            position = glm::make_vec3(_position);
+            rotation = glm::make_quat(_rotation);
+            scale = glm::make_vec3(_scale);
         }
     };
 

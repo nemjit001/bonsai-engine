@@ -25,14 +25,25 @@ namespace bonsai::assets
         template<class Archive>
         void serialize(Archive& archive)
         {
-            // NOTE(nemjit001): Binary serialization allows skipping the serialize implementation for math types
+            float _position[3] = { position.x, position.y, position.z };
+            float _normal[3] = { normal.x, normal.y, normal.z };
+            float _tangent[3] = { tangent.x, tangent.y, tangent.z };
+            float _color[3] = { color.x, color.y, color.z };
+            float _tex_coord[2] = { tex_coord.x, tex_coord.y };
+
             archive(
-                cereal::make_nvp("position", cereal::binary_data(glm::value_ptr(position), sizeof(position))),
-                cereal::make_nvp("normal", cereal::binary_data(glm::value_ptr(normal), sizeof(normal))),
-                cereal::make_nvp("tangent", cereal::binary_data(glm::value_ptr(tangent), sizeof(tangent))),
-                cereal::make_nvp("color", cereal::binary_data(glm::value_ptr(color), sizeof(color))),
-                cereal::make_nvp("tex_coord", cereal::binary_data(glm::value_ptr(tex_coord), sizeof(tex_coord)))
+                cereal::make_nvp("position", _position),
+                cereal::make_nvp("normal", _normal),
+                cereal::make_nvp("tangent", _tangent),
+                cereal::make_nvp("color", _color),
+                cereal::make_nvp("tex_coord", _tex_coord)
             );
+
+            position = glm::make_vec3(_position);
+            normal = glm::make_vec3(_normal);
+            tangent = glm::make_vec3(_tangent);
+            color = glm::make_vec3(_color);
+            tex_coord = glm::make_vec2(_tex_coord);
         }
     };
 
