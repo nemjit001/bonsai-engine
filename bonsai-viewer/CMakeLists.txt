@@ -21,6 +21,10 @@ add_library(BonsaiViewerLib
         src/Scene/SceneObject.hpp
         src/Scene/Transform.cpp
         src/Scene/Transform.hpp
+        src/Assets/Material.cpp
+        src/Assets/Material.hpp
+        src/Assets/StaticMesh.cpp
+        src/Assets/StaticMesh.hpp
 )
 target_compile_features(BonsaiViewerLib PUBLIC cxx_std_17)
 target_include_directories(BonsaiViewerLib PUBLIC src)
