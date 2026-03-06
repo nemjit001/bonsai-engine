@@ -1,5 +1,6 @@
 project("Bonsai Viewer" VERSION 0.1.0)
 
+find_package(glm REQUIRED)
 find_package(SDL3 REQUIRED)
 find_package(volk REQUIRED)
 
@@ -21,7 +22,7 @@ add_library(BonsaiViewerLib
 )
 target_compile_features(BonsaiViewerLib PUBLIC cxx_std_17)
 target_include_directories(BonsaiViewerLib PUBLIC src)
-target_link_libraries(BonsaiViewerLib PUBLIC SDL3::SDL3 volk::volk_headers)
+target_link_libraries(BonsaiViewerLib PUBLIC glm::glm SDL3::SDL3 volk::volk_headers)
 target_extended_warnings(BonsaiViewerLib)
 
 add_executable(BonsaiViewer

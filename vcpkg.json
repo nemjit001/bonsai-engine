@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "gtest",
     {
       "name": "sdl3",
       "features": [
@@ -7,6 +8,6 @@
       ]
     },
     "volk",
-    "gtest"
+    "glm"
   ]
 }
