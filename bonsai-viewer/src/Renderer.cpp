@@ -9,6 +9,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
+#include "Logging.hpp"
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2
@@ -97,7 +98,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
     void*
 )
 {
-    fprintf(stderr, "[Vulkan] %s\n", CallbackData->pMessage);
+    BONSAI_LOG(LogVerbosity::Verbose, "[Vulkan] %s", CallbackData->pMessage);
     return VK_FALSE;
 }
 

@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "Logging.hpp"
 #include "Renderer.hpp"
 
 BEngine::BEngine() = default;
@@ -39,21 +40,25 @@ EngineResult BEngine::Run()
 
 EngineResult BEngine::Init()
 {
+    BONSAI_LOG(LogVerbosity::Info, "Initializing SDL3");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         return ENGINE_RESULT_PLATFORM_BAD_INIT;
     }
 
+    BONSAI_LOG(LogVerbosity::Info, "Initializing Renderer");
     Renderer = std::make_unique<BRenderer>();
     RendererResult const RendererInitResult = Renderer->Init();
     if (RendererInitResult != RENDERER_RESULT_OK) {
         return ENGINE_RESULT_RENDERER_BAD_INIT;
     }
 
+    BONSAI_LOG(LogVerbosity::Info, "Initialized Bonsai Viewer");
     return ENGINE_RESULT_OK;
 }
 
 void BEngine::Shutdown()
 {
+    BONSAI_LOG(LogVerbosity::Info, "Shutting down Bonsai Viewer");
     Renderer->Shutdown();
     SDL_Quit();
 }

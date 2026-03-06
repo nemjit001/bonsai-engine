@@ -5,6 +5,8 @@ find_package(volk REQUIRED)
 
 add_executable(BonsaiViewer
         src/main.cpp
+        src/Logging.cpp
+        src/Logging.hpp
         src/Engine.cpp
         src/Engine.hpp
         src/Renderer.cpp
