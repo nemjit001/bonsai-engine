@@ -8,15 +8,6 @@
 class BTransform
 {
 public:
-    BTransform() = default;
-    ~BTransform() = default;
-
-    BTransform(BTransform const&) = default;
-    BTransform& operator=(BTransform const&) = default;
-
-    BTransform(BTransform&&) = default;
-    BTransform& operator=(BTransform&&) = default;
-
     /// @brief Get the transformation matrix for the Transform.
     /// @return 
     inline glm::mat4 GetMatrix() const {
