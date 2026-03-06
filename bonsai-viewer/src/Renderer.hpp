@@ -15,6 +15,7 @@ enum RendererResult : int
     RENDERER_RESULT_FRAME_STATE_BAD_INIT    = 0x60,
 };
 
+struct BRendererImpl;
 class BRenderer
 {
 public:
@@ -34,8 +35,7 @@ public:
     void Frame();
 
 private:
-    struct Impl;
-    std::unique_ptr<Impl> pImpl;
+    std::unique_ptr<BRendererImpl> pImpl;
 };
 
 #endif //RENDERER_HPP

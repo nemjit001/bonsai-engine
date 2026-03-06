@@ -46,7 +46,7 @@ struct SwapchainConfig
 };
 
 /// @brief Renderer backend implementation.
-struct BRenderer::Impl
+struct BRendererImpl
 {
     /** Instance state */
     SDL_Window* Window; // Main window
@@ -438,9 +438,52 @@ static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& Sw
     return true;
 }
 
+static void RecordRenderCommands(BRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
+{
+    VkCommandBufferBeginInfo FrameCommandsBeginInfo{};
+    FrameCommandsBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    FrameCommandsBeginInfo.pNext = nullptr;
+    FrameCommandsBeginInfo.flags = 0;
+    FrameCommandsBeginInfo.pInheritanceInfo = nullptr;
+
+    if (vkBeginCommandBuffer(FrameCommandBuffer, &FrameCommandsBeginInfo) != VK_SUCCESS) {
+        return;
+    }
+
+    VkImageMemoryBarrier2 SwapPresentBarrier{};
+    SwapPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    SwapPresentBarrier.pNext = nullptr;
+    SwapPresentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+    SwapPresentBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+    SwapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+    SwapPresentBarrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+    SwapPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    SwapPresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    SwapPresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    SwapPresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    SwapPresentBarrier.image = RendererImpl->SwapchainImages[SwapImageIndex];
+    SwapPresentBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    SwapPresentBarrier.subresourceRange.baseMipLevel = 0;
+    SwapPresentBarrier.subresourceRange.levelCount = 1;
+    SwapPresentBarrier.subresourceRange.baseArrayLayer = 0;
+    SwapPresentBarrier.subresourceRange.layerCount = 1;
+
+    VkDependencyInfo PresentDependency{};
+    PresentDependency.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    PresentDependency.pNext = nullptr;
+    PresentDependency.dependencyFlags = 0;
+    PresentDependency.imageMemoryBarrierCount = 1;
+    PresentDependency.pImageMemoryBarriers = &SwapPresentBarrier;
+    vkCmdPipelineBarrier2(FrameCommandBuffer, &PresentDependency);
+
+    if (vkEndCommandBuffer(FrameCommandBuffer) != VK_SUCCESS) {
+        return;
+    }
+}
+
 BRenderer::BRenderer()
     :
-    pImpl(std::make_unique<Impl>())
+    pImpl(std::make_unique<BRendererImpl>())
 {
     //
 }
@@ -764,22 +807,8 @@ void BRenderer::Frame()
     VkCommandBuffer FrameCommandBuffer = pImpl->FrameCommandBuffers[FrameInFlight];
     vkResetCommandBuffer(FrameCommandBuffer, 0 /* No flags */);
 
-    // Start command recording
-    VkCommandBufferBeginInfo FrameCommandsBeginInfo{};
-    FrameCommandsBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    FrameCommandsBeginInfo.pNext = nullptr;
-    FrameCommandsBeginInfo.flags = 0;
-    FrameCommandsBeginInfo.pInheritanceInfo = nullptr;
-
-    if (vkBeginCommandBuffer(FrameCommandBuffer, &FrameCommandsBeginInfo) != VK_SUCCESS) {
-        return;
-    }
-
-    // TODO(nemjit001): Record commands for frame.
-
-    if (vkEndCommandBuffer(FrameCommandBuffer) != VK_SUCCESS) {
-        return;
-    }
+    // Record commands
+    RecordRenderCommands(pImpl.get(), SwapImageIndex, FrameCommandBuffer);
 
     // Submit frame
     VkPipelineStageFlags WaitStages[] = {
