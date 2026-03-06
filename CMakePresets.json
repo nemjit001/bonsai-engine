@@ -55,6 +55,11 @@
       "name": "clang-x64-debug",
       "configurePreset": "clang-x64",
       "configuration": "Debug"
+    },
+    {
+      "name": "clang-x64-release",
+      "inherits": "clang-x64-debug",
+      "configuration": "Release"
     }
   ]
 }
