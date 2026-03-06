@@ -13,8 +13,3 @@ BRenderObject::BRenderObject(std::string const& ObjectName)
 {
     //
 }
-
-void BRenderObject::SetTransform(BTransform const& NewTransform)
-{
-    Transform = NewTransform;
-}

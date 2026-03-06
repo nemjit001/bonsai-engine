@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 
+#include <filesystem>
 #include <SDL3/SDL.h>
 
 #include "Logging.hpp"
@@ -40,6 +41,9 @@ EngineResult BEngine::Run()
 
 EngineResult BEngine::Init()
 {
+    std::filesystem::path CurrentPath = std::filesystem::current_path();
+    BONSAI_LOG(LogVerbosity::Info, "Initializing Bonsai Viewer from %s", CurrentPath.string().c_str());
+
     BONSAI_LOG(LogVerbosity::Info, "Initializing SDL3");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         return ENGINE_RESULT_PLATFORM_BAD_INIT;

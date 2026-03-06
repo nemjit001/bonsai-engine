@@ -2,9 +2,7 @@
 #ifndef TRANSFORM_HPP
 #define TRANSFORM_HPP
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "BonsaiMath.hpp"
 
 /// @brief A Transform is used to give scene objects a position, rotation, and scale in the world.
 class BTransform

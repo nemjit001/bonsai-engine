@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "Transform.hpp"
 
 /// @brief A SceneObject represents an entity in the virtual scene.
 class BSceneObject
@@ -19,6 +20,26 @@ public:
 
     BSceneObject(BSceneObject&&) = delete;
     BSceneObject& operator=(BSceneObject&&) = delete;
+
+    /// @brief Set the name for the SceneObject.
+    /// @return 
+    std::string GetName() const { return Name; }
+
+    /// @brief Set the transform for this SceneObject.
+    /// @param NewTransform 
+    void SetTransform(BTransform const& NewTransform);
+
+    /// @brief Get the transform for this SceneObject.
+    /// @return 
+    BTransform GetTransform() const { return Transform; }
+
+    /// @brief Get the world-space transform matrix for the SceneObject.
+    /// @return 
+    glm::mat4 GetWorldMatrix() const;
+
+    /// @brief Get the parent SceneObject.
+    /// @return 
+    BSceneObject* GetParent() const { return Parent; }
 
     /// @brief Add a child SceneObject.
     /// @param Child 
@@ -36,17 +57,10 @@ public:
     /// @param NewParent 
     void SetParent(BSceneObject* NewParent);
 
-    /// @brief Get the parent SceneObject.
-    /// @return 
-    BSceneObject* GetParent() const { return Parent; }
-
-    /// @brief Set the name for the SceneObject.
-    /// @return 
-    std::string GetName() const { return Name; }
-
 private:
     std::string Name = "Scene Object";
-    BSceneObject* Parent = nullptr;
+    BTransform Transform;
+    BSceneObject* Parent;
     std::vector<std::unique_ptr<BSceneObject>> Children;
 };
 

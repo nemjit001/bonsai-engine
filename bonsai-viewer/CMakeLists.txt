@@ -5,6 +5,8 @@ find_package(SDL3 REQUIRED)
 find_package(volk REQUIRED)
 
 add_library(BonsaiViewerLib
+        src/BonsaiMath.cpp
+        src/BonsaiMath.hpp
         src/Engine.cpp
         src/Engine.hpp
         src/Logging.cpp

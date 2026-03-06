@@ -5,10 +5,31 @@
 BSceneObject::BSceneObject(std::string const& ObjectName)
     :
     Name(ObjectName),
+    Transform(),
     Parent(nullptr),
     Children()
 {
     //
+}
+
+void BSceneObject::SetTransform(BTransform const& NewTransform)
+{
+    Transform = NewTransform;
+}
+
+glm::mat4 BSceneObject::GetWorldMatrix() const
+{
+    glm::mat4 const LocalTransform = GetTransform().GetMatrix();
+    if (BSceneObject* NodeParent = GetParent()) {
+        return LocalTransform * NodeParent->GetWorldMatrix();
+    }
+
+    return LocalTransform;
+}
+
+void BSceneObject::SetParent(BSceneObject* NewParent)
+{
+    Parent = NewParent;
 }
 
 void BSceneObject::AddChild(std::unique_ptr<BSceneObject>&& Child)
@@ -24,9 +45,4 @@ void BSceneObject::RemoveChild(std::unique_ptr<BSceneObject> const& Child)
         (*Iter)->SetParent(nullptr);
         Children.erase(Iter);
     }
-}
-
-void BSceneObject::SetParent(BSceneObject* NewParent)
-{
-    Parent = NewParent;
 }
