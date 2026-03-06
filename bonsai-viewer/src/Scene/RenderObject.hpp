@@ -5,7 +5,7 @@
 #include "SceneObject.hpp"
 #include "Transform.hpp"
 
-/// @brief A RenderObject is an object with a world transform that can be rendered.
+/// @brief A RenderObject is an object with a world transform that can be rendered by the renderer system.
 class BRenderObject : public BSceneObject
 {
 public:
