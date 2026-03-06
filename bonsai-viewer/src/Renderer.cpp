@@ -67,10 +67,14 @@ struct BRenderer::Impl
     std::vector<VkImage> SwapchainImages;
     std::vector<VkImageView> SwapchainImageViews;
 
+    /** Sync state */
+    std::vector<VkSemaphore> SwapImageAvailable;        // Sized on frames in flight
+    std::vector<VkFence> FrameReady;                    // Sized on frames in flight
+    std::vector<VkSemaphore> RenderingFinished;         // Sized on swap image count
+
     /** Frame state */
-    std::vector<VkSemaphore> SwapImageAvailable;
-    std::vector<VkFence> FrameReady;
-    std::vector<VkSemaphore> RenderingFinished;
+    std::vector<VkCommandPool> GraphicsCmdPools;        // Sized on frames in flight
+    std::vector<VkCommandBuffer> FrameCommandBuffers;   // Sized on frames in flight
     uint64_t FrameIndex;
 };
 
@@ -644,6 +648,42 @@ RendererResult BRenderer::Init()
         RenderingFinished.push_back(Semaphore);
     }
 
+    // Create frame state
+    std::vector<VkCommandPool> GraphicsCmdPools{};
+    GraphicsCmdPools.reserve(BONSAI_FRAMES_IN_FLIGHT);
+    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
+    {
+        VkCommandPoolCreateInfo GraphicsPoolCreateInfo{};
+        GraphicsPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        GraphicsPoolCreateInfo.pNext = nullptr;
+        GraphicsPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        GraphicsPoolCreateInfo.queueFamilyIndex = DeviceQueueFamilies.GraphicsFamily;
+
+        VkCommandPool GraphicsPool = VK_NULL_HANDLE;
+        if (vkCreateCommandPool(Device, &GraphicsPoolCreateInfo, nullptr, &GraphicsPool) != VK_SUCCESS) {
+            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
+        }
+        GraphicsCmdPools.push_back(GraphicsPool);
+    }
+
+    std::vector<VkCommandBuffer> FrameCommandBuffers{};
+    FrameCommandBuffers.reserve(BONSAI_FRAMES_IN_FLIGHT);
+    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
+    {
+        VkCommandBufferAllocateInfo FrameCommandAllocateInfo{};
+        FrameCommandAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        FrameCommandAllocateInfo.pNext = nullptr;
+        FrameCommandAllocateInfo.commandPool = GraphicsCmdPools[i];
+        FrameCommandAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        FrameCommandAllocateInfo.commandBufferCount = 1;
+
+        VkCommandBuffer FrameCommandBuffer = VK_NULL_HANDLE;
+        if (vkAllocateCommandBuffers(Device, &FrameCommandAllocateInfo, &FrameCommandBuffer) != VK_SUCCESS) {
+            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
+        }
+        FrameCommandBuffers.push_back(FrameCommandBuffer);
+    }
+
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -660,6 +700,8 @@ RendererResult BRenderer::Init()
     pImpl->SwapImageAvailable = SwapImageAvailable;
     pImpl->FrameReady = FrameReady;
     pImpl->RenderingFinished = RenderingFinished;
+    pImpl->GraphicsCmdPools = GraphicsCmdPools;
+    pImpl->FrameCommandBuffers = FrameCommandBuffers;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
 }
@@ -670,6 +712,11 @@ void BRenderer::Shutdown()
     vkDeviceWaitIdle(pImpl->Device);
 
     // Clean up frame state
+    for (auto const& GraphicsCmdPool : pImpl->GraphicsCmdPools) {
+        vkDestroyCommandPool(pImpl->Device, GraphicsCmdPool, nullptr);
+    }
+
+    // Clean up sync state
     for (auto const& Semaphore : pImpl->RenderingFinished) {
         vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
     }
@@ -710,12 +757,29 @@ void BRenderer::Frame()
         return;
     }
 
-    // Reset frame fence
+    // Reset frame state
     vkResetFences(pImpl->Device, 1, &pImpl->FrameReady[FrameInFlight]);
     pImpl->FrameIndex++; // Advance frame counter after fence reset. This is done here because after this point any failure needs to use the next available sync primitives to avoid deadlocks.
 
-    // TODO(nemjit001): Record frame commands
-    //
+    VkCommandBuffer FrameCommandBuffer = pImpl->FrameCommandBuffers[FrameInFlight];
+    vkResetCommandBuffer(FrameCommandBuffer, 0 /* No flags */);
+
+    // Start command recording
+    VkCommandBufferBeginInfo FrameCommandsBeginInfo{};
+    FrameCommandsBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    FrameCommandsBeginInfo.pNext = nullptr;
+    FrameCommandsBeginInfo.flags = 0;
+    FrameCommandsBeginInfo.pInheritanceInfo = nullptr;
+
+    if (vkBeginCommandBuffer(FrameCommandBuffer, &FrameCommandsBeginInfo) != VK_SUCCESS) {
+        return;
+    }
+
+    // TODO(nemjit001): Record commands for frame.
+
+    if (vkEndCommandBuffer(FrameCommandBuffer) != VK_SUCCESS) {
+        return;
+    }
 
     // Submit frame
     VkPipelineStageFlags WaitStages[] = {
@@ -727,8 +791,8 @@ void BRenderer::Frame()
     SubmitInfo.waitSemaphoreCount = 1;
     SubmitInfo.pWaitSemaphores = &pImpl->SwapImageAvailable[FrameInFlight];
     SubmitInfo.pWaitDstStageMask = WaitStages;
-    SubmitInfo.commandBufferCount = 0;
-    SubmitInfo.pCommandBuffers = nullptr;
+    SubmitInfo.commandBufferCount = 1;
+    SubmitInfo.pCommandBuffers = &FrameCommandBuffer;
     SubmitInfo.signalSemaphoreCount = 1;
     SubmitInfo.pSignalSemaphores = &pImpl->RenderingFinished[SwapImageIndex];
     if (vkQueueSubmit(pImpl->GraphicsQueue, 1, &SubmitInfo, pImpl->FrameReady[FrameInFlight]) != VK_SUCCESS) {
