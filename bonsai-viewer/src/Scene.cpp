@@ -1,6 +1,6 @@
 #include "Scene.hpp"
 
-#include "SceneObject.hpp"
+#include "Scene/SceneObject.hpp"
 
 BScene::BScene()
     :

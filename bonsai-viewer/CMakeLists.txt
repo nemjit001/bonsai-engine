@@ -12,8 +12,12 @@ add_library(BonsaiViewerLib
         src/Renderer.hpp
         src/Scene.cpp
         src/Scene.hpp
-        src/SceneObject.cpp
-        src/SceneObject.hpp
+        src/Scene/RenderObject.cpp
+        src/Scene/RenderObject.hpp
+        src/Scene/SceneObject.cpp
+        src/Scene/SceneObject.hpp
+        src/Scene/Transform.cpp
+        src/Scene/Transform.hpp
 )
 target_compile_features(BonsaiViewerLib PUBLIC cxx_std_17)
 target_include_directories(BonsaiViewerLib PUBLIC src)

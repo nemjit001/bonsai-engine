@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Scene.hpp"
-#include "SceneObject.hpp"
+#include "Scene/SceneObject.hpp"
+#include "Scene/RenderObject.hpp"
 
 TEST(SceneTests, TestCreateEmptyScene)
 {
@@ -19,6 +20,19 @@ TEST(SceneTests, TestCreateSceneObject)
     ASSERT_EQ(Children.size(), 1);
     ASSERT_EQ(Children[0]->GetParent(), Root);
     ASSERT_EQ(Children[0]->GetName(), "Child");
+}
+
+TEST(SceneTests, TestCreateRenderObject)
+{
+    BScene Scene{};
+    BSceneObject* Root = Scene.GetRoot();
+    auto Child = std::make_unique<BRenderObject>("RenderObjectChild");
+    Root->AddChild(std::move(Child));
+
+    std::vector<std::unique_ptr<BSceneObject>> const& Children = Root->GetChildren();
+    ASSERT_EQ(Children.size(), 1);
+    ASSERT_EQ(Children[0]->GetParent(), Root);
+    ASSERT_EQ(Children[0]->GetName(), "RenderObjectChild");
 }
 
 TEST(SceneTests, TestRemoveSceneObject)

@@ -12,7 +12,7 @@ class BSceneObject
 public:
     BSceneObject() = default;
     BSceneObject(std::string const& ObjectName);
-    ~BSceneObject() = default;
+    virtual ~BSceneObject() = default;
 
     BSceneObject(BSceneObject const&) = delete;
     BSceneObject& operator=(BSceneObject const&) = delete;
