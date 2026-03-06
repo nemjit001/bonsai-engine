@@ -10,6 +10,7 @@
 #include <volk.h>
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
+#define BONSAI_FRAMES_IN_FLIGHT     2
 
 #ifndef NDEBUG
 static constexpr bool RendererDebugEnabled = true;
@@ -34,19 +35,37 @@ struct QueueFamilyInfo
     uint32_t TransferFamily;
 };
 
+/// @brief Swapchain configuration as determined by physical device and surface.
+struct SwapchainConfig
+{
+    uint32_t MinImageCount;
+    VkExtent2D ImageExtent;
+    VkSurfaceFormatKHR SurfaceFormat;
+    VkPresentModeKHR PresentMode;
+    VkSurfaceTransformFlagBitsKHR CurrentTransform;
+};
+
 /// @brief Renderer backend implementation.
 struct BRenderer::Impl
 {
-    SDL_Window* Window;
+    /** Instance state */
+    SDL_Window* Window; // Main window
     VkInstance Instance;
     VkDebugUtilsMessengerEXT DebugMessenger;
     VkSurfaceKHR Surface;
+    
+    /** Device state */
     VkPhysicalDevice PhysicalDevice;
     VkDevice Device;
     QueueFamilyInfo DeviceQueueFamilies;
     VkQueue GraphicsQueue;
     VkQueue ComputeQueue;
     VkQueue TransferQueue;
+
+    /** Frame state */
+    VkSwapchainKHR Swapchain;
+    std::vector<VkImage> SwapchainImages;
+    std::vector<VkImageView> SwapchainImageViews;
 };
 
 /// @brief Vulkan debug message callback.
@@ -219,12 +238,19 @@ static VkPhysicalDevice SelectPhysicalDevice(
     return VK_NULL_HANDLE;
 }
 
-uint32_t FindQueueFamily(
+/// @brief Find a single queue family using a set of required and ignored flags.
+/// @param QueueFamilies 
+/// @param PhysicalDevice 
+/// @param DefaultSurface Optional surface to query for support on queue.
+/// @param RequiredFlags Required queue flags.
+/// @param FilterFlags Filter flags, excludes queues with given flag set.
+/// @return 
+static uint32_t FindQueueFamily(
     std::vector<VkQueueFamilyProperties> const& QueueFamilies,
     VkPhysicalDevice PhysicalDevice,
     VkSurfaceKHR DefaultSurface,
     VkQueueFlags RequiredFlags,
-    VkQueueFlags IgnoredFlags
+    VkQueueFlags FilterFlags
 )
 {
     uint32_t const QueueCount = static_cast<uint32_t>(QueueFamilies.size());
@@ -237,7 +263,7 @@ uint32_t FindQueueFamily(
 
         if (SurfaceSupport != VK_FALSE
             && (QueueFamilies[i].queueFlags & RequiredFlags) == RequiredFlags
-            && (QueueFamilies[i].queueFlags & IgnoredFlags) == 0
+            && (QueueFamilies[i].queueFlags & FilterFlags) == 0
         ) {
             return i;
         }
@@ -246,7 +272,12 @@ uint32_t FindQueueFamily(
     return VK_QUEUE_FAMILY_IGNORED;
 }
 
-bool GetDeviceQueueFamilies(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR DefaultSurface, QueueFamilyInfo& OutQueueFamilies)
+/// @brief Get device queue families for a physical device.
+/// @param PhysicalDevice 
+/// @param DefaultSurface 
+/// @param OutQueueFamilies 
+/// @return A boolean indicating that all device queues were found successfully.
+static bool GetDeviceQueueFamilies(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR DefaultSurface, QueueFamilyInfo& OutQueueFamilies)
 {
     uint32_t QueueCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(PhysicalDevice, &QueueCount, nullptr);
@@ -262,7 +293,10 @@ bool GetDeviceQueueFamilies(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Defaul
         && OutQueueFamilies.TransferFamily != VK_QUEUE_FAMILY_IGNORED;
 }
 
-std::vector<uint32_t> GetUniqueQueueFamilies(QueueFamilyInfo const& QueueFamilies)
+/// @brief Get unique queue family indices for a QueueFamilyInfo structure.
+/// @param QueueFamilies 
+/// @return 
+static std::vector<uint32_t> GetUniqueQueueFamilies(QueueFamilyInfo const& QueueFamilies)
 {
     std::vector<uint32_t> QueueIndices = {
         QueueFamilies.GraphicsFamily,
@@ -278,6 +312,120 @@ std::vector<uint32_t> GetUniqueQueueFamilies(QueueFamilyInfo const& QueueFamilie
     );
 
     return QueueIndices;
+}
+
+/// @brief Get a swapchain configuration from a physical device, surface, and window.
+/// @param PhysicalDevice 
+/// @param Surface 
+/// @param Window 
+/// @return 
+static SwapchainConfig GetSwapchainConfig(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface, SDL_Window* Window)
+{
+    VkSurfaceCapabilitiesKHR SurfaceCapabilities{};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(PhysicalDevice, Surface, &SurfaceCapabilities);
+
+    uint32_t SurfaceFormatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &SurfaceFormatCount, nullptr);
+    std::vector<VkSurfaceFormatKHR> SurfaceFormats(SurfaceFormatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &SurfaceFormatCount, SurfaceFormats.data());
+
+    uint32_t PresentModeCount = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &PresentModeCount, nullptr);
+    std::vector<VkPresentModeKHR> PresentModes(PresentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &PresentModeCount, PresentModes.data());
+
+    int WindowWidth = 0, WindowHeight = 0;
+    SDL_GetWindowSizeInPixels(Window, &WindowWidth, &WindowHeight);
+
+    SwapchainConfig SwapConfig{};
+    SwapConfig.MinImageCount = SurfaceCapabilities.maxImageCount != 0 ? std::min(SurfaceCapabilities.minImageCount + 1, SurfaceCapabilities.maxImageCount) : SurfaceCapabilities.minImageCount + 1;
+    SwapConfig.ImageExtent = VkExtent2D{ static_cast<uint32_t>(WindowWidth), static_cast<uint32_t>(WindowHeight) };
+    SwapConfig.SurfaceFormat = SurfaceFormats[0]; // Pick first format for now, should function fine
+    SwapConfig.PresentMode = VK_PRESENT_MODE_FIFO_KHR;
+    SwapConfig.CurrentTransform = SurfaceCapabilities.currentTransform;
+
+    return SwapConfig;
+}
+
+/// @brief Create a swap chain using a swapchain configuration.
+/// @param Device 
+/// @param Surface 
+/// @param OldSwapchain Optional old swap chain, destroyed automatically if not VK_NULL_HANDLE.
+/// @param SwapConfig Swapchain configuration to use for swapchain creation.
+/// @param OutSwapchain 
+/// @return A boolean indicating successful swapchain creation.
+static bool CreateSwapchain(VkDevice Device, VkSurfaceKHR Surface, VkSwapchainKHR OldSwapchain, SwapchainConfig const& SwapConfig, VkSwapchainKHR& OutSwapchain)
+{
+    VkSwapchainCreateInfoKHR SwapchainCreateInfo{};
+    SwapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    SwapchainCreateInfo.pNext = nullptr;
+    SwapchainCreateInfo.flags = 0;
+    SwapchainCreateInfo.surface = Surface;
+    SwapchainCreateInfo.minImageCount = SwapConfig.MinImageCount;
+    SwapchainCreateInfo.imageFormat = SwapConfig.SurfaceFormat.format;
+    SwapchainCreateInfo.imageColorSpace = SwapConfig.SurfaceFormat.colorSpace;
+    SwapchainCreateInfo.imageExtent = SwapConfig.ImageExtent;
+    SwapchainCreateInfo.imageArrayLayers = 1;
+    SwapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+        | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    SwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    SwapchainCreateInfo.queueFamilyIndexCount = 0;
+    SwapchainCreateInfo.pQueueFamilyIndices = nullptr;
+    SwapchainCreateInfo.preTransform = SwapConfig.CurrentTransform;
+    SwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // Assume we won't need any alpha compositing for the window.
+    SwapchainCreateInfo.presentMode = SwapConfig.PresentMode;
+    SwapchainCreateInfo.clipped = VK_FALSE;
+    SwapchainCreateInfo.oldSwapchain = OldSwapchain;
+
+    VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
+    if (vkCreateSwapchainKHR(Device, &SwapchainCreateInfo, nullptr, &Swapchain) != VK_SUCCESS) {
+        return false;
+    }
+
+    vkDestroySwapchainKHR(Device, OldSwapchain, nullptr);
+    OutSwapchain = Swapchain;
+    return true;
+}
+
+/// @brief Create swapchain image views for swapchain images.
+/// @param Device 
+/// @param SwapConfig Swapchain configuration used to create the swap chain that owns the swap images.
+/// @param SwapchainImages 
+/// @param OutImageViews 
+/// @return 
+static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& SwapConfig, std::vector<VkImage> const& SwapchainImages, std::vector<VkImageView>& OutImageViews)
+{
+    uint32_t const SwapImageCount = static_cast<uint32_t>(SwapchainImages.size());
+    OutImageViews.clear();
+    OutImageViews.reserve(SwapImageCount);
+    for (auto const& Image : SwapchainImages)
+    {
+        VkImageViewCreateInfo ViewCreateInfo{};
+        ViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        ViewCreateInfo.pNext = nullptr;
+        ViewCreateInfo.flags = 0;
+        ViewCreateInfo.image = Image;
+        ViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        ViewCreateInfo.format = SwapConfig.SurfaceFormat.format;
+        ViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        ViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        ViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        ViewCreateInfo.subresourceRange.levelCount = 1;
+        ViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        ViewCreateInfo.subresourceRange.layerCount = 1;
+
+        VkImageView SwapImageView = VK_NULL_HANDLE;
+        if (vkCreateImageView(Device, &ViewCreateInfo, nullptr, &SwapImageView) != VK_SUCCESS) {
+            return false;
+        }
+
+        OutImageViews.push_back(SwapImageView);
+    }
+
+    return true;
 }
 
 BRenderer::BRenderer()
@@ -387,7 +535,8 @@ RendererResult BRenderer::Init()
     }
 
     std::vector<uint32_t> const QueueFamilyIndices = GetUniqueQueueFamilies(DeviceQueueFamilies);
-    std::vector<VkDeviceQueueCreateInfo> QueueCreateInfos{}; QueueCreateInfos.reserve(QueueFamilyIndices.size());
+    std::vector<VkDeviceQueueCreateInfo> QueueCreateInfos{};
+    QueueCreateInfos.reserve(QueueFamilyIndices.size());
     float QueuePriorities[] = { 1.0F };
     for (auto const& QueueIndex : QueueFamilyIndices)
     {
@@ -426,6 +575,23 @@ RendererResult BRenderer::Init()
     vkGetDeviceQueue(Device, DeviceQueueFamilies.ComputeFamily, 0, &ComputeQueue);
     vkGetDeviceQueue(Device, DeviceQueueFamilies.TransferFamily, 0, &TransferQueue);
 
+    // Initialize swap chain & frame state
+    SwapchainConfig const SwapConfig = GetSwapchainConfig(PhysicalDevice, Surface, Window);
+    VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
+    if (!CreateSwapchain(Device, Surface, VK_NULL_HANDLE, SwapConfig, Swapchain)) {
+        return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
+    }
+
+    uint32_t SwapImageCount = 0;
+    vkGetSwapchainImagesKHR(Device, Swapchain, &SwapImageCount, nullptr);
+    std::vector<VkImage> SwapchainImages(SwapImageCount);
+    vkGetSwapchainImagesKHR(Device, Swapchain, &SwapImageCount, SwapchainImages.data());
+
+    std::vector<VkImageView> SwapchainImageViews;
+    if (!CreateSwapchainImageViews(Device, SwapConfig, SwapchainImages, SwapchainImageViews)) {
+        return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
+    }
+
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -436,19 +602,29 @@ RendererResult BRenderer::Init()
     pImpl->GraphicsQueue = GraphicsQueue;
     pImpl->ComputeQueue = ComputeQueue;
     pImpl->TransferQueue = TransferQueue;
+    pImpl->Swapchain = Swapchain;
+    pImpl->SwapchainImages = SwapchainImages;
+    pImpl->SwapchainImageViews = SwapchainImageViews;
     return RENDERER_RESULT_OK;
 }
 
 void BRenderer::Shutdown()
 {
+    // Clean up frame state
+    for (auto const& View : pImpl->SwapchainImageViews) {
+        vkDestroyImageView(pImpl->Device, View, nullptr);
+    }
+    vkDestroySwapchainKHR(pImpl->Device, pImpl->Swapchain, nullptr);
+
+    // Clean up device state
     vkDestroyDevice(pImpl->Device, nullptr);
 
+    // Clean up instance state
     vkDestroySurfaceKHR(pImpl->Instance, pImpl->Surface, nullptr);
     if constexpr (RendererDebugEnabled) {
         vkDestroyDebugUtilsMessengerEXT(pImpl->Instance, pImpl->DebugMessenger, nullptr);
     }
     vkDestroyInstance(pImpl->Instance, nullptr);
-
     SDL_DestroyWindow(pImpl->Window);
     volkFinalize();
 }
