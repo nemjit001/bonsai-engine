@@ -43,8 +43,13 @@
   "buildPresets": [
     {
       "name": "gcc-x64-debug",
-      "configurePreset": "clang-x64",
+      "configurePreset": "gcc-x64",
       "configuration": "Debug"
+    },
+    {
+      "name": "gcc-x64-release",
+      "inherits": "gcc-x64-debug",
+      "configuration": "Release"
     },
     {
       "name": "clang-x64-debug",
