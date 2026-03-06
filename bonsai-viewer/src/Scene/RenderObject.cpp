@@ -2,7 +2,7 @@
 
 BRenderObject::BRenderObject()
     :
-    BSceneObject()
+    BRenderObject("Render Object")
 {
     //
 }

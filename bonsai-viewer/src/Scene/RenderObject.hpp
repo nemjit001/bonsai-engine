@@ -4,7 +4,7 @@
 
 #include "SceneObject.hpp"
 
-/// @brief A RenderObject is an object with a world representation that can be rendered by the renderer system.
+/// @brief A RenderObject is an object that can be rendered by the renderer system.
 class BRenderObject : public BSceneObject
 {
 public:

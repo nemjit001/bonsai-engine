@@ -18,7 +18,7 @@ struct Vertex
 };
 
 /// @brief A StaticMeshPart is used to represent a part of a static mesh that has a single material applied to it.
-class StaticMeshPart
+class BStaticMeshPart
 {
 public:
     uint32_t MaterialId;
@@ -27,10 +27,10 @@ public:
 };
 
 /// @brief A StaticMesh is a collection of StaticMeshParts that together form a single object.
-class StaticMesh
+class BStaticMesh
 {
 public:
-    std::vector<StaticMeshPart> SubMeshes;
+    std::vector<BStaticMeshPart> SubMeshes;
     std::vector<Material> Materials;
 };
 

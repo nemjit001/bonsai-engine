@@ -18,8 +18,8 @@ public:
     BSceneObject(BSceneObject const&) = delete;
     BSceneObject& operator=(BSceneObject const&) = delete;
 
-    BSceneObject(BSceneObject&&) = delete;
-    BSceneObject& operator=(BSceneObject&&) = delete;
+    BSceneObject(BSceneObject&&) = default;
+    BSceneObject& operator=(BSceneObject&&) = default;
 
     /// @brief Set the name for the SceneObject.
     /// @return 

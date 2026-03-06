@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "glm",
     "gtest",
     {
       "name": "sdl3",
@@ -8,6 +9,6 @@
       ]
     },
     "volk",
-    "glm"
+    "tinyobjloader"
   ]
 }
