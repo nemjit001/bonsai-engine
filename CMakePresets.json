@@ -38,6 +38,23 @@
         "CC": "clang",
         "CXX": "clang++"
       }
+    },
+    {
+      "name": "msvc-x64",
+      "inherits": "base",
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "environment": {
+        "CC": "cl",
+        "CXX": "cl"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "Windows",
+        "rhs": "${hostSystemName}"
+      }
     }
   ],
   "buildPresets": [
@@ -59,6 +76,16 @@
     {
       "name": "clang-x64-release",
       "inherits": "clang-x64-debug",
+      "configuration": "Release"
+    },
+    {
+      "name": "msvc-x64-debug",
+      "configurePreset": "msvc-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "msvc-x64-release",
+      "inherits": "msvc-x64-debug",
       "configuration": "Release"
     }
   ]
