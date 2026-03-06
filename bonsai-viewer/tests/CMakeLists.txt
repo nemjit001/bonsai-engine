@@ -1,0 +1,11 @@
+project("Bonsai Viewer Tests")
+
+find_package(GTest REQUIRED)
+
+add_executable(BonsaiViewerTests
+    TestScene.cpp
+)
+target_link_libraries(BonsaiViewerTests PRIVATE BonsaiViewerLib GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(BonsaiViewerTests)
