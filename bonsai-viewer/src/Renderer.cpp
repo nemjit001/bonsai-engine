@@ -3,6 +3,7 @@
 #define VOLK_IMPLEMENTATION
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <vector>
 #include <SDL3/SDL.h>
@@ -17,6 +18,11 @@ static constexpr bool RendererDebugEnabled = true;
 #else
 static constexpr bool RendererDebugEnabled = false;
 #endif //!NDEBUG
+
+/// @brief Device extension names that are enabled by default.
+static constexpr std::array DefaultDeviceExtensionNames = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+};
 
 /// @brief The DeviceFeatures struct contains vulkan device features structs used during device selection.
 struct DeviceFeatures
@@ -572,10 +578,7 @@ RendererResult BRenderer::Init()
     }
 
     // Select physical device & create logical device
-    std::vector<char const*> DeviceExtensionNames = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-
+    std::vector<char const*> DeviceExtensionNames(std::begin(DefaultDeviceExtensionNames), std::end(DefaultDeviceExtensionNames));
     DeviceFeatures EnabledDeviceFeatures{};
     VkPhysicalDevice PhysicalDevice = SelectPhysicalDevice(Instance, Surface, DeviceExtensionNames, EnabledDeviceFeatures);
     if (!PhysicalDevice) {
@@ -808,6 +811,7 @@ void BRenderer::Frame()
     vkResetCommandBuffer(FrameCommandBuffer, 0 /* No flags */);
 
     // Record commands
+    // TODO(nemjit001): Check if a separate function call is really what we want, especially with multiple render passes this may become a monster function...
     RecordRenderCommands(pImpl.get(), SwapImageIndex, FrameCommandBuffer);
 
     // Submit frame
