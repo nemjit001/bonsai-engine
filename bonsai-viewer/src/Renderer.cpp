@@ -62,10 +62,16 @@ struct BRenderer::Impl
     VkQueue ComputeQueue;
     VkQueue TransferQueue;
 
-    /** Frame state */
+    /** Swap state */
     VkSwapchainKHR Swapchain;
     std::vector<VkImage> SwapchainImages;
     std::vector<VkImageView> SwapchainImageViews;
+
+    /** Frame state */
+    std::vector<VkSemaphore> SwapImageAvailable;
+    std::vector<VkFence> FrameReady;
+    std::vector<VkSemaphore> RenderingFinished;
+    uint64_t FrameIndex;
 };
 
 /// @brief Vulkan debug message callback.
@@ -575,7 +581,7 @@ RendererResult BRenderer::Init()
     vkGetDeviceQueue(Device, DeviceQueueFamilies.ComputeFamily, 0, &ComputeQueue);
     vkGetDeviceQueue(Device, DeviceQueueFamilies.TransferFamily, 0, &TransferQueue);
 
-    // Initialize swap chain & frame state
+    // Create swap state
     SwapchainConfig const SwapConfig = GetSwapchainConfig(PhysicalDevice, Surface, Window);
     VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
     if (!CreateSwapchain(Device, Surface, VK_NULL_HANDLE, SwapConfig, Swapchain)) {
@@ -587,9 +593,55 @@ RendererResult BRenderer::Init()
     std::vector<VkImage> SwapchainImages(SwapImageCount);
     vkGetSwapchainImagesKHR(Device, Swapchain, &SwapImageCount, SwapchainImages.data());
 
-    std::vector<VkImageView> SwapchainImageViews;
+    std::vector<VkImageView> SwapchainImageViews{};
     if (!CreateSwapchainImageViews(Device, SwapConfig, SwapchainImages, SwapchainImageViews)) {
         return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
+    }
+
+    // Create sync primitives
+    std::vector<VkSemaphore> SwapImageAvailable{};
+    std::vector<VkFence> FrameReady{};
+    SwapImageAvailable.reserve(BONSAI_FRAMES_IN_FLIGHT);
+    FrameReady.reserve(BONSAI_FRAMES_IN_FLIGHT);
+    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
+    {
+        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
+        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        SemaphoreCreateInfo.pNext = nullptr;
+        SemaphoreCreateInfo.flags = 0;
+
+        VkSemaphore Semaphore = VK_NULL_HANDLE;
+        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &Semaphore) != VK_SUCCESS) {
+            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
+        }
+        SwapImageAvailable.push_back(Semaphore);
+
+        VkFenceCreateInfo FenceCreateInfo{};
+        FenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        FenceCreateInfo.pNext = nullptr;
+        FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        VkFence Fence = VK_NULL_HANDLE;
+        if (vkCreateFence(Device, &FenceCreateInfo, nullptr, &Fence)) {
+            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
+        }
+        FrameReady.push_back(Fence);
+    }
+
+    std::vector<VkSemaphore> RenderingFinished{};
+    RenderingFinished.reserve(SwapImageCount);
+    for (uint32_t i = 0; i < SwapImageCount; i++)
+    {
+        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
+        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        SemaphoreCreateInfo.pNext = nullptr;
+        SemaphoreCreateInfo.flags = 0;
+
+        VkSemaphore Semaphore = VK_NULL_HANDLE;
+        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &Semaphore) != VK_SUCCESS) {
+            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
+        }
+        RenderingFinished.push_back(Semaphore);
     }
 
     pImpl->Window = Window;
@@ -605,12 +657,29 @@ RendererResult BRenderer::Init()
     pImpl->Swapchain = Swapchain;
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
+    pImpl->SwapImageAvailable = SwapImageAvailable;
+    pImpl->FrameReady = FrameReady;
+    pImpl->RenderingFinished = RenderingFinished;
+    pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
 }
 
 void BRenderer::Shutdown()
 {
+    // Ensure any work on the GPU finishes before cleanup starts
+    vkDeviceWaitIdle(pImpl->Device);
+
     // Clean up frame state
+    for (auto const& Semaphore : pImpl->RenderingFinished) {
+        vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
+    }
+
+    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++) {
+        vkDestroyFence(pImpl->Device, pImpl->FrameReady[i], nullptr);
+        vkDestroySemaphore(pImpl->Device, pImpl->SwapImageAvailable[i], nullptr);
+    }
+
+    // Clean up swap state
     for (auto const& View : pImpl->SwapchainImageViews) {
         vkDestroyImageView(pImpl->Device, View, nullptr);
     }
@@ -631,5 +700,54 @@ void BRenderer::Shutdown()
 
 void BRenderer::Frame()
 {
+    // Acquire next frame
+    uint32_t const FrameInFlight = pImpl->FrameIndex % BONSAI_FRAMES_IN_FLIGHT;
+    vkWaitForFences(pImpl->Device, 1, &pImpl->FrameReady[FrameInFlight], VK_TRUE, UINT64_MAX);
+
+    uint32_t SwapImageIndex = 0;
+    VkResult const AcquireResult = vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, pImpl->SwapImageAvailable[FrameInFlight], VK_NULL_HANDLE, &SwapImageIndex);
+    if (AcquireResult != VK_SUCCESS) {
+        return;
+    }
+
+    // Reset frame fence
+    vkResetFences(pImpl->Device, 1, &pImpl->FrameReady[FrameInFlight]);
+    pImpl->FrameIndex++; // Advance frame counter after fence reset. This is done here because after this point any failure needs to use the next available sync primitives to avoid deadlocks.
+
+    // TODO(nemjit001): Record frame commands
     //
+
+    // Submit frame
+    VkPipelineStageFlags WaitStages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    };
+    VkSubmitInfo SubmitInfo{};
+    SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    SubmitInfo.pNext = nullptr;
+    SubmitInfo.waitSemaphoreCount = 1;
+    SubmitInfo.pWaitSemaphores = &pImpl->SwapImageAvailable[FrameInFlight];
+    SubmitInfo.pWaitDstStageMask = WaitStages;
+    SubmitInfo.commandBufferCount = 0;
+    SubmitInfo.pCommandBuffers = nullptr;
+    SubmitInfo.signalSemaphoreCount = 1;
+    SubmitInfo.pSignalSemaphores = &pImpl->RenderingFinished[SwapImageIndex];
+    if (vkQueueSubmit(pImpl->GraphicsQueue, 1, &SubmitInfo, pImpl->FrameReady[FrameInFlight]) != VK_SUCCESS) {
+        return;
+    }
+
+    // Present frame
+    VkPresentInfoKHR PresentInfo{};
+    PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    PresentInfo.pNext = nullptr;
+    PresentInfo.waitSemaphoreCount = 1;
+    PresentInfo.pWaitSemaphores = &pImpl->RenderingFinished[SwapImageIndex];
+    PresentInfo.swapchainCount = 1;
+    PresentInfo.pSwapchains = &pImpl->Swapchain;
+    PresentInfo.pImageIndices = &SwapImageIndex;
+    PresentInfo.pResults = nullptr;
+
+    VkResult const PresentResult = vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo);
+    if (PresentResult != VK_SUCCESS) {
+        return;
+    }
 }
