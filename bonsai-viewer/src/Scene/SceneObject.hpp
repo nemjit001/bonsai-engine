@@ -37,6 +37,10 @@ public:
     /// @return 
     glm::mat4 GetWorldMatrix() const;
 
+    /// @brief Set the parent SceneObject.
+    /// @param NewParent 
+    void SetParent(BSceneObject* NewParent);
+
     /// @brief Get the parent SceneObject.
     /// @return 
     BSceneObject* GetParent() const { return Parent; }
@@ -52,10 +56,6 @@ public:
     /// @brief Get the children SceneObjects.
     /// @return 
     std::vector<std::unique_ptr<BSceneObject>> const& GetChildren() const { return Children; }
-
-    /// @brief Set the parent SceneObject.
-    /// @param NewParent 
-    void SetParent(BSceneObject* NewParent);
 
 private:
     std::string Name = "Scene Object";

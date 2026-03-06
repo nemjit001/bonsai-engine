@@ -20,8 +20,10 @@ add_library(BonsaiViewerLib
         src/Assets/Material.hpp
         src/Assets/StaticMesh.cpp
         src/Assets/StaticMesh.hpp
-        src/Scene/RenderObject.cpp
-        src/Scene/RenderObject.hpp
+        src/Scene/Camera.cpp
+        src/Scene/Camera.hpp
+        src/Scene/RenderableObject.cpp
+        src/Scene/RenderableObject.hpp
         src/Scene/SceneObject.cpp
         src/Scene/SceneObject.hpp
         src/Scene/Transform.cpp

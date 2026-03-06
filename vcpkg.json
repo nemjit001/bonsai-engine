@@ -8,7 +8,7 @@
         "vulkan"
       ]
     },
-    "volk",
-    "tinyobjloader"
+    "tinyobjloader",
+    "volk"
   ]
 }

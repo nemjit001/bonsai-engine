@@ -8,9 +8,9 @@
 class Material
 {
 public:
-    glm::vec3 Albedo;
-    float Metallic;
-    float Roughness;
+    glm::vec3 Albedo    = { 0.5F, 0.5F, 0.5F };
+    float Metallic      = 0.0F;
+    float Roughness     = 0.5F;
 };
 
 #endif //MATERIAL_HPP
