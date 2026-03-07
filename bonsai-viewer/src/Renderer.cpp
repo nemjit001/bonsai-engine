@@ -185,76 +185,6 @@ static bool PhysicalDeviceHasSurfaceSupport(VkPhysicalDevice PhysicalDevice, VkS
     return HasSurfaceSupport;
 }
 
-/// @brief Select a physical device. Feature requirements are resolved in this function.
-/// @param Instance 
-/// @param DefaultSurface 
-/// @param RequiredExtensions 
-/// @param OutEnabledFeatures 
-/// @return 
-static VkPhysicalDevice SelectPhysicalDevice(
-    VkInstance Instance,
-    VkSurfaceKHR DefaultSurface,
-    std::vector<char const*> const& RequiredExtensions,
-    DeviceFeatures& OutEnabledFeatures
-)
-{
-    uint32_t DeviceCount = 0;
-    vkEnumeratePhysicalDevices(Instance, &DeviceCount, nullptr);
-    std::vector<VkPhysicalDevice> PhysicalDevices(DeviceCount);
-    vkEnumeratePhysicalDevices(Instance, &DeviceCount, PhysicalDevices.data());
-
-    OutEnabledFeatures = DeviceFeatures{};
-    OutEnabledFeatures.Features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    OutEnabledFeatures.Vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-    OutEnabledFeatures.Vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-    OutEnabledFeatures.Vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
-    OutEnabledFeatures.Features2.pNext = &OutEnabledFeatures.Vulkan11Features;
-    OutEnabledFeatures.Vulkan11Features.pNext = &OutEnabledFeatures.Vulkan12Features;
-    OutEnabledFeatures.Vulkan12Features.pNext = &OutEnabledFeatures.Vulkan13Features;
-    OutEnabledFeatures.Vulkan13Features.pNext = nullptr;
-
-    for (auto const& PhysicalDevice : PhysicalDevices)
-    {
-        VkPhysicalDeviceProperties2 DeviceProperties{};
-        DeviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-
-        vkGetPhysicalDeviceProperties2(PhysicalDevice, &DeviceProperties);
-        if (DeviceProperties.properties.apiVersion < BONSAI_VULKAN_API_VERSION) {
-            continue;
-        }
-
-        vkGetPhysicalDeviceFeatures2(PhysicalDevice, &OutEnabledFeatures.Features2);
-        if (
-            /** Vulkan 1.0 features */
-            OutEnabledFeatures.Features2.features.samplerAnisotropy == VK_FALSE
-            || OutEnabledFeatures.Features2.features.multiDrawIndirect == VK_FALSE
-            /** Vulkan 1.2 features */
-            || OutEnabledFeatures.Vulkan12Features.bufferDeviceAddress == VK_FALSE
-            || OutEnabledFeatures.Vulkan12Features.descriptorBindingPartiallyBound == VK_FALSE
-            || OutEnabledFeatures.Vulkan12Features.descriptorIndexing == VK_FALSE
-            || OutEnabledFeatures.Vulkan12Features.drawIndirectCount == VK_FALSE
-            || OutEnabledFeatures.Vulkan12Features.scalarBlockLayout == VK_FALSE
-            /** Vulkan 1.3 features */
-            || OutEnabledFeatures.Vulkan13Features.dynamicRendering == VK_FALSE
-            || OutEnabledFeatures.Vulkan13Features.synchronization2 == VK_FALSE
-        ) {
-            continue;
-        }
-
-        if (!DeviceExtensionsAvailable(PhysicalDevice, RequiredExtensions)) {
-            continue;
-        }
-
-        if (!PhysicalDeviceHasSurfaceSupport(PhysicalDevice, DefaultSurface)) {
-            continue;
-        }
-
-        return PhysicalDevice;
-    }
-
-    return VK_NULL_HANDLE;
-}
-
 /// @brief Find a single queue family using a set of required and ignored flags.
 /// @param QueueFamilies 
 /// @param PhysicalDevice 
@@ -329,6 +259,80 @@ static std::vector<uint32_t> GetUniqueQueueFamilies(QueueFamilyInfo const& Queue
     );
 
     return QueueIndices;
+}
+
+/// @brief Select a physical device. Feature requirements are resolved in this function.
+/// @param Instance 
+/// @param DefaultSurface 
+/// @param RequiredExtensions 
+/// @param OutEnabledFeatures 
+/// @return 
+static VkPhysicalDevice SelectPhysicalDevice(
+    VkInstance Instance,
+    VkSurfaceKHR DefaultSurface,
+    std::vector<char const*> const& RequiredExtensions,
+    DeviceFeatures& OutEnabledFeatures
+)
+{
+    uint32_t DeviceCount = 0;
+    vkEnumeratePhysicalDevices(Instance, &DeviceCount, nullptr);
+    std::vector<VkPhysicalDevice> PhysicalDevices(DeviceCount);
+    vkEnumeratePhysicalDevices(Instance, &DeviceCount, PhysicalDevices.data());
+
+    OutEnabledFeatures = DeviceFeatures{};
+    OutEnabledFeatures.Features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    OutEnabledFeatures.Vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    OutEnabledFeatures.Vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    OutEnabledFeatures.Vulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    OutEnabledFeatures.Features2.pNext = &OutEnabledFeatures.Vulkan11Features;
+    OutEnabledFeatures.Vulkan11Features.pNext = &OutEnabledFeatures.Vulkan12Features;
+    OutEnabledFeatures.Vulkan12Features.pNext = &OutEnabledFeatures.Vulkan13Features;
+    OutEnabledFeatures.Vulkan13Features.pNext = nullptr;
+
+    for (auto const& PhysicalDevice : PhysicalDevices)
+    {
+        VkPhysicalDeviceProperties2 DeviceProperties{};
+        DeviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+        vkGetPhysicalDeviceProperties2(PhysicalDevice, &DeviceProperties);
+        if (DeviceProperties.properties.apiVersion < BONSAI_VULKAN_API_VERSION) {
+            continue;
+        }
+
+        vkGetPhysicalDeviceFeatures2(PhysicalDevice, &OutEnabledFeatures.Features2);
+        if (
+            /** Vulkan 1.0 features */
+            OutEnabledFeatures.Features2.features.samplerAnisotropy == VK_FALSE
+            || OutEnabledFeatures.Features2.features.multiDrawIndirect == VK_FALSE
+            /** Vulkan 1.2 features */
+            || OutEnabledFeatures.Vulkan12Features.bufferDeviceAddress == VK_FALSE
+            || OutEnabledFeatures.Vulkan12Features.descriptorBindingPartiallyBound == VK_FALSE
+            || OutEnabledFeatures.Vulkan12Features.descriptorIndexing == VK_FALSE
+            || OutEnabledFeatures.Vulkan12Features.drawIndirectCount == VK_FALSE
+            || OutEnabledFeatures.Vulkan12Features.scalarBlockLayout == VK_FALSE
+            /** Vulkan 1.3 features */
+            || OutEnabledFeatures.Vulkan13Features.dynamicRendering == VK_FALSE
+            || OutEnabledFeatures.Vulkan13Features.synchronization2 == VK_FALSE
+        ) {
+            continue;
+        }
+
+        if (!DeviceExtensionsAvailable(PhysicalDevice, RequiredExtensions)) {
+            continue;
+        }
+
+        // Query surface and queue setup support
+        // FIXME(nemjit001): Have fallback queue setup for single queue physical devices
+        QueueFamilyInfo RequestedQueueFamilies{};
+        if (!PhysicalDeviceHasSurfaceSupport(PhysicalDevice, DefaultSurface)
+            || !GetDeviceQueueFamilies(PhysicalDevice, DefaultSurface, RequestedQueueFamilies)) {
+            continue;
+        }
+
+        return PhysicalDevice;
+    }
+
+    return VK_NULL_HANDLE;
 }
 
 /// @brief Get a swapchain configuration from a physical device, surface, and window.
