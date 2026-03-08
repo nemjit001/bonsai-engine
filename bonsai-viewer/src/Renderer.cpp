@@ -25,6 +25,7 @@ static constexpr bool RendererDebugEnabled = false;
 /// @brief Device extension names that are enabled by default.
 static constexpr std::array DefaultDeviceExtensionNames = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
 };
 
 /// @brief The DeviceFeatures struct contains vulkan device features structs used during device selection.
@@ -633,7 +634,7 @@ RendererResult BRenderer::Init()
 
     // Create VMA allocator
     VmaAllocatorCreateInfo AllocatorCreateInfo{};
-    AllocatorCreateInfo.flags = 0;
+    AllocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
     AllocatorCreateInfo.instance = Instance;
     AllocatorCreateInfo.physicalDevice = PhysicalDevice;
     AllocatorCreateInfo.device = Device;
