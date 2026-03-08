@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "directx-dxc",
     "glm",
     "gtest",
     {
@@ -9,6 +10,7 @@
       ]
     },
     "tinyobjloader",
-    "volk"
+    "volk",
+    "vulkan-memory-allocator"
   ]
 }
