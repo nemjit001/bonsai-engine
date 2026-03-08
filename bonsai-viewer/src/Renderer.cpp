@@ -55,7 +55,7 @@ struct SwapchainConfig
     VkSurfaceTransformFlagBitsKHR CurrentTransform;
 };
 
-/// @brief Renderer backend implementation.
+/// @brief Vulkan renderer implementation.
 struct BRendererImpl
 {
     /** Instance state */

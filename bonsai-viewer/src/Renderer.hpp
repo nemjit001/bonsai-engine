@@ -3,6 +3,10 @@
 #define RENDERER_HPP
 
 #include <memory>
+#include "Renderer/RenderHandle.hpp"
+
+class BPipelineState;
+class BGPUStaticMesh;
 
 /// @brief Renderer backend implementation.
 struct BRendererImpl;

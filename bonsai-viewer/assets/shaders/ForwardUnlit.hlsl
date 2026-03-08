@@ -24,10 +24,10 @@ struct MaterialBuffer
     float Rougness;
 };
 
-[[vk::push_constant()]] ConstantBuffer<DrawConstants> DrawParams                : register(b0, space0);
-[[vk::binding(0, 0)]]   ConstantBuffer<CameraBuffer> Camera                     : register(b1, space0);
-[[vk::binding(1, 0)]]   ConstantBuffer<ObjectTransformBuffer> ObjectTransform   : register(b2, space0);
-[[vk::binding(2, 0)]]   ConstantBuffer<MaterialBuffer> Material                 : register(b3, space0);
+[[vk::push_constant]] ConstantBuffer<DrawConstants> DrawParams              : register(b0, space0);
+[[vk::binding(0, 0)]] ConstantBuffer<CameraBuffer> Camera                   : register(b1, space0);
+[[vk::binding(1, 0)]] ConstantBuffer<ObjectTransformBuffer> ObjectTransform : register(b2, space0);
+[[vk::binding(2, 0)]] ConstantBuffer<MaterialBuffer> Material               : register(b3, space0);
 
 // Default static mesh vertex layout.
 struct VertexInput
