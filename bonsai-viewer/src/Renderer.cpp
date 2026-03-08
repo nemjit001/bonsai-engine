@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 
+#define VMA_IMPLEMENTATION
 #define VOLK_IMPLEMENTATION
 
 #include <algorithm>
@@ -9,6 +10,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
+#include <vk_mem_alloc.h>
 #include "Logging.hpp"
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
@@ -64,6 +66,7 @@ struct BRendererImpl
     /** Device state */
     VkPhysicalDevice PhysicalDevice;
     VkDevice Device;
+    VmaAllocator Allocator;
     QueueFamilyInfo DeviceQueueFamilies;
     VkQueue GraphicsQueue;
     VkQueue ComputeQueue;
@@ -628,6 +631,25 @@ RendererResult BRenderer::Init()
     }
     volkLoadDevice(Device);
 
+    // Create VMA allocator
+    VmaAllocatorCreateInfo AllocatorCreateInfo{};
+    AllocatorCreateInfo.flags = 0;
+    AllocatorCreateInfo.instance = Instance;
+    AllocatorCreateInfo.physicalDevice = PhysicalDevice;
+    AllocatorCreateInfo.device = Device;
+    AllocatorCreateInfo.vulkanApiVersion = BONSAI_VULKAN_API_VERSION;
+
+    VmaVulkanFunctions VmaFunctionPointers{};
+    if (vmaImportVulkanFunctionsFromVolk(&AllocatorCreateInfo, &VmaFunctionPointers) != VK_SUCCESS) {
+        return RENDERER_RESULT_GFX_API_BAD_INIT;
+    }
+    AllocatorCreateInfo.pVulkanFunctions = &VmaFunctionPointers;
+
+    VmaAllocator Allocator = nullptr;
+    if (vmaCreateAllocator(&AllocatorCreateInfo, &Allocator) != VK_SUCCESS) {
+        return RENDERER_RESULT_GFX_API_BAD_INIT;
+    }
+
     // Get queue families from device
     VkQueue GraphicsQueue = VK_NULL_HANDLE;
     VkQueue ComputeQueue = VK_NULL_HANDLE;
@@ -741,6 +763,7 @@ RendererResult BRenderer::Init()
     pImpl->Surface = Surface;
     pImpl->PhysicalDevice = PhysicalDevice;
     pImpl->Device = Device;
+    pImpl->Allocator = Allocator;
     pImpl->DeviceQueueFamilies = DeviceQueueFamilies;
     pImpl->GraphicsQueue = GraphicsQueue;
     pImpl->ComputeQueue = ComputeQueue;
@@ -784,6 +807,7 @@ void BRenderer::Shutdown()
     vkDestroySwapchainKHR(pImpl->Device, pImpl->Swapchain, nullptr);
 
     // Clean up device state
+    vmaDestroyAllocator(pImpl->Allocator);
     vkDestroyDevice(pImpl->Device, nullptr);
 
     // Clean up instance state

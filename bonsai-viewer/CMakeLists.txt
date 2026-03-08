@@ -4,6 +4,7 @@ find_package(glm REQUIRED)
 find_package(SDL3 REQUIRED)
 find_package(tinyobjloader REQUIRED)
 find_package(volk REQUIRED)
+find_package(VulkanMemoryAllocator REQUIRED)
 
 add_library(BonsaiViewerLib
         src/BonsaiMath.cpp
@@ -31,7 +32,13 @@ add_library(BonsaiViewerLib
 )
 target_compile_features(BonsaiViewerLib PUBLIC cxx_std_17)
 target_include_directories(BonsaiViewerLib PUBLIC src)
-target_link_libraries(BonsaiViewerLib PUBLIC glm::glm SDL3::SDL3 tinyobjloader::tinyobjloader volk::volk_headers)
+target_link_libraries(BonsaiViewerLib PUBLIC
+        glm::glm
+        GPUOpen::VulkanMemoryAllocator
+        SDL3::SDL3 
+        tinyobjloader::tinyobjloader
+        volk::volk_headers
+)
 target_extended_warnings(BonsaiViewerLib)
 
 add_executable(BonsaiViewer
