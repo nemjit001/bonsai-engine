@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 #include "BonsaiMath.hpp"
-#include "Assets/Material.hpp"
 
 /// @brief The default vertex layout for static meshes.
 struct Vertex
@@ -21,7 +20,6 @@ struct Vertex
 class BStaticMeshPart
 {
 public:
-    uint32_t MaterialId;
     std::vector<Vertex> Vertices;
     std::vector<uint32_t> Indices;
 };
@@ -31,7 +29,6 @@ class BStaticMesh
 {
 public:
     std::vector<BStaticMeshPart> SubMeshes;
-    std::vector<Material> Materials;
 };
 
 #endif //STATIC_MESH_HPP

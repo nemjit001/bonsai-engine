@@ -5,8 +5,8 @@
 #include <memory>
 #include "Renderer/RenderHandle.hpp"
 
-class BPipelineState;
 class BGPUStaticMesh;
+class BPipelineState;
 
 /// @brief Renderer backend implementation.
 struct BRendererImpl;
