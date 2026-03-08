@@ -4,6 +4,10 @@
 
 #include <memory>
 
+/// @brief Renderer backend implementation.
+struct BRendererImpl;
+
+/// @brief Renderer return codes.
 enum RendererResult : int
 {
     RENDERER_RESULT_OK                      = 0x00,
@@ -15,7 +19,7 @@ enum RendererResult : int
     RENDERER_RESULT_FRAME_STATE_BAD_INIT    = 0x60,
 };
 
-struct BRendererImpl;
+/// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
 class BRenderer
 {
 public:
@@ -28,10 +32,14 @@ public:
     BRenderer(BRenderer&&) = delete;
     BRenderer& operator=(BRenderer&&) = delete;
 
+    /// @brief Initialize the renderer.
+    /// @return 
     RendererResult Init();
 
+    /// @brief Shut down the renderer.
     void Shutdown();
 
+    /// @brief Render a new frame.
     void Frame();
 
 private:
