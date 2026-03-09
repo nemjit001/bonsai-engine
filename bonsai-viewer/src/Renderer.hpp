@@ -3,16 +3,12 @@
 #define RENDERER_HPP
 
 #include <cstdint>
-#include <memory>
 #include "Assets/StaticMesh.hpp"
 
 class BGPUBuffer;       // Storage or uniform buffer representation used by the render backend.
 class BGPUTexture;      // Texture representation used by the render backend.
 class BPipelineState;   // Pipeline state used by the render backend.
 class BGPUStaticMesh;   // Static mesh representation used by the render backend.
-
-/// @brief Renderer backend implementation.
-struct BRendererImpl;
 
 /// @brief Renderer return codes.
 enum RendererResult : int
@@ -38,27 +34,24 @@ struct TRenderHandle
 class BRenderer
 {
 public:
-    BRenderer();
-    ~BRenderer();
+    BRenderer() = default;
+    virtual ~BRenderer() = default;
 
     BRenderer(BRenderer const&) = delete;
     BRenderer& operator=(BRenderer const&) = delete;
 
-    BRenderer(BRenderer&&) = delete;
-    BRenderer& operator=(BRenderer&&) = delete;
+    BRenderer(BRenderer&&) = default;
+    BRenderer& operator=(BRenderer&&) = default;
 
     /// @brief Initialize the renderer.
     /// @return 
-    RendererResult Init();
+    virtual RendererResult Init() = 0;
 
     /// @brief Shut down the renderer.
-    void Shutdown();
+    virtual void Shutdown() = 0;
 
     /// @brief Render a new frame.
-    void Frame();
-
-private:
-    std::unique_ptr<BRendererImpl> pImpl;
+    virtual void Frame() = 0;
 };
 
 #endif //RENDERER_HPP

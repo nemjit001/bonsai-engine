@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "Logging.hpp"
-#include "Renderer.hpp"
+#include "Renderer/VulkanRenderer.hpp"
 
 BEngine::BEngine() = default;
 BEngine::~BEngine() = default;
@@ -50,7 +50,7 @@ EngineResult BEngine::Init()
     }
 
     BONSAI_LOG(LogVerbosity::Info, "Initializing Renderer");
-    Renderer = std::make_unique<BRenderer>();
+    Renderer = std::make_unique<BVulkanRenderer>();
     RendererResult const RendererInitResult = Renderer->Init();
     if (RendererInitResult != RENDERER_RESULT_OK) {
         return ENGINE_RESULT_RENDERER_BAD_INIT;

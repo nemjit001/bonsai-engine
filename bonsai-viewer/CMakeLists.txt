@@ -13,12 +13,13 @@ add_library(BonsaiViewerLib
         src/Engine.hpp
         src/Logging.cpp
         src/Logging.hpp
-        src/Renderer.cpp
         src/Renderer.hpp
         src/Scene.cpp
         src/Scene.hpp
         src/Assets/StaticMesh.cpp
         src/Assets/StaticMesh.hpp
+        src/Renderer/VulkanRenderer.cpp
+        src/Renderer/VulkanRenderer.hpp
         src/Renderer/Vulkan/GPUStaticMesh.hpp
         src/Renderer/Vulkan/PipelineState.hpp
         src/Renderer/Vulkan/VulkanTypes.hpp

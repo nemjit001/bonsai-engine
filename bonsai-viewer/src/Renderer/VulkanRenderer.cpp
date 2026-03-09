@@ -1,4 +1,4 @@
-#include "Renderer.hpp"
+#include "VulkanRenderer.hpp"
 
 #define VMA_IMPLEMENTATION
 #define VOLK_IMPLEMENTATION
@@ -55,8 +55,8 @@ struct SwapchainConfig
     VkSurfaceTransformFlagBitsKHR CurrentTransform;
 };
 
-/// @brief Vulkan renderer implementation.
-struct BRendererImpl
+/// @brief Vulkan renderer backend implementation.
+struct BVulkanRendererImpl
 {
     /** Instance state */
     SDL_Window* Window; // Main window
@@ -453,7 +453,7 @@ static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& Sw
     return true;
 }
 
-static void RecordRenderCommands(BRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
+static void RecordRenderCommands(BVulkanRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
 {
     VkCommandBufferBeginInfo FrameCommandsBeginInfo{};
     FrameCommandsBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -496,16 +496,16 @@ static void RecordRenderCommands(BRendererImpl const* RendererImpl, uint32_t Swa
     }
 }
 
-BRenderer::BRenderer()
+BVulkanRenderer::BVulkanRenderer()
     :
-    pImpl(std::make_unique<BRendererImpl>())
+    pImpl(std::make_unique<BVulkanRendererImpl>())
 {
     //
 }
 
-BRenderer::~BRenderer() = default;
+BVulkanRenderer::~BVulkanRenderer() = default;
 
-RendererResult BRenderer::Init()
+RendererResult BVulkanRenderer::Init()
 {
     if (volkInitialize() != VK_SUCCESS) {
         return RENDERER_RESULT_SYMBOL_LOADING_BAD_INIT;
@@ -781,7 +781,7 @@ RendererResult BRenderer::Init()
     return RENDERER_RESULT_OK;
 }
 
-void BRenderer::Shutdown()
+void BVulkanRenderer::Shutdown()
 {
     // Ensure any work on the GPU finishes before cleanup starts
     vkDeviceWaitIdle(pImpl->Device);
@@ -821,7 +821,7 @@ void BRenderer::Shutdown()
     volkFinalize();
 }
 
-void BRenderer::Frame()
+void BVulkanRenderer::Frame()
 {
     // Acquire next frame
     uint32_t const FrameInFlight = pImpl->FrameIndex % BONSAI_FRAMES_IN_FLIGHT;
