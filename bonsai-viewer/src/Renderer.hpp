@@ -20,6 +20,7 @@ enum RendererResult : int
     RENDERER_RESULT_UNSUPPORTED_GFX_DEVICE  = 0x40,
     RENDERER_RESULT_SWAPCHAIN_BAD_INIT      = 0x50,
     RENDERER_RESULT_FRAME_STATE_BAD_INIT    = 0x60,
+    RENDERER_RESULT_IMGUI_BAD_INIT          = 0x70,
 };
 
 /// @brief Typed render handle for managed renderer resouces.

@@ -63,6 +63,11 @@ EngineResult BEngine::Init()
 void BEngine::Shutdown()
 {
     BONSAI_LOG(LogVerbosity::Info, "Shutting down Bonsai Viewer");
+    BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up Renderer");
     Renderer->Shutdown();
+
+    BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up SDL3");
     SDL_Quit();
+
+    BONSAI_LOG(LogVerbosity::Info, "Clean shutdown, Goodbye!");
 }

@@ -25,6 +25,11 @@
       "environment": {
         "CC": "gcc",
         "CXX": "g++"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "Linux",
+        "rhs": "${hostSystemName}"
       }
     },
     {
@@ -37,6 +42,11 @@
       "environment": {
         "CC": "clang",
         "CXX": "clang++"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
       }
     },
     {
