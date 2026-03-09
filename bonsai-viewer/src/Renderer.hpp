@@ -3,12 +3,6 @@
 #define RENDERER_HPP
 
 #include <cstdint>
-#include "Assets/StaticMesh.hpp"
-
-class BGPUBuffer;       // Storage or uniform buffer representation used by the render backend.
-class BGPUTexture;      // Texture representation used by the render backend.
-class BPipelineState;   // Pipeline state used by the render backend.
-class BGPUStaticMesh;   // Static mesh representation used by the render backend.
 
 /// @brief Renderer return codes.
 enum RendererResult : int
