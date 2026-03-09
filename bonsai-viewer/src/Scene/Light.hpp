@@ -34,6 +34,8 @@ public:
     BLight();
     BLight(std::string const& ObjectName);
 
+    virtual SceneObjectType GetSceneObjectType() const override { return SOType_Light; }
+
 public:
     bool CastShadows = false;
     LightType Type = LightType_PointLight;

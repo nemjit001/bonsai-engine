@@ -13,6 +13,8 @@ public:
     BRenderableObject();
     BRenderableObject(std::string const& ObjectName);
 
+    virtual SceneObjectType GetSceneObjectType() const override { return SOType_Renderable; }
+
 public:
     std::unique_ptr<BStaticMesh> Mesh;
 };

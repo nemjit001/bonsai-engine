@@ -7,6 +7,15 @@
 #include <vector>
 #include "Transform.hpp"
 
+/// @brief Bonsai scene object types. Scene nodes can be downcast to the type specified by this enum.
+enum SceneObjectType : uint32_t
+{
+    SOType_SceneObject  = 0,
+    SOType_Camera       = 1,
+    SOType_Light        = 2,
+    SOType_Renderable   = 3,
+};
+
 /// @brief A SceneObject represents an entity in the virtual scene.
 class BSceneObject
 {
@@ -59,6 +68,10 @@ public:
     /// @brief Get the children SceneObjects.
     /// @return 
     std::vector<std::unique_ptr<BSceneObject>> const& GetChildren() const { return Children; }
+
+    /// @brief Get the actual scene object type represented by the scene object.
+    /// @return 
+    virtual SceneObjectType GetSceneObjectType() const { return SOType_SceneObject; }
 
 private:
     std::string Name;

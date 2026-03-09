@@ -12,6 +12,8 @@ public:
     BCamera();
     BCamera(std::string const& ObjectName);
 
+    virtual SceneObjectType GetSceneObjectType() const override { return SOType_Camera; }
+
     /// @brief Get the projection matrix for the camera.
     /// @param AspectRatio Aspect ratio to use for the perspective projection.
     /// @return 

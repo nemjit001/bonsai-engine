@@ -22,6 +22,7 @@ TEST(SceneTests, TestCreateSceneObject)
     ASSERT_EQ(Children.size(), 1);
     ASSERT_EQ(Children[0]->GetParent(), Root);
     ASSERT_EQ(Children[0]->GetName(), "Child");
+    ASSERT_EQ(Children[0]->GetSceneObjectType(), SOType_SceneObject);
 }
 
 TEST(SceneTests, TestCreateCamera)
@@ -35,32 +36,35 @@ TEST(SceneTests, TestCreateCamera)
     ASSERT_EQ(Children.size(), 1);
     ASSERT_EQ(Children[0]->GetParent(), Root);
     ASSERT_EQ(Children[0]->GetName(), "Camera");
+    ASSERT_EQ(Children[0]->GetSceneObjectType(), SOType_Camera);
 }
 
 TEST(SceneTests, TestCreateLight)
 {
     BScene Scene{};
     BSceneObject* Root = Scene.GetRoot();
-    auto Child = std::make_unique<BCamera>("Light");
+    auto Child = std::make_unique<BLight>("Light");
     Root->AddChild(std::move(Child));
 
     std::vector<std::unique_ptr<BSceneObject>> const& Children = Root->GetChildren();
     ASSERT_EQ(Children.size(), 1);
     ASSERT_EQ(Children[0]->GetParent(), Root);
     ASSERT_EQ(Children[0]->GetName(), "Light");
+    ASSERT_EQ(Children[0]->GetSceneObjectType(), SOType_Light);
 }
 
 TEST(SceneTests, TestCreateRenderObject)
 {
     BScene Scene{};
     BSceneObject* Root = Scene.GetRoot();
-    auto Child = std::make_unique<BRenderableObject>("RenderableObjectChild");
+    auto Child = std::make_unique<BRenderableObject>("Renderable");
     Root->AddChild(std::move(Child));
 
     std::vector<std::unique_ptr<BSceneObject>> const& Children = Root->GetChildren();
     ASSERT_EQ(Children.size(), 1);
     ASSERT_EQ(Children[0]->GetParent(), Root);
-    ASSERT_EQ(Children[0]->GetName(), "RenderableObjectChild");
+    ASSERT_EQ(Children[0]->GetName(), "Renderable");
+    ASSERT_EQ(Children[0]->GetSceneObjectType(), SOType_Renderable);
 }
 
 TEST(SceneTests, TestRemoveSceneObject)
