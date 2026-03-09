@@ -2,6 +2,13 @@
 
 #include <algorithm>
 
+BSceneObject::BSceneObject()
+    :
+    BSceneObject("Scene Object")
+{
+    //
+}
+
 BSceneObject::BSceneObject(std::string const& ObjectName)
     :
     Name(ObjectName),

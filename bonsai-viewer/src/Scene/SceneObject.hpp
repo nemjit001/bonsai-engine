@@ -11,7 +11,7 @@
 class BSceneObject
 {
 public:
-    BSceneObject() = default;
+    BSceneObject();
     BSceneObject(std::string const& ObjectName);
     virtual ~BSceneObject() = default;
 
@@ -58,7 +58,7 @@ public:
     std::vector<std::unique_ptr<BSceneObject>> const& GetChildren() const { return Children; }
 
 private:
-    std::string Name = "Scene Object";
+    std::string Name;
     BTransform Transform;
     BSceneObject* Parent;
     std::vector<std::unique_ptr<BSceneObject>> Children;

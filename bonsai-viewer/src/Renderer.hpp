@@ -2,8 +2,9 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
+#include <cstdint>
 #include <memory>
-#include "Renderer/RenderHandle.hpp"
+#include "Assets/StaticMesh.hpp"
 
 class BGPUStaticMesh;
 class BPipelineState;
@@ -21,6 +22,21 @@ enum RendererResult : int
     RENDERER_RESULT_UNSUPPORTED_GFX_DEVICE  = 0x40,
     RENDERER_RESULT_SWAPCHAIN_BAD_INIT      = 0x50,
     RENDERER_RESULT_FRAME_STATE_BAD_INIT    = 0x60,
+};
+
+/// @brief Typed render handle for managed renderer resouces.
+/// @tparam RenderType 
+template<class RenderType>
+struct TRenderHandle
+{
+    uint32_t ResourceId;
+};
+
+/// @brief A StaticMeshDraw informs the renderer that a static mesh participates in the active frame.
+struct BStaticMeshDraw
+{
+    TRenderHandle<BPipelineState> PSO;
+    TRenderHandle<BGPUStaticMesh> Mesh;
 };
 
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
