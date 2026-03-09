@@ -17,8 +17,6 @@ add_library(BonsaiViewerLib
         src/Renderer.hpp
         src/Scene.cpp
         src/Scene.hpp
-        src/Assets/Material.cpp
-        src/Assets/Material.hpp
         src/Assets/StaticMesh.cpp
         src/Assets/StaticMesh.hpp
         src/Renderer/Vulkan/GPUStaticMesh.hpp

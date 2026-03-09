@@ -37,6 +37,9 @@ public:
     /// @return 
     glm::mat4 GetWorldMatrix() const;
 
+    /// @brief Get the world-space view matrix for the scene object.
+    glm::mat4 GetWorldViewMatrix() const;
+
     /// @brief Set the parent SceneObject.
     /// @param NewParent 
     void SetParent(BSceneObject* NewParent);

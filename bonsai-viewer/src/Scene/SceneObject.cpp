@@ -34,6 +34,16 @@ glm::mat4 BSceneObject::GetWorldMatrix() const
     return LocalTransform;
 }
 
+glm::mat4 BSceneObject::GetWorldViewMatrix() const
+{
+    glm::mat4 const LocalTransform = GetTransform().GetViewMatrix();
+    if (BSceneObject* NodeParent = GetParent()) {
+        return LocalTransform * NodeParent->GetWorldViewMatrix();
+    }
+
+    return LocalTransform;
+}
+
 void BSceneObject::SetParent(BSceneObject* NewParent)
 {
     Parent = NewParent;
