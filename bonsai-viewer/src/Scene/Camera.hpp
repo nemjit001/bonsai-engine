@@ -19,7 +19,7 @@ public:
         return glm::perspective(glm::radians(HorizontalFOV), AspectRatio, ZNear, ZFar);
     }
 
-private:
+public:
     float HorizontalFOV = 60.0F;
     float ZNear = 0.1F;
     float ZFar = 1000.0F;
