@@ -8,6 +8,8 @@
         "vulkan"
       ]
     },
+    "shaderc",
+    "spirv-reflect",
     "tinyobjloader",
     "volk",
     "vulkan-memory-allocator"

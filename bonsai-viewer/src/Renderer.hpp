@@ -6,8 +6,10 @@
 #include <memory>
 #include "Assets/StaticMesh.hpp"
 
-class BGPUStaticMesh;
-class BPipelineState;
+class BGPUBuffer;       // Storage or uniform buffer representation used by the render backend.
+class BGPUTexture;      // Texture representation used by the render backend.
+class BPipelineState;   // Pipeline state used by the render backend.
+class BGPUStaticMesh;   // Static mesh representation used by the render backend.
 
 /// @brief Renderer backend implementation.
 struct BRendererImpl;
@@ -30,13 +32,6 @@ template<class RenderType>
 struct TRenderHandle
 {
     uint32_t ResourceId;
-};
-
-/// @brief A StaticMeshDraw informs the renderer that a static mesh participates in the active frame.
-struct BStaticMeshDraw
-{
-    TRenderHandle<BPipelineState> PSO;
-    TRenderHandle<BGPUStaticMesh> Mesh;
 };
 
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
