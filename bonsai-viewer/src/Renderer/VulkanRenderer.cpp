@@ -890,9 +890,9 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDes
     VkBufferCreateInfo BufferCreateInfo{};
     BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     BufferCreateInfo.pNext = nullptr;
-    BufferCreateInfo.flags = 0;
+    BufferCreateInfo.flags = 0; // TODO(nemjit001): Check if specifying flags is needed
     BufferCreateInfo.size = BufferDesc.Size;
-    BufferCreateInfo.usage = 0; // TODO(nemjit001): Provide buffer usage
+    BufferCreateInfo.usage = static_cast<VkBufferUsageFlags>(BufferDesc.BufferUsage);
     BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     BufferCreateInfo.queueFamilyIndexCount = 0;
     BufferCreateInfo.pQueueFamilyIndices = nullptr;
@@ -929,18 +929,48 @@ void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
 
 TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc TextureDesc)
 {
+    // Set correct image type
+    VkImageType ImageType = VK_IMAGE_TYPE_MAX_ENUM;
+    {
+        switch (TextureDesc.TextureType)
+        {
+        case TextureType_1D:
+            ImageType = VK_IMAGE_TYPE_1D;
+            break;
+        case TextureType_2D:
+            ImageType = VK_IMAGE_TYPE_2D;
+            break;
+        case TextureType_3D:
+            ImageType = VK_IMAGE_TYPE_3D;
+            break;        
+        default:
+            break;
+        }
+    }
+
+    // Set up correct image layers and depth
+    VkExtent3D ImageExtent = VkExtent3D{ TextureDesc.Width, TextureDesc.Height, TextureDesc.DepthOrLayers };
+    uint32_t ImageArrayLayers = 1;
+    {
+        if (ImageType < VK_IMAGE_TYPE_3D) {
+            ImageExtent.depth = 1;
+            ImageArrayLayers = TextureDesc.DepthOrLayers;
+        }
+    }
+
+    // Create image
     VkImageCreateInfo ImageCreateInfo{};
     ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     ImageCreateInfo.pNext = nullptr;
-    ImageCreateInfo.flags = 0;
-    ImageCreateInfo.imageType = VK_IMAGE_TYPE_1D; // TODO(nemjit001): Provide image type
+    ImageCreateInfo.flags = 0; // TODO(nemjit001): Check if specifying flags is needed
+    ImageCreateInfo.imageType = ImageType;
     ImageCreateInfo.format = VK_FORMAT_UNDEFINED; // TODO(nemjit001): Provide image format
-    ImageCreateInfo.extent = VkExtent3D{ TextureDesc.Width, TextureDesc.Height, TextureDesc.DepthOrLayers };
+    ImageCreateInfo.extent = ImageExtent;
     ImageCreateInfo.mipLevels = TextureDesc.MipLevels;
-    ImageCreateInfo.arrayLayers = 1; // TODO(nemjit001): Use depth as layers when it makes sense (e.g. 2D textures)
+    ImageCreateInfo.arrayLayers = ImageArrayLayers;
     ImageCreateInfo.samples = static_cast<VkSampleCountFlagBits>(TextureDesc.SampleCount);
-    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    ImageCreateInfo.usage = 0; // TODO(nemjit001): Provide texture usage
+    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // TODO(nemjit001): Specify texture tiling mode
+    ImageCreateInfo.usage = static_cast<VkImageUsageFlags>(TextureDesc.TextureUsage);
     ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ImageCreateInfo.queueFamilyIndexCount = 0;
     ImageCreateInfo.pQueueFamilyIndices = nullptr;
