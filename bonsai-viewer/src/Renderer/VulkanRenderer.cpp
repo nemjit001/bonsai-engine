@@ -929,19 +929,18 @@ void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
 
 TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc TextureDesc)
 {
-    // TODO(nemjit001): Provide texture params through texture desc
     VkImageCreateInfo ImageCreateInfo{};
     ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     ImageCreateInfo.pNext = nullptr;
     ImageCreateInfo.flags = 0;
-    ImageCreateInfo.imageType = VK_IMAGE_TYPE_1D;
-    ImageCreateInfo.format = VK_FORMAT_UNDEFINED;
-    ImageCreateInfo.extent = {};
-    ImageCreateInfo.mipLevels = 1;
-    ImageCreateInfo.arrayLayers = 1;
-    ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    ImageCreateInfo.imageType = VK_IMAGE_TYPE_1D; // TODO(nemjit001): Provide image type
+    ImageCreateInfo.format = VK_FORMAT_UNDEFINED; // TODO(nemjit001): Provide image format
+    ImageCreateInfo.extent = VkExtent3D{ TextureDesc.Width, TextureDesc.Height, TextureDesc.DepthOrLayers };
+    ImageCreateInfo.mipLevels = TextureDesc.MipLevels;
+    ImageCreateInfo.arrayLayers = 1; // TODO(nemjit001): Use depth as layers when it makes sense (e.g. 2D textures)
+    ImageCreateInfo.samples = static_cast<VkSampleCountFlagBits>(TextureDesc.SampleCount);
     ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    ImageCreateInfo.usage = 0;
+    ImageCreateInfo.usage = 0; // TODO(nemjit001): Provide texture usage
     ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ImageCreateInfo.queueFamilyIndexCount = 0;
     ImageCreateInfo.pQueueFamilyIndices = nullptr;

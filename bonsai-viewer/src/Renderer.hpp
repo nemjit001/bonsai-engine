@@ -24,13 +24,17 @@ enum RendererResult : int
 /// @brief A GPUBufferDesc is used to describe a newly created GPU buffer.
 struct BGPUBufferDesc
 {
-    size_t Size;
+    uint32_t Size;
 };
 
 /// @brief A BGPUTextureDesc is used to describe a newly created GPU texture.
 struct BGPUTextureDesc
 {
-
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t DepthOrLayers;
+    uint32_t MipLevels;
+    uint32_t SampleCount;
 };
 
 /// @brief Typed render handle for managed renderer resouces.
