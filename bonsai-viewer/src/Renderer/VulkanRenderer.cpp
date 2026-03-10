@@ -12,6 +12,7 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "Logging.hpp"
+#include "Vulkan/VulkanTypes.hpp"
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2
@@ -87,6 +88,10 @@ struct BVulkanRendererImpl
     std::vector<VkCommandPool> GraphicsCmdPools;        // Sized on frames in flight
     std::vector<VkCommandBuffer> FrameCommandBuffers;   // Sized on frames in flight
     uint64_t FrameIndex;
+
+    /** Resource pools */
+    TRenderResourcePool<BGPUBuffer> BufferPool;
+    TRenderResourcePool<BGPUTexture> TexturePool;
 };
 
 /// @brief Vulkan debug message callback.
@@ -634,7 +639,8 @@ RendererResult BVulkanRenderer::Init()
 
     // Create VMA allocator
     VmaAllocatorCreateInfo AllocatorCreateInfo{};
-    AllocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    AllocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT
+        | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
     AllocatorCreateInfo.instance = Instance;
     AllocatorCreateInfo.physicalDevice = PhysicalDevice;
     AllocatorCreateInfo.device = Device;
@@ -877,4 +883,90 @@ void BVulkanRenderer::Frame()
     if (PresentResult != VK_SUCCESS) {
         return;
     }
+}
+
+TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDesc)
+{
+    VkBufferCreateInfo BufferCreateInfo{};
+    BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    BufferCreateInfo.pNext = nullptr;
+    BufferCreateInfo.flags = 0;
+    BufferCreateInfo.size = BufferDesc.Size;
+    BufferCreateInfo.usage = 0; // TODO(nemjit001): Provide buffer usage
+    BufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    BufferCreateInfo.queueFamilyIndexCount = 0;
+    BufferCreateInfo.pQueueFamilyIndices = nullptr;
+
+    VmaAllocationCreateInfo AllocationCreateInfo{};
+    AllocationCreateInfo.flags = 0;
+    AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    AllocationCreateInfo.preferredFlags = 0;
+    AllocationCreateInfo.requiredFlags = 0;
+    AllocationCreateInfo.memoryTypeBits = 0;
+    AllocationCreateInfo.pool = VK_NULL_HANDLE;
+    AllocationCreateInfo.pUserData = nullptr;
+
+    VkBuffer Buffer = VK_NULL_HANDLE;
+    VmaAllocation Allocation = VK_NULL_HANDLE;
+    if (vmaCreateBuffer(pImpl->Allocator, &BufferCreateInfo, &AllocationCreateInfo, &Buffer, &Allocation, nullptr) != VK_SUCCESS) {
+        return {};
+    }
+
+    TRenderResource<BGPUBuffer> Resource = pImpl->BufferPool.Allocate();
+    Resource.Resource = BGPUBuffer{ Buffer, Allocation };
+    return Resource.Handle;
+}
+
+void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
+{
+    TRenderResource<BGPUBuffer> Resource = pImpl->BufferPool.GetResource(Buffer);
+    vmaDestroyBuffer(pImpl->Allocator, Resource.Resource.Buffer, Resource.Resource.Allocation);
+    pImpl->BufferPool.Free(Resource);
+}
+
+TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc TextureDesc)
+{
+    // TODO(nemjit001): Provide texture params through texture desc
+    VkImageCreateInfo ImageCreateInfo{};
+    ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    ImageCreateInfo.pNext = nullptr;
+    ImageCreateInfo.flags = 0;
+    ImageCreateInfo.imageType = VK_IMAGE_TYPE_1D;
+    ImageCreateInfo.format = VK_FORMAT_UNDEFINED;
+    ImageCreateInfo.extent = {};
+    ImageCreateInfo.mipLevels = 1;
+    ImageCreateInfo.arrayLayers = 1;
+    ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    ImageCreateInfo.usage = 0;
+    ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    ImageCreateInfo.queueFamilyIndexCount = 0;
+    ImageCreateInfo.pQueueFamilyIndices = nullptr;
+    ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    VmaAllocationCreateInfo AllocationCreateInfo{};
+    AllocationCreateInfo.flags = 0;
+    AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    AllocationCreateInfo.preferredFlags = 0;
+    AllocationCreateInfo.requiredFlags = 0;
+    AllocationCreateInfo.memoryTypeBits = 0;
+    AllocationCreateInfo.pool = VK_NULL_HANDLE;
+    AllocationCreateInfo.pUserData = nullptr;
+
+    VkImage Image = VK_NULL_HANDLE;
+    VmaAllocation Allocation = VK_NULL_HANDLE;
+    if (vmaCreateImage(pImpl->Allocator, &ImageCreateInfo, &AllocationCreateInfo, &Image, &Allocation, nullptr) != VK_SUCCESS) {
+        return {};
+    }
+
+    TRenderResource<BGPUTexture> Resource = pImpl->TexturePool.Allocate();
+    Resource.Resource = BGPUTexture{ Image, Allocation };
+    return Resource.Handle;
+}
+
+void BVulkanRenderer::DestroyTexture(TRenderHandle<BGPUTexture> Texture)
+{
+    TRenderResource<BGPUTexture> Resource = pImpl->TexturePool.GetResource(Texture);
+    vmaDestroyImage(pImpl->Allocator, Resource.Resource.Image, Resource.Resource.Allocation);
+    pImpl->TexturePool.Free(Resource);
 }

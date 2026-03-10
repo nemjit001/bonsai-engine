@@ -21,6 +21,14 @@ public:
 
     void Frame() override;
 
+    TRenderHandle<BGPUBuffer> CreateBuffer(BGPUBufferDesc BufferDesc) override;
+    
+    void DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer) override;
+
+    TRenderHandle<BGPUTexture> CreateTexture(BGPUTextureDesc TextureDesc) override;
+
+    void DestroyTexture(TRenderHandle<BGPUTexture> Texture) override;
+
 private:
     std::unique_ptr<BVulkanRendererImpl> pImpl;
 };
