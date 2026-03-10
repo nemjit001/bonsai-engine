@@ -912,16 +912,19 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDes
         return {};
     }
 
-    TRenderResource<BGPUBuffer> Resource = pImpl->BufferPool.Allocate();
-    Resource.Resource = BGPUBuffer{ Buffer, Allocation };
-    return Resource.Handle;
+    BGPUBuffer const NewBuffer{ Buffer, Allocation };
+    return pImpl->BufferPool.Allocate(NewBuffer);
 }
 
 void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
 {
-    TRenderResource<BGPUBuffer> Resource = pImpl->BufferPool.GetResource(Buffer);
-    vmaDestroyBuffer(pImpl->Allocator, Resource.Resource.Buffer, Resource.Resource.Allocation);
-    pImpl->BufferPool.Free(Resource);
+    BGPUBuffer BufferResource{};
+    if (!pImpl->BufferPool.GetResource(Buffer, BufferResource)) {
+        return;
+    }
+
+    vmaDestroyBuffer(pImpl->Allocator, BufferResource.Buffer, BufferResource.Allocation);
+    pImpl->BufferPool.Free(Buffer);
 }
 
 TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc TextureDesc)
@@ -959,14 +962,17 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc Textur
         return {};
     }
 
-    TRenderResource<BGPUTexture> Resource = pImpl->TexturePool.Allocate();
-    Resource.Resource = BGPUTexture{ Image, Allocation };
-    return Resource.Handle;
+    BGPUTexture const NewTexture{ Image, Allocation };
+    return pImpl->TexturePool.Allocate(NewTexture);
 }
 
 void BVulkanRenderer::DestroyTexture(TRenderHandle<BGPUTexture> Texture)
 {
-    TRenderResource<BGPUTexture> Resource = pImpl->TexturePool.GetResource(Texture);
-    vmaDestroyImage(pImpl->Allocator, Resource.Resource.Image, Resource.Resource.Allocation);
-    pImpl->TexturePool.Free(Resource);
+    BGPUTexture TextureResource{};
+    if (!pImpl->TexturePool.GetResource(Texture, TextureResource)) {
+        return;
+    }
+
+    vmaDestroyImage(pImpl->Allocator, TextureResource.Image, TextureResource.Allocation);
+    pImpl->TexturePool.Free(Texture);
 }

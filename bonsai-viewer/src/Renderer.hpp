@@ -42,16 +42,6 @@ struct TRenderHandle
     uint32_t ResourceVersion    : 8;
 };
 
-/// @brief Typed resource handle for internal render resources. Used by resource pools to track internal render resources.
-/// @tparam RenderType 
-template<class RenderType>
-struct TRenderResource
-{
-    bool IsFree;
-    RenderType Resource;
-    TRenderHandle<RenderType> Handle;
-};
-
 /// @brief Typed resource pool for internally tracking renderer resources.
 /// @tparam RenderType 
 template<class RenderType>
@@ -59,51 +49,29 @@ class TRenderResourcePool
 {
 public:
     /// @brief Allocate a new render resource from the resource pool.
+    /// @param NewResource
     /// @return 
-    TRenderResource<RenderType> Allocate()
-    {
-        TRenderResource<RenderType> Resource{};
-        Resource.IsFree = false;
-        Resource.Resource = {};
-        Resource.Handle = { static_cast<uint32_t>(Resources.size()), 0 };
-
-        Resources.push_back(Resource);
-        return Resource;
-    }
+    TRenderHandle<RenderType> Allocate(RenderType NewResource);
 
     /// @brief Free a render resource from the resource pool.
-    /// @param Resource 
-    void Free(TRenderResource<RenderType> Resource)
-    {
-        if (Resource.Handle.ResourceId >= Resources.size()) {
-            return;
-        }
-
-        TRenderResource<RenderType>& Internal = Resources[Resource.Handle.ResourceId];
-        Internal.IsFree = true;
-        Internal.Resource = {};
-        Internal.Handle.ResourceVersion += 1;
-    }
+    /// @param Handle Resource handle.
+    void Free(TRenderHandle<RenderType> Handle);
 
     /// @brief Get a resource by handle from a resource pool.
-    /// @param Handle 
+    /// @param Handle Resource handle.
+    /// @param OutResource Output resource.
     /// @return 
-    TRenderResource<RenderType> GetResource(TRenderHandle<RenderType> Handle)
-    {
-        if (Handle.ResourceId >= Resources.size()) {
-            return {};
-        }
+    bool GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource);
 
-        TRenderResource<RenderType> Resource = Resources[Handle.ResourceId];
-        if (Handle.ResourceVersion != Resource.Handle.ResourceVersion) {
-            return {};
-        }
-
-        return Resource;
-    }
+    /// @brief Check if a resource with a given handle is valid.
+    /// @param Handle
+    /// @return 
+    bool IsValidResource(TRenderHandle<RenderType> Handle);
 
 private:
-    std::vector<TRenderResource<RenderType>> Resources;
+    std::vector<RenderType> Resources;
+    std::vector<uint32_t> ResourceVersions;
+    std::vector<uint32_t> FreeList;
 };
 
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
@@ -138,4 +106,5 @@ public:
     virtual void DestroyTexture(TRenderHandle<BGPUTexture> Texture) = 0;
 };
 
+#include "Renderer.inl"
 #endif //RENDERER_HPP

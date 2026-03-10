@@ -14,6 +14,7 @@ add_library(BonsaiViewerLib
         src/Logging.cpp
         src/Logging.hpp
         src/Renderer.hpp
+        src/Renderer.inl
         src/Scene.cpp
         src/Scene.hpp
         src/Assets/StaticMesh.cpp

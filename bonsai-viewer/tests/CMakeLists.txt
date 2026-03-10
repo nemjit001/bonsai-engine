@@ -3,7 +3,8 @@ project("Bonsai Viewer Tests")
 find_package(GTest REQUIRED)
 
 add_executable(BonsaiViewerTests
-    TestScene.cpp
+    SceneTests.cpp
+    RendererTests.cpp
 )
 target_link_libraries(BonsaiViewerTests PRIVATE BonsaiViewerLib GTest::gtest_main)
 

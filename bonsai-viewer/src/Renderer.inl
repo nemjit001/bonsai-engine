@@ -1,0 +1,73 @@
+#pragma once
+#ifndef RENDERER_INL
+#define RENDERER_INL
+
+#include "Assert.hpp"
+#include "Renderer.hpp"
+
+template<class RenderType>
+TRenderHandle<RenderType> TRenderResourcePool<RenderType>::Allocate(RenderType NewResource)
+{
+    BONSAI_ASSERT(Resources.size() == ResourceVersions.size());
+
+    // Try to allocate new resource from freelist
+    if (!FreeList.empty())
+    {
+        uint32_t const ResourceId = FreeList.back();
+        FreeList.pop_back();
+
+        uint32_t const ResourceVersion = ResourceVersions[ResourceId];
+        Resources[ResourceId] = NewResource;
+        return { ResourceId, ResourceVersion };
+    }
+
+    // Allocate new resource entry in pool
+    uint32_t const ResourceId = static_cast<uint32_t>(Resources.size());
+    Resources.push_back(NewResource);
+    ResourceVersions.push_back(0);
+
+    return { ResourceId, 0 };
+}
+
+template<class RenderType>
+void TRenderResourcePool<RenderType>::Free(TRenderHandle<RenderType> Handle)
+{
+    if (Handle.ResourceId >= Resources.size()) {
+        return;
+    }
+
+    if (Handle.ResourceVersion != ResourceVersions[Handle.ResourceId]) {
+        return;
+    }
+
+    ResourceVersions[Handle.ResourceId] += 1;
+    FreeList.push_back(Handle.ResourceId);
+}
+
+template<class RenderType>
+bool TRenderResourcePool<RenderType>::GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource)
+{
+    if (!IsValidResource(Handle)) {
+        return false;
+    }
+
+    OutResource = Resources[Handle.ResourceId];
+    return true;
+}
+
+template<class RenderType>
+bool TRenderResourcePool<RenderType>::IsValidResource(TRenderHandle<RenderType> Handle)
+{
+    BONSAI_ASSERT(Resources.size() == ResourceVersions.size());
+    if (Handle.ResourceId >= Resources.size()) {
+        return false;
+    }
+
+    if (Handle.ResourceVersion != ResourceVersions[Handle.ResourceId]) {
+        return false;
+    }
+
+    return true;
+}
+
+#endif //RENDERER_INL
