@@ -5,6 +5,7 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
+/// @brief Vulkan GPU buffer implementation.
 class BGPUBuffer
 {
 public:
@@ -12,6 +13,7 @@ public:
     VmaAllocation Allocation;
 };
 
+/// @brief Vulkan GPU texture implementation.
 class BGPUTexture
 {
 public:
