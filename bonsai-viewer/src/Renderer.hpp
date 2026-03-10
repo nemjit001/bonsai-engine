@@ -48,6 +48,10 @@ template<class RenderType>
 class TRenderResourcePool
 {
 public:
+    /// @brief Create an invalid resource handle.
+    /// @return 
+    static constexpr TRenderHandle<RenderType> CreateInvalidHandle();
+
     /// @brief Allocate a new render resource from the resource pool.
     /// @param NewResource
     /// @return 
@@ -97,12 +101,22 @@ public:
     /// @brief Render a new frame.
     virtual void Frame() = 0;
 
+    /// @brief Create a new GPU buffer.
+    /// @param BufferDesc 
+    /// @return 
     virtual TRenderHandle<BGPUBuffer> CreateBuffer(BGPUBufferDesc BufferDesc) = 0;
     
+    /// @brief Destroy a GPU buffer.
+    /// @param Buffer 
     virtual void DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer) = 0;
 
+    /// @brief Create a new GPU texture.
+    /// @param TextureDesc 
+    /// @return 
     virtual TRenderHandle<BGPUTexture> CreateTexture(BGPUTextureDesc TextureDesc) = 0;
 
+    /// @brief Destroy a GPU texture.
+    /// @param Texture 
     virtual void DestroyTexture(TRenderHandle<BGPUTexture> Texture) = 0;
 };
 

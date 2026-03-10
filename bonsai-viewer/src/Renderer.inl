@@ -6,6 +6,15 @@
 #include "Renderer.hpp"
 
 template<class RenderType>
+constexpr TRenderHandle<RenderType> TRenderResourcePool<RenderType>::CreateInvalidHandle()
+{
+    return {
+        0xFFFFFF, /* Resource ID */
+        0xFF, /* Resource Version */
+    };
+}
+
+template<class RenderType>
 TRenderHandle<RenderType> TRenderResourcePool<RenderType>::Allocate(RenderType NewResource)
 {
     BONSAI_ASSERT(Resources.size() == ResourceVersions.size());

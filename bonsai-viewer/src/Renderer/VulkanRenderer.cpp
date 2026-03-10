@@ -909,7 +909,7 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDes
     VkBuffer Buffer = VK_NULL_HANDLE;
     VmaAllocation Allocation = VK_NULL_HANDLE;
     if (vmaCreateBuffer(pImpl->Allocator, &BufferCreateInfo, &AllocationCreateInfo, &Buffer, &Allocation, nullptr) != VK_SUCCESS) {
-        return {};
+        return TRenderResourcePool<BGPUBuffer>::CreateInvalidHandle();
     }
 
     BGPUBuffer const NewBuffer{ Buffer, Allocation };
@@ -959,7 +959,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc Textur
     VkImage Image = VK_NULL_HANDLE;
     VmaAllocation Allocation = VK_NULL_HANDLE;
     if (vmaCreateImage(pImpl->Allocator, &ImageCreateInfo, &AllocationCreateInfo, &Image, &Allocation, nullptr) != VK_SUCCESS) {
-        return {};
+        return TRenderResourcePool<BGPUTexture>::CreateInvalidHandle();
     }
 
     BGPUTexture const NewTexture{ Image, Allocation };
