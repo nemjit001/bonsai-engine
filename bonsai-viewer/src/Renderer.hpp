@@ -21,6 +21,87 @@ enum RendererResult : uint32_t
     RENDERER_RESULT_IMGUI_BAD_INIT          = 0x0040,
 };
 
+/// @brief Available GPU format types.
+enum GPUFormat : uint32_t
+{
+    GPUFormat_Unknown = 0,
+
+    GPUFormat_R8_UNORM,
+    GPUFormat_R8_SNORM,
+    GPUFormat_R8_UINT,
+    GPUFormat_R8_SINT,
+
+    GPUFormat_RG8_UNORM,
+    GPUFormat_RG8_SNORM,
+    GPUFormat_RG8_UINT,
+    GPUFormat_RG8_SINT,
+
+    GPUFormat_BGR8_UNORM,
+    GPUFormat_BGR8_SNORM,
+    GPUFormat_BGR8_UINT,
+    GPUFormat_BGR8_SINT,
+    GPUFormat_BGR8_SRGB,
+
+    GPUFormat_RGBA8_UNORM,
+    GPUFormat_RGBA8_SNORM,
+    GPUFormat_RGBA8_UINT,
+    GPUFormat_RGBA8_SINT,
+    GPUFormat_RGBA8_SRGB,
+
+    GPUFormat_BGRA8_UNORM,
+    GPUFormat_BGRA8_SNORM,
+    GPUFormat_BGRA8_UINT,
+    GPUFormat_BGRA8_SINT,
+    GPUFormat_BGRA8_SRGB,
+
+    GPUFormat_R16_UNORM,
+    GPUFormat_R16_SNORM,
+    GPUFormat_R16_UINT,
+    GPUFormat_R16_SINT,
+    GPUFormat_R16_SFLOAT,
+
+    GPUFormat_RG16_UNORM,
+    GPUFormat_RG16_SNORM,
+    GPUFormat_RG16_UINT,
+    GPUFormat_RG16_SINT,
+    GPUFormat_RG16_SFLOAT,
+
+    GPUFormat_RGB16_UNORM,
+    GPUFormat_RGB16_SNORM,
+    GPUFormat_RGB16_UINT,
+    GPUFormat_RGB16_SINT,
+    GPUFormat_RGB16_SFLOAT,
+
+    GPUFormat_RGBA16_UNORM,
+    GPUFormat_RGBA16_SNORM,
+    GPUFormat_RGBA16_UINT,
+    GPUFormat_RGBA16_SINT,
+    GPUFormat_RGBA16_SFLOAT,
+
+    GPUFormat_R32_UINT,
+    GPUFormat_R32_SINT,
+    GPUFormat_R32_SFLOAT,
+
+    GPUFormat_RG32_UINT,
+    GPUFormat_RG32_SINT,
+    GPUFormat_RG32_SFLOAT,
+
+    GPUFormat_RGB32_UINT,
+    GPUFormat_RGB32_SINT,
+    GPUFormat_RGB32_SFLOAT,
+
+    GPUFormat_RGBA32_UINT,
+    GPUFormat_RGBA32_SINT,
+    GPUFormat_RGBA32_SFLOAT,
+
+    GPUFormat_D16_UNORM,
+    GPUFormat_D32_SFLOAT,
+    GPUFormat_S8_UINT,
+    GPUFormat_D16_UNORM_S8_UINT,
+    GPUFormat_D24_UNORM_S8_UINT,
+    GPUFormat_D32_SFLOAT_S8_UINT,
+};
+
 /// @brief Available renderer texture types.
 enum GPUTextureType : uint32_t
 {
@@ -67,6 +148,7 @@ struct BGPUBufferDesc
 struct BGPUTextureDesc
 {
     GPUTextureType TextureType;
+    GPUFormat TextureFormat;
     uint32_t Width;
     uint32_t Height;
     uint32_t DepthOrLayers;

@@ -94,6 +94,144 @@ struct BVulkanRendererImpl
     TRenderResourcePool<BGPUTexture> TexturePool;
 };
 
+/// @brief Convert a GPUFormat to a VkFormat value.
+/// @param format 
+/// @return 
+static VkFormat ConvertToVkFormat(GPUFormat format)
+{
+    switch (format)
+    {
+    case GPUFormat_Unknown:
+        return VK_FORMAT_UNDEFINED;
+    case GPUFormat_R8_UNORM:
+        return VK_FORMAT_R8_UNORM;
+    case GPUFormat_R8_SNORM:
+        return VK_FORMAT_R8_SNORM;
+    case GPUFormat_R8_UINT:
+        return VK_FORMAT_R8_UINT;
+    case GPUFormat_R8_SINT:
+        return VK_FORMAT_R8_SINT;
+    case GPUFormat_RG8_UNORM:
+        return VK_FORMAT_R8G8_UNORM;
+    case GPUFormat_RG8_SNORM:
+        return VK_FORMAT_R8G8_SNORM;
+    case GPUFormat_RG8_UINT:
+        return VK_FORMAT_R8G8_UINT;
+    case GPUFormat_RG8_SINT:
+        return VK_FORMAT_R8G8_SINT;
+    case GPUFormat_BGR8_UNORM:
+        return VK_FORMAT_B8G8R8_UNORM;
+    case GPUFormat_BGR8_SNORM:
+        return VK_FORMAT_B8G8R8_SNORM;
+    case GPUFormat_BGR8_UINT:
+        return VK_FORMAT_B8G8R8_UINT;
+    case GPUFormat_BGR8_SINT:
+        return VK_FORMAT_B8G8R8_SINT;
+    case GPUFormat_BGR8_SRGB:
+        return VK_FORMAT_B8G8R8_SRGB;
+    case GPUFormat_RGBA8_UNORM:
+        return VK_FORMAT_R8G8B8A8_UNORM;
+    case GPUFormat_RGBA8_SNORM:
+        return VK_FORMAT_R8G8B8A8_SNORM;
+    case GPUFormat_RGBA8_UINT:
+        return VK_FORMAT_R8G8B8A8_UINT;
+    case GPUFormat_RGBA8_SINT:
+        return VK_FORMAT_R8G8B8A8_SINT;
+    case GPUFormat_RGBA8_SRGB:
+        return VK_FORMAT_R8G8B8A8_SRGB;
+    case GPUFormat_BGRA8_UNORM:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    case GPUFormat_BGRA8_SNORM:
+        return VK_FORMAT_B8G8R8A8_SNORM;
+    case GPUFormat_BGRA8_UINT:
+        return VK_FORMAT_B8G8R8A8_UINT;
+    case GPUFormat_BGRA8_SINT:
+        return VK_FORMAT_B8G8R8A8_SINT;
+    case GPUFormat_BGRA8_SRGB:
+        return VK_FORMAT_B8G8R8A8_SRGB;
+    case GPUFormat_R16_UNORM:
+        return VK_FORMAT_R16_UNORM;
+    case GPUFormat_R16_SNORM:
+        return VK_FORMAT_R16_SNORM;
+    case GPUFormat_R16_UINT:
+        return VK_FORMAT_R16_UINT;
+    case GPUFormat_R16_SINT:
+        return VK_FORMAT_R16_SINT;
+    case GPUFormat_R16_SFLOAT:
+        return VK_FORMAT_R16_SFLOAT;
+    case GPUFormat_RG16_UNORM:
+        return VK_FORMAT_R16G16_UNORM;
+    case GPUFormat_RG16_SNORM:
+        return VK_FORMAT_R16G16_SNORM;
+    case GPUFormat_RG16_UINT:
+        return VK_FORMAT_R16G16_UINT;
+    case GPUFormat_RG16_SINT:
+        return VK_FORMAT_R16G16_SINT;
+    case GPUFormat_RG16_SFLOAT:
+        return VK_FORMAT_R16G16_SFLOAT;
+    case GPUFormat_RGB16_UNORM:
+        return VK_FORMAT_R16G16B16_UNORM;
+    case GPUFormat_RGB16_SNORM:
+        return VK_FORMAT_R16G16B16_SNORM;
+    case GPUFormat_RGB16_UINT:
+        return VK_FORMAT_R16G16B16_UINT;
+    case GPUFormat_RGB16_SINT:
+        return VK_FORMAT_R16G16B16_SINT;
+    case GPUFormat_RGB16_SFLOAT:
+        return VK_FORMAT_R16G16B16_SFLOAT;
+    case GPUFormat_RGBA16_UNORM:
+        return VK_FORMAT_R16G16B16A16_UNORM;
+    case GPUFormat_RGBA16_SNORM:
+        return VK_FORMAT_R16G16B16A16_SNORM;
+    case GPUFormat_RGBA16_UINT:
+        return VK_FORMAT_R16G16B16A16_UINT;
+    case GPUFormat_RGBA16_SINT:
+        return VK_FORMAT_R16G16B16A16_SINT;
+    case GPUFormat_RGBA16_SFLOAT:
+        return VK_FORMAT_R16G16B16A16_SFLOAT;
+    case GPUFormat_R32_UINT:
+        return VK_FORMAT_R32_UINT;
+    case GPUFormat_R32_SINT:
+        return VK_FORMAT_R32_SINT;
+    case GPUFormat_R32_SFLOAT:
+        return VK_FORMAT_R32_SFLOAT;
+    case GPUFormat_RG32_UINT:
+        return VK_FORMAT_R32G32_UINT;
+    case GPUFormat_RG32_SINT:
+        return VK_FORMAT_R32G32_SINT;
+    case GPUFormat_RG32_SFLOAT:
+        return VK_FORMAT_R32G32_SFLOAT;
+    case GPUFormat_RGB32_UINT:
+        return VK_FORMAT_R32G32B32_UINT;
+    case GPUFormat_RGB32_SINT:
+        return VK_FORMAT_R32G32B32_SINT;
+    case GPUFormat_RGB32_SFLOAT:
+        return VK_FORMAT_R32G32B32_SFLOAT;
+    case GPUFormat_RGBA32_UINT:
+        return VK_FORMAT_R32G32B32A32_UINT;
+    case GPUFormat_RGBA32_SINT:
+        return VK_FORMAT_R32G32B32A32_SINT;
+    case GPUFormat_RGBA32_SFLOAT:
+        return VK_FORMAT_R32G32B32A32_SFLOAT;
+    case GPUFormat_D16_UNORM:
+        return VK_FORMAT_D16_UNORM;
+    case GPUFormat_D32_SFLOAT:
+        return VK_FORMAT_D32_SFLOAT;
+    case GPUFormat_S8_UINT:
+        return VK_FORMAT_S8_UINT;
+    case GPUFormat_D16_UNORM_S8_UINT:
+        return VK_FORMAT_D16_UNORM_S8_UINT;
+    case GPUFormat_D24_UNORM_S8_UINT:
+        return VK_FORMAT_D24_UNORM_S8_UINT;
+    case GPUFormat_D32_SFLOAT_S8_UINT:
+        return VK_FORMAT_D32_SFLOAT_S8_UINT;
+    default:
+        break;
+    }
+
+    return VK_FORMAT_UNDEFINED;
+}
+
 /// @brief Vulkan debug message callback.
 /// @param Severity 
 /// @param Type 
@@ -952,7 +1090,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc Textur
     VkExtent3D ImageExtent = VkExtent3D{ TextureDesc.Width, TextureDesc.Height, TextureDesc.DepthOrLayers };
     uint32_t ImageArrayLayers = 1;
     {
-        if (ImageType < VK_IMAGE_TYPE_3D) {
+        if (ImageType != VK_IMAGE_TYPE_3D) {
             ImageExtent.depth = 1;
             ImageArrayLayers = TextureDesc.DepthOrLayers;
         }
@@ -964,12 +1102,12 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc Textur
     ImageCreateInfo.pNext = nullptr;
     ImageCreateInfo.flags = 0; // TODO(nemjit001): Check if specifying flags is needed
     ImageCreateInfo.imageType = ImageType;
-    ImageCreateInfo.format = VK_FORMAT_UNDEFINED; // TODO(nemjit001): Provide image format
+    ImageCreateInfo.format = ConvertToVkFormat(TextureDesc.TextureFormat);
     ImageCreateInfo.extent = ImageExtent;
     ImageCreateInfo.mipLevels = TextureDesc.MipLevels;
     ImageCreateInfo.arrayLayers = ImageArrayLayers;
     ImageCreateInfo.samples = static_cast<VkSampleCountFlagBits>(TextureDesc.SampleCount);
-    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // TODO(nemjit001): Specify texture tiling mode
+    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // TODO(nemjit001): Specify texture tiling mode, this is similar to DX12's resource layout parameter
     ImageCreateInfo.usage = static_cast<VkImageUsageFlags>(TextureDesc.TextureUsage);
     ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ImageCreateInfo.queueFamilyIndexCount = 0;
