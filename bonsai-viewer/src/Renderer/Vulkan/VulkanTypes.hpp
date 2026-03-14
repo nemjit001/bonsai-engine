@@ -21,4 +21,13 @@ public:
     VmaAllocation Allocation;
 };
 
+/// @brief Vulkan GPU pipeline state implementation.
+class BGPUPipelineState
+{
+public:
+    VkPipelineBindPoint BindPoint;
+    VkPipelineLayout PipelineLayout;
+    VkPipeline Pipeline;
+};
+
 #endif //VULKAN_TYPES_HPP

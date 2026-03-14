@@ -29,6 +29,12 @@ public:
 
     void DestroyTexture(TRenderHandle<BGPUTexture> Texture) override;
 
+    TRenderHandle<BGPUPipelineState> CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc) override;
+
+    TRenderHandle<BGPUPipelineState> CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc) override;
+
+    void DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState) override;
+
 private:
     std::unique_ptr<BVulkanRendererImpl> pImpl;
 };

@@ -7,6 +7,7 @@
 
 class BGPUBuffer;
 class BGPUTexture;
+class BGPUPipelineState;
 
 /// @brief Renderer return codes.
 enum RendererResult : uint32_t
@@ -145,14 +146,14 @@ enum GPUTextureUsage : uint32_t
 };
 typedef uint32_t GPUTextureUsageFlags;
 
-/// @brief A GPUBufferDesc is used to describe a newly created GPU buffer.
+/// @brief A GPUBufferDesc is used to describe a GPU buffer on creation.
 struct BGPUBufferDesc
 {
     uint32_t Size;
     GPUBufferUsageFlags BufferUsage;
 };
 
-/// @brief A BGPUTextureDesc is used to describe a newly created GPU texture.
+/// @brief A BGPUTextureDesc is used to describe a GPU texture on creation.
 struct BGPUTextureDesc
 {
     GPUTextureType TextureType;
@@ -163,6 +164,22 @@ struct BGPUTextureDesc
     uint32_t MipLevels;
     uint32_t SampleCount;
     GPUTextureUsageFlags TextureUsage;
+};
+
+/// @brief A BGPUComputePipelineStateDesc is used to describe a compute pipeline state on creation.
+struct BGPUComputePipelineStateDesc
+{
+    // TODO(nemjit001): Compute pipeline desc
+    // - [ ] add shader layout (reflection might be easier, would require own compilation logic)
+    // - [ ] add shader data, either bytecode or raw shader source(s) compiled by backend
+};
+
+/// @brief A BGPURenderPipelineStateDesc is used to describe a render pipeline state on creation.
+struct BGPURenderPipelineStateDesc
+{
+    // TODO(nemjit001): Render pipeline desc
+    // - [ ] add shader data (see compute pipeline TODOs)
+    // - [ ] add fixed function configuration state
 };
 
 /// @brief Typed render handle for managed renderer resouces.
@@ -250,6 +267,20 @@ public:
     /// @brief Destroy a GPU texture.
     /// @param Texture 
     virtual void DestroyTexture(TRenderHandle<BGPUTexture> Texture) = 0;
+
+    /// @brief Create a new GPU compute pipeline state.
+    /// @param PipelineDesc 
+    /// @return 
+    virtual TRenderHandle<BGPUPipelineState> CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc) = 0;
+
+    /// @brief Create a new GPU render pipeline state.
+    /// @param PipelineDesc 
+    /// @return 
+    virtual TRenderHandle<BGPUPipelineState> CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc) = 0;
+
+    /// @brief Destroy a GPU pipeline state object.
+    /// @param PipelineState 
+    virtual void DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState) = 0;
 };
 
 #include "Renderer.inl"

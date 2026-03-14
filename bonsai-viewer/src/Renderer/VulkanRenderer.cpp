@@ -99,6 +99,7 @@ struct BVulkanRendererImpl
     /** Resource pools */
     TRenderResourcePool<BGPUBuffer> BufferPool;
     TRenderResourcePool<BGPUTexture> TexturePool;
+    TRenderResourcePool<BGPUPipelineState> PSOPool;
 };
 
 /// @brief Convert a GPUFormat to a VkFormat value.
@@ -1149,4 +1150,26 @@ void BVulkanRenderer::DestroyTexture(TRenderHandle<BGPUTexture> Texture)
 
     vmaDestroyImage(pImpl->Allocator, TextureResource.Image, TextureResource.Allocation);
     pImpl->TexturePool.Free(Texture);
+}
+
+TRenderHandle<BGPUPipelineState> BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
+{
+    return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+}
+
+TRenderHandle<BGPUPipelineState> BVulkanRenderer::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)
+{
+    return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+}
+
+void BVulkanRenderer::DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState)
+{
+    BGPUPipelineState PSOResource{};
+    if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {
+        return;
+    }
+
+    vkDestroyPipeline(pImpl->Device, PSOResource.Pipeline, nullptr);
+    vkDestroyPipelineLayout(pImpl->Device, PSOResource.PipelineLayout, nullptr);
+    pImpl->PSOPool.Free(PipelineState);
 }
