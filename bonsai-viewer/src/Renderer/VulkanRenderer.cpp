@@ -29,6 +29,13 @@ static constexpr std::array DefaultDeviceExtensionNames = {
     VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
 };
 
+/// @brief Memory property flags to use based on GPU heap type.
+static constexpr std::array<VkMemoryPropertyFlags, 3> GPUHeapTypePropertyFlags = {
+    /* Default heap */  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    /* Upload heap*/    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+    /* Readback heap*/  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+};
+
 /// @brief The DeviceFeatures struct contains vulkan device features structs used during device selection.
 struct DeviceFeatures
 {
@@ -1023,7 +1030,7 @@ void BVulkanRenderer::Frame()
     }
 }
 
-TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDesc)
+TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
 {
     VkBufferCreateInfo BufferCreateInfo{};
     BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1038,7 +1045,7 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(BGPUBufferDesc BufferDes
     VmaAllocationCreateInfo AllocationCreateInfo{};
     AllocationCreateInfo.flags = 0;
     AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    AllocationCreateInfo.preferredFlags = 0;
+    AllocationCreateInfo.preferredFlags = GPUHeapTypePropertyFlags[HeapType - 1];
     AllocationCreateInfo.requiredFlags = 0;
     AllocationCreateInfo.memoryTypeBits = 0;
     AllocationCreateInfo.pool = VK_NULL_HANDLE;
@@ -1065,7 +1072,7 @@ void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
     pImpl->BufferPool.Free(Buffer);
 }
 
-TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc TextureDesc)
+TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
 {
     // Set correct image type
     VkImageType ImageType = VK_IMAGE_TYPE_MAX_ENUM;
@@ -1117,7 +1124,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(BGPUTextureDesc Textur
     VmaAllocationCreateInfo AllocationCreateInfo{};
     AllocationCreateInfo.flags = 0;
     AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    AllocationCreateInfo.preferredFlags = 0;
+    AllocationCreateInfo.preferredFlags = GPUHeapTypePropertyFlags[HeapType - 1];
     AllocationCreateInfo.requiredFlags = 0;
     AllocationCreateInfo.memoryTypeBits = 0;
     AllocationCreateInfo.pool = VK_NULL_HANDLE;

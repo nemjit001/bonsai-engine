@@ -21,6 +21,14 @@ enum RendererResult : uint32_t
     RENDERER_RESULT_IMGUI_BAD_INIT          = 0x0040,
 };
 
+/// @brief Available GPU heap types.
+enum GPUHeapType : uint32_t
+{
+    GPUHeapType_Default     = 1,
+    GPUHeapType_Upload      = 2,
+    GPUHeapType_Readback    = 3,
+};
+
 /// @brief Available GPU format types.
 enum GPUFormat : uint32_t
 {
@@ -228,7 +236,7 @@ public:
     /// @brief Create a new GPU buffer.
     /// @param BufferDesc 
     /// @return 
-    virtual TRenderHandle<BGPUBuffer> CreateBuffer(BGPUBufferDesc BufferDesc) = 0;
+    virtual TRenderHandle<BGPUBuffer> CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) = 0;
     
     /// @brief Destroy a GPU buffer.
     /// @param Buffer 
@@ -237,7 +245,7 @@ public:
     /// @brief Create a new GPU texture.
     /// @param TextureDesc 
     /// @return 
-    virtual TRenderHandle<BGPUTexture> CreateTexture(BGPUTextureDesc TextureDesc) = 0;
+    virtual TRenderHandle<BGPUTexture> CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc) = 0;
 
     /// @brief Destroy a GPU texture.
     /// @param Texture 

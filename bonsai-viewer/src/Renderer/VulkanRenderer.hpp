@@ -21,11 +21,11 @@ public:
 
     void Frame() override;
 
-    TRenderHandle<BGPUBuffer> CreateBuffer(BGPUBufferDesc BufferDesc) override;
+    TRenderHandle<BGPUBuffer> CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
     
     void DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer) override;
 
-    TRenderHandle<BGPUTexture> CreateTexture(BGPUTextureDesc TextureDesc) override;
+    TRenderHandle<BGPUTexture> CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc) override;
 
     void DestroyTexture(TRenderHandle<BGPUTexture> Texture) override;
 
