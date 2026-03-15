@@ -215,7 +215,7 @@ struct BGPUComputePipelineStateDesc
 struct BGPURenderPipelineStateDesc
 {
     // TODO(nemjit001): Render pipeline desc
-    // - [ ] add graphcis pipeline shader data
+    // - [ ] add graphics pipeline shader data
     // - [ ] add fixed function state
 };
 
