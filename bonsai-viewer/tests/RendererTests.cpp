@@ -37,5 +37,5 @@ void CSMain()
     ShaderSource.SourceLength = std::strlen(ComputeShader);
 
     CComPtr<IDxcBlob> CompiledShader{};
-    ASSERT_TRUE(BShaderCompiler::Compile(ShaderLang_HLSL, CompilerOutput_SPIRV, ShaderSource, &CompiledShader));
+    ASSERT_EQ(BShaderCompiler::Compile(ShaderLang_HLSL, CompilerOutput_SPIRV, TARGET_PROFILE_COMPUTE_SHADER("6_0"), ShaderSource, &CompiledShader), SHADER_COMPILE_RESULT_OK);
 }

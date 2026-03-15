@@ -10,9 +10,9 @@ class BRenderer;
 /// @brief Error codes for the engine class 
 enum EngineResult : uint32_t
 {
-    ENGINE_RESULT_OK                = 0x0000,
-    ENGINE_RESULT_PLATFORM_BAD_INIT = 0x1000,
-    ENGINE_RESULT_RENDERER_BAD_INIT = 0x2000,
+    ENGINE_RESULT_OK                = 0x00000000,
+    ENGINE_RESULT_PLATFORM_BAD_INIT = 0x00010000,
+    ENGINE_RESULT_RENDERER_BAD_INIT = 0x00020000,
 };
 
 /// @brief The Engine class wraps the startup and shutdown of engine systems.
