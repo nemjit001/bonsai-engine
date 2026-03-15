@@ -14,5 +14,8 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Add external dependencies
+add_subdirectory(external EXCLUDE_FROM_ALL)
+
 # Configure sub projects
 add_subdirectory(bonsai-viewer)

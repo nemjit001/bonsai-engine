@@ -1,15 +1,8 @@
 {
   "dependencies": [
+    "directx-headers",
     "glm",
     "gtest",
-    {
-      "name": "imgui",
-      "features": [
-        "docking-experimental",
-        "sdl3-binding",
-        "vulkan-binding"
-      ]
-    },
     {
       "name": "sdl3",
       "features": [
