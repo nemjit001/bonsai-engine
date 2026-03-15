@@ -1,5 +1,6 @@
 project("Bonsai Viewer" VERSION 0.1.0)
 
+find_package(directx-headers REQUIRED)
 find_package(glm REQUIRED)
 find_package(SDL3 REQUIRED)
 find_package(tinyobjloader REQUIRED)
@@ -14,6 +15,7 @@ set(BONSAI_VULKAN_LIBS
 set(BONSAI_DX12_LIBS
         dxgi
         d3d12
+        Microsoft::DirectX-Headers
 )
 
 add_library(BonsaiViewerLib
