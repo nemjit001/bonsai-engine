@@ -1,5 +1,6 @@
 {
   "dependencies": [
+    "directx-dxc",
     "directx-headers",
     "glm",
     "gtest",

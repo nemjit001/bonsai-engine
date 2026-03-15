@@ -1,5 +1,6 @@
 project("Bonsai Viewer" VERSION 0.1.0)
 
+find_package(directx-dxc REQUIRED)
 find_package(directx-headers REQUIRED)
 find_package(glm REQUIRED)
 find_package(SDL3 REQUIRED)
@@ -50,6 +51,7 @@ target_include_directories(BonsaiViewerLib PUBLIC src)
 target_link_libraries(BonsaiViewerLib PUBLIC
         glm::glm
         imgui::imgui
+        Microsoft::DirectXShaderCompiler
         SDL3::SDL3 
         tinyobjloader::tinyobjloader
 )
