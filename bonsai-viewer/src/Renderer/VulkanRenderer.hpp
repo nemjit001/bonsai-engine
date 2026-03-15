@@ -1,6 +1,7 @@
 #pragma once
 #ifndef VULKAN_RENDERER_HPP
 #define VULKAN_RENDERER_HPP
+#if BONSAI_VULKAN_SUPPORT
 
 #include <memory>
 #include "Renderer.hpp"
@@ -39,4 +40,5 @@ private:
     std::unique_ptr<BVulkanRendererImpl> pImpl;
 };
 
+#endif //BONSAI_VULKAN_SUPPORT
 #endif //VULKAN_RENDERER_HPP

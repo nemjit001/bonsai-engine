@@ -6,6 +6,16 @@ find_package(tinyobjloader REQUIRED)
 find_package(volk REQUIRED)
 find_package(VulkanMemoryAllocator REQUIRED)
 
+set(BONSAI_VULKAN_LIBS
+        GPUOpen::VulkanMemoryAllocator
+        volk::volk_headers
+)
+
+set(BONSAI_DX12_LIBS
+        dxgi
+        d3d12
+)
+
 add_library(BonsaiViewerLib
         src/BonsaiMath.cpp
         src/BonsaiMath.hpp
@@ -37,12 +47,21 @@ target_compile_features(BonsaiViewerLib PUBLIC cxx_std_17)
 target_include_directories(BonsaiViewerLib PUBLIC src)
 target_link_libraries(BonsaiViewerLib PUBLIC
         glm::glm
-        GPUOpen::VulkanMemoryAllocator
+        imgui::imgui
         SDL3::SDL3 
         tinyobjloader::tinyobjloader
-        volk::volk_headers
 )
 target_extended_warnings(BonsaiViewerLib)
+
+if (BONSAI_VULKAN_SUPPORT)
+    target_link_libraries(BonsaiViewerLib PUBLIC ${BONSAI_VULKAN_LIBS})
+    target_compile_definitions(BonsaiViewerLib PUBLIC BONSAI_VULKAN_SUPPORT=1)
+endif()
+
+if (BONSAI_DX12_SUPPORT)
+    target_link_libraries(BonsaiViewerLib PUBLIC ${BONSAI_DX12_LIBS})
+    target_compile_definitions(BonsaiViewerLib PUBLIC BONSAI_DX12_SUPPORT=1)
+endif()
 
 add_executable(BonsaiViewer
         src/main.cpp

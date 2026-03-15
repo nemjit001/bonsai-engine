@@ -1,4 +1,5 @@
 #include "VulkanRenderer.hpp"
+#if BONSAI_VULKAN_SUPPORT
 
 #define VMA_IMPLEMENTATION
 #define VOLK_IMPLEMENTATION
@@ -1173,3 +1174,5 @@ void BVulkanRenderer::DestroyPipelineState(TRenderHandle<BGPUPipelineState> Pipe
     vkDestroyPipelineLayout(pImpl->Device, PSOResource.PipelineLayout, nullptr);
     pImpl->PSOPool.Free(PipelineState);
 }
+
+#endif //BONSAI_VULKAN_SUPPORT

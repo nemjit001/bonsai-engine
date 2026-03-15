@@ -1,6 +1,7 @@
 #pragma once
 #ifndef VULKAN_TYPES_HPP
 #define VULKAN_TYPES_HPP
+#if BONSAI_VULKAN_SUPPORT
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -30,4 +31,5 @@ public:
     VkPipeline Pipeline;
 };
 
+#endif //BONSAI_VULKAN_SUPPORT
 #endif //VULKAN_TYPES_HPP
