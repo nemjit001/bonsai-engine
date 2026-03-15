@@ -543,6 +543,27 @@ static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& Sw
     return true;
 }
 
+/// @brief Create a Vulkan shader module from a shader source structure.
+/// @param Device 
+/// @param ShaderSource 
+/// @return 
+static VkShaderModule CreateShaderModule(VkDevice Device, BShaderSource ShaderSource)
+{
+    VkShaderModuleCreateInfo ShaderModuleCreateInfo{};
+    ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    ShaderModuleCreateInfo.pNext = nullptr;
+    ShaderModuleCreateInfo.flags = 0;
+    ShaderModuleCreateInfo.pCode = static_cast<uint32_t const*>(ShaderSource.Source);
+    ShaderModuleCreateInfo.codeSize = static_cast<uint32_t>(ShaderSource.SourceLength);
+
+    VkShaderModule ShaderModule = VK_NULL_HANDLE;
+    if (vkCreateShaderModule(Device, &ShaderModuleCreateInfo, nullptr, &ShaderModule) != VK_SUCCESS) {
+        return VK_NULL_HANDLE;
+    }
+
+    return ShaderModule;
+}
+
 static void RecordRenderCommands(BVulkanRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
 {
     VkCommandBufferBeginInfo FrameCommandsBeginInfo{};
@@ -1076,7 +1097,58 @@ void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
 
 BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
-    return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    VkShaderModule ComputeShader = CreateShaderModule(pImpl->Device, PipelineDesc.ComputeShader);
+    if (ComputeShader == VK_NULL_HANDLE) {
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+
+    // Create pipeline layout
+    // TODO(nemjit001): Reflect pipeline layout from shader source
+    VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo{};
+    PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    PipelineLayoutCreateInfo.pNext = nullptr;
+    PipelineLayoutCreateInfo.flags = 0;
+    PipelineLayoutCreateInfo.setLayoutCount = 0;
+    PipelineLayoutCreateInfo.pSetLayouts = nullptr;
+    PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+    PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
+    VkPipelineLayout PipelineLayout = VK_NULL_HANDLE;
+    if (vkCreatePipelineLayout(pImpl->Device, &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
+    {
+        vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+    
+    // Create pipeline state
+    VkPipelineShaderStageCreateInfo ComputeStageCreateInfo{};
+    ComputeStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    ComputeStageCreateInfo.pName = nullptr;
+    ComputeStageCreateInfo.flags = 0;
+    ComputeStageCreateInfo.stage = static_cast<VkShaderStageFlagBits>(PipelineDesc.ComputeShader.Stage);
+    ComputeStageCreateInfo.module = ComputeShader;
+    ComputeStageCreateInfo.pName = PipelineDesc.ComputeShader.Entrypoint;
+    ComputeStageCreateInfo.pSpecializationInfo = nullptr;
+
+    VkComputePipelineCreateInfo ComputePipelineCreateInfo{};
+    ComputePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    ComputePipelineCreateInfo.pNext = nullptr;
+    ComputePipelineCreateInfo.flags = 0;
+    ComputePipelineCreateInfo.stage = ComputeStageCreateInfo;
+    ComputePipelineCreateInfo.layout = PipelineLayout;
+    ComputePipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+    ComputePipelineCreateInfo.basePipelineIndex = 0;
+
+    VkPipeline ComputePipeline = VK_NULL_HANDLE;
+    if (vkCreateComputePipelines(pImpl->Device, VK_NULL_HANDLE, 1, &ComputePipelineCreateInfo, nullptr, &ComputePipeline) != VK_SUCCESS)
+    {
+        vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+
+    vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+    BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline };
+    return pImpl->PSOPool.Allocate(NewPSO);
 }
 
 BGPUPipelineStateHandle BVulkanRenderer::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)

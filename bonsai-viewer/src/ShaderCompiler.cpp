@@ -7,12 +7,13 @@
 
 CComPtr<IDxcUtils> BShaderCompiler::Utils;
 CComPtr<IDxcCompiler3> BShaderCompiler::Compiler;
+CComPtr<IDxcIncludeHandler> BShaderCompiler::IncludeHandler;
 
 /// @brief Default DXC compilation arguments.
 static constexpr std::array DefaultDxcArguments = {
     DXC_ARG_DEBUG,                  // Include debug info
     DXC_ARG_OPTIMIZATION_LEVEL3,    // Enable highest optimization level
-    DXC_ARG_PACK_MATRIX_ROW_MAJOR,  // Use row-major matrix order
+    DXC_ARG_PACK_MATRIX_ROW_MAJOR,  // Force row-major matrix order because math lib uses row-major memory layout
 };
 
 /// @brief SPIRV compilation arguments, set up for Vulkan specific compilation.
@@ -21,20 +22,28 @@ static constexpr std::array SPIRVDxcArguments = {
     L"-fspv-target-env=vulkan1.3",
 };
 
-ShaderCompileResult BShaderCompiler::Compile(ShaderLang InputLanguage, CompilerOutput OutputType, LPCWSTR TargetProfile, BShaderSource const& ShaderSource, IDxcBlob** OutBlob)
+ShaderCompileResult BShaderCompiler::Compile(
+    [[maybe_unused]] ShaderLang InputLanguage,
+    CompilerOutput OutputType,
+    LPCWSTR TargetProfile,
+    char const* Entrypoint,
+    char const* ShaderSource,
+    IDxcBlob** OutBlob
+)
 {
     // Initialize DXC API
     if (!Utils || !Compiler)
     {
         if (FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&Utils)))
             || FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&Compiler)))
+            || FAILED(Utils->CreateDefaultIncludeHandler(&IncludeHandler))
         ) {
             return SHADER_COMPILE_RESULT_BAD_INIT;
         }
     }
     
-    // Translate params to wchar strings
-    std::wstring const ShaderEntrypoint(ShaderSource.Entrypoint, ShaderSource.Entrypoint + std::strlen(ShaderSource.Entrypoint) + 1);
+    // Translate entrypoint to wchar string
+    std::wstring const ShaderEntrypoint(Entrypoint, Entrypoint + std::strlen(Entrypoint) + 1);
 
     // Set up compiler args
     std::vector<LPCWSTR> BaseArgs(std::begin(DefaultDxcArguments), std::end(DefaultDxcArguments));
@@ -54,8 +63,8 @@ ShaderCompileResult BShaderCompiler::Compile(ShaderLang InputLanguage, CompilerO
 
     // Compile shader
     DxcBuffer SourceBuffer{};
-    SourceBuffer.Ptr = ShaderSource.Source;
-    SourceBuffer.Size = ShaderSource.SourceLength;
+    SourceBuffer.Ptr = ShaderSource;
+    SourceBuffer.Size = std::strlen(ShaderSource);
     SourceBuffer.Encoding = 0; // Autodetect input encoding
 
     CComPtr<IDxcResult> CompileResult;

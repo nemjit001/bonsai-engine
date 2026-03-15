@@ -201,14 +201,14 @@ struct BShaderSource
 {
     ShaderStage Stage;
     char const* Entrypoint;
-    char const* Source;
+    void const* Source;
     size_t SourceLength;
 };
 
 /// @brief A BGPUComputePipelineStateDesc is used to describe a compute pipeline state on creation.
 struct BGPUComputePipelineStateDesc
 {
-    ShaderStage ComputeShader;
+    BShaderSource ComputeShader;
 };
 
 /// @brief A BGPURenderPipelineStateDesc is used to describe a render pipeline state on creation.
