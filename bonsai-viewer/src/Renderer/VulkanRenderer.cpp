@@ -31,14 +31,15 @@ static constexpr std::array DefaultDeviceExtensionNames = {
 };
 
 /// @brief Lookup table for GPUHeapType -> VkMemoryPropertyFlags
-static constexpr std::array<VkMemoryPropertyFlags, GPUHeapType_COUNT> GPUHeapTypeLookupTable = {
-    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+static constexpr std::array GPUHeapTypeLookupTable = {
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | 0,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
+static_assert(GPUHeapTypeLookupTable.size() == GPUHeapType_COUNT);
 
 /// @brief Lookup table for GPUFormat -> VkFormat conversion.
-static constexpr std::array<VkFormat, GPUFormat_COUNT> GPUFormatLookupTable = {
+static constexpr std::array GPUFormatLookupTable = {
     VK_FORMAT_UNDEFINED,
     VK_FORMAT_R8_UNORM,
     VK_FORMAT_R8_SNORM,
@@ -102,13 +103,15 @@ static constexpr std::array<VkFormat, GPUFormat_COUNT> GPUFormatLookupTable = {
     VK_FORMAT_D24_UNORM_S8_UINT,
     VK_FORMAT_D32_SFLOAT_S8_UINT,
 };
+static_assert(GPUFormatLookupTable.size() == GPUFormat_COUNT);
 
 /// @brief Lookup table for GPUTextureType -> VkImageType conversion.
-static constexpr std::array<VkImageType, GPUTextureType_COUNT> GPUTextureTypeLookupTable = {
+static constexpr std::array GPUTextureTypeLookupTable = {
     VK_IMAGE_TYPE_1D,
     VK_IMAGE_TYPE_2D,
     VK_IMAGE_TYPE_3D,
 };
+static_assert(GPUTextureTypeLookupTable.size() == GPUTextureType_COUNT);
 
 /// @brief The DeviceFeatures struct contains vulkan device features structs used during device selection.
 struct DeviceFeatures
