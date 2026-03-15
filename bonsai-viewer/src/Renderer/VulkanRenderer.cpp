@@ -13,7 +13,7 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "Logging.hpp"
-#include "Vulkan/VulkanTypes.hpp"
+#include "RenderResourcePool.hpp"
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2

@@ -4,7 +4,34 @@
 #if BONSAI_VULKAN_SUPPORT
 
 #include <memory>
+#include <volk.h>
+#include <vk_mem_alloc.h>
 #include "Renderer.hpp"
+
+/// @brief Vulkan GPU buffer implementation.
+class BGPUBuffer
+{
+public:
+    VkBuffer Buffer;
+    VmaAllocation Allocation;
+};
+
+/// @brief Vulkan GPU texture implementation.
+class BGPUTexture
+{
+public:
+    VkImage Image;
+    VmaAllocation Allocation;
+};
+
+/// @brief Vulkan GPU pipeline state implementation.
+class BGPUPipelineState
+{
+public:
+    VkPipelineBindPoint BindPoint;
+    VkPipelineLayout PipelineLayout;
+    VkPipeline Pipeline;
+};
 
 /// @brief Renderer backend implementation.
 struct BVulkanRendererImpl;

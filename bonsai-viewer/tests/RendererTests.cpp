@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "Renderer.hpp"
+#include "Renderer/RenderResourcePool.hpp"
 
 struct MockResource
 {

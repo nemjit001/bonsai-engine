@@ -3,7 +3,6 @@
 #define RENDERER_HPP
 
 #include <cstdint>
-#include <vector>
 
 class BGPUBuffer;
 class BGPUTexture;
@@ -150,6 +149,18 @@ enum GPUTextureUsage : uint32_t
 };
 typedef uint32_t GPUTextureUsageFlags;
 
+/// @brief Flags specifying shader stages.
+enum ShaderStage : uint32_t
+{
+    ShaderStage_Vertex      = 0x00000001,
+    ShaderStage_Hull        = 0x00000002,
+    ShaderStage_Domain      = 0x00000004,
+    ShaderStage_Geometry    = 0x00000008,
+    ShaderStage_Pixel       = 0x00000010,
+    ShaderStage_Compute     = 0x00000020,
+};
+typedef uint32_t ShaderStageFlags;
+
 /// @brief A GPUBufferDesc is used to describe a GPU buffer on creation.
 struct BGPUBufferDesc
 {
@@ -170,12 +181,20 @@ struct BGPUTextureDesc
     GPUTextureUsageFlags TextureUsage;
 };
 
+/// @brief A BShaderSource is used as input for a shader stage in a pipeline state object.
+/// A ShaderSource will be compiled into a backend-specific representation.
+struct BShaderSource
+{
+    ShaderStage Stage;
+    char const* Entrypoint;
+    char const* Source;
+    size_t SourceLength;
+};
+
 /// @brief A BGPUComputePipelineStateDesc is used to describe a compute pipeline state on creation.
 struct BGPUComputePipelineStateDesc
 {
-    // TODO(nemjit001): Compute pipeline desc
-    // - [ ] add shader layout (reflection might be easier, would require own compilation logic)
-    // - [ ] add shader data, either bytecode or raw shader source(s) compiled by backend
+    ShaderStage ComputeShader;
 };
 
 /// @brief A BGPURenderPipelineStateDesc is used to describe a render pipeline state on creation.
@@ -193,42 +212,6 @@ struct TRenderHandle
 {
     uint32_t ResourceId         : 24;
     uint32_t ResourceVersion    : 8;
-};
-
-/// @brief Typed resource pool for internally tracking renderer resources.
-/// @tparam RenderType 
-template<class RenderType>
-class TRenderResourcePool
-{
-public:
-    /// @brief Create an invalid resource handle.
-    /// @return 
-    static constexpr TRenderHandle<RenderType> CreateInvalidHandle();
-
-    /// @brief Allocate a new render resource from the resource pool.
-    /// @param NewResource
-    /// @return 
-    TRenderHandle<RenderType> Allocate(RenderType NewResource);
-
-    /// @brief Free a render resource from the resource pool.
-    /// @param Handle Resource handle.
-    void Free(TRenderHandle<RenderType> Handle);
-
-    /// @brief Get a resource by handle from a resource pool.
-    /// @param Handle Resource handle.
-    /// @param OutResource Output resource.
-    /// @return 
-    bool GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource);
-
-    /// @brief Check if a resource with a given handle is valid.
-    /// @param Handle
-    /// @return 
-    bool IsValidResource(TRenderHandle<RenderType> Handle);
-
-private:
-    std::vector<RenderType> Resources;
-    std::vector<uint32_t> ResourceVersions;
-    std::vector<uint32_t> FreeList;
 };
 
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
@@ -287,5 +270,4 @@ public:
     virtual void DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState) = 0;
 };
 
-#include "Renderer.inl"
 #endif //RENDERER_HPP

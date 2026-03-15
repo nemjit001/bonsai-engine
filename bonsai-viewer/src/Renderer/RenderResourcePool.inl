@@ -1,9 +1,9 @@
 #pragma once
-#ifndef RENDERER_INL
-#define RENDERER_INL
+#ifndef RENDER_RESOURCE_POOL_INL
+#define RENDER_RESOURCE_POOL_INL
 
 #include "Assert.hpp"
-#include "Renderer.hpp"
+#include "RenderResourcePool.hpp"
 
 template<class RenderType>
 constexpr TRenderHandle<RenderType> TRenderResourcePool<RenderType>::CreateInvalidHandle()
@@ -79,4 +79,4 @@ bool TRenderResourcePool<RenderType>::IsValidResource(TRenderHandle<RenderType> 
     return true;
 }
 
-#endif //RENDERER_INL
+#endif //RENDER_RESOURCE_POOL_INL
