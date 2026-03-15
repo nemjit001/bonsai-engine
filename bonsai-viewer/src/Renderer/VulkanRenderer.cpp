@@ -30,11 +30,84 @@ static constexpr std::array DefaultDeviceExtensionNames = {
     VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
 };
 
-/// @brief Memory property flags to use based on GPU heap type.
-static constexpr std::array<VkMemoryPropertyFlags, 3> GPUHeapTypePropertyFlags = {
-    /* Default heap */  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    /* Upload heap*/    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-    /* Readback heap*/  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+/// @brief Lookup table for GPUHeapType -> VkMemoryPropertyFlags
+static constexpr std::array<VkMemoryPropertyFlags, GPUHeapType_COUNT> GPUHeapTypeLookupTable = {
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+};
+
+/// @brief Lookup table for GPUFormat -> VkFormat conversion.
+static constexpr std::array<VkFormat, GPUFormat_COUNT> GPUFormatLookupTable = {
+    VK_FORMAT_UNDEFINED,
+    VK_FORMAT_R8_UNORM,
+    VK_FORMAT_R8_SNORM,
+    VK_FORMAT_R8_UINT,
+    VK_FORMAT_R8_SINT,
+    VK_FORMAT_R8G8_UNORM,
+    VK_FORMAT_R8G8_SNORM,
+    VK_FORMAT_R8G8_UINT,
+    VK_FORMAT_R8G8_SINT,
+    VK_FORMAT_B8G8R8_UNORM,
+    VK_FORMAT_B8G8R8_SNORM,
+    VK_FORMAT_B8G8R8_UINT,
+    VK_FORMAT_B8G8R8_SINT,
+    VK_FORMAT_B8G8R8_SRGB,
+    VK_FORMAT_R8G8B8A8_UNORM,
+    VK_FORMAT_R8G8B8A8_SNORM,
+    VK_FORMAT_R8G8B8A8_UINT,
+    VK_FORMAT_R8G8B8A8_SINT,
+    VK_FORMAT_R8G8B8A8_SRGB,
+    VK_FORMAT_B8G8R8A8_UNORM,
+    VK_FORMAT_B8G8R8A8_SNORM,
+    VK_FORMAT_B8G8R8A8_UINT,
+    VK_FORMAT_B8G8R8A8_SINT,
+    VK_FORMAT_B8G8R8A8_SRGB,
+    VK_FORMAT_R16_UNORM,
+    VK_FORMAT_R16_SNORM,
+    VK_FORMAT_R16_UINT,
+    VK_FORMAT_R16_SINT,
+    VK_FORMAT_R16_SFLOAT,
+    VK_FORMAT_R16G16_UNORM,
+    VK_FORMAT_R16G16_SNORM,
+    VK_FORMAT_R16G16_UINT,
+    VK_FORMAT_R16G16_SINT,
+    VK_FORMAT_R16G16_SFLOAT,
+    VK_FORMAT_R16G16B16_UNORM,
+    VK_FORMAT_R16G16B16_SNORM,
+    VK_FORMAT_R16G16B16_UINT,
+    VK_FORMAT_R16G16B16_SINT,
+    VK_FORMAT_R16G16B16_SFLOAT,
+    VK_FORMAT_R16G16B16A16_UNORM,
+    VK_FORMAT_R16G16B16A16_SNORM,
+    VK_FORMAT_R16G16B16A16_UINT,
+    VK_FORMAT_R16G16B16A16_SINT,
+    VK_FORMAT_R16G16B16A16_SFLOAT,
+    VK_FORMAT_R32_UINT,
+    VK_FORMAT_R32_SINT,
+    VK_FORMAT_R32_SFLOAT,
+    VK_FORMAT_R32G32_UINT,
+    VK_FORMAT_R32G32_SINT,
+    VK_FORMAT_R32G32_SFLOAT,
+    VK_FORMAT_R32G32B32_UINT,
+    VK_FORMAT_R32G32B32_SINT,
+    VK_FORMAT_R32G32B32_SFLOAT,
+    VK_FORMAT_R32G32B32A32_UINT,
+    VK_FORMAT_R32G32B32A32_SINT,
+    VK_FORMAT_R32G32B32A32_SFLOAT,
+    VK_FORMAT_D16_UNORM,
+    VK_FORMAT_D32_SFLOAT,
+    VK_FORMAT_S8_UINT,
+    VK_FORMAT_D16_UNORM_S8_UINT,
+    VK_FORMAT_D24_UNORM_S8_UINT,
+    VK_FORMAT_D32_SFLOAT_S8_UINT,
+};
+
+/// @brief Lookup table for GPUTextureType -> VkImageType conversion.
+static constexpr std::array<VkImageType, GPUTextureType_COUNT> GPUTextureTypeLookupTable = {
+    VK_IMAGE_TYPE_1D,
+    VK_IMAGE_TYPE_2D,
+    VK_IMAGE_TYPE_3D,
 };
 
 /// @brief The DeviceFeatures struct contains vulkan device features structs used during device selection.
@@ -102,144 +175,6 @@ struct BVulkanRendererImpl
     TRenderResourcePool<BGPUTexture> TexturePool;
     TRenderResourcePool<BGPUPipelineState> PSOPool;
 };
-
-/// @brief Convert a GPUFormat to a VkFormat value.
-/// @param format 
-/// @return 
-static VkFormat ConvertToVkFormat(GPUFormat format)
-{
-    switch (format)
-    {
-    case GPUFormat_Unknown:
-        return VK_FORMAT_UNDEFINED;
-    case GPUFormat_R8_UNORM:
-        return VK_FORMAT_R8_UNORM;
-    case GPUFormat_R8_SNORM:
-        return VK_FORMAT_R8_SNORM;
-    case GPUFormat_R8_UINT:
-        return VK_FORMAT_R8_UINT;
-    case GPUFormat_R8_SINT:
-        return VK_FORMAT_R8_SINT;
-    case GPUFormat_RG8_UNORM:
-        return VK_FORMAT_R8G8_UNORM;
-    case GPUFormat_RG8_SNORM:
-        return VK_FORMAT_R8G8_SNORM;
-    case GPUFormat_RG8_UINT:
-        return VK_FORMAT_R8G8_UINT;
-    case GPUFormat_RG8_SINT:
-        return VK_FORMAT_R8G8_SINT;
-    case GPUFormat_BGR8_UNORM:
-        return VK_FORMAT_B8G8R8_UNORM;
-    case GPUFormat_BGR8_SNORM:
-        return VK_FORMAT_B8G8R8_SNORM;
-    case GPUFormat_BGR8_UINT:
-        return VK_FORMAT_B8G8R8_UINT;
-    case GPUFormat_BGR8_SINT:
-        return VK_FORMAT_B8G8R8_SINT;
-    case GPUFormat_BGR8_SRGB:
-        return VK_FORMAT_B8G8R8_SRGB;
-    case GPUFormat_RGBA8_UNORM:
-        return VK_FORMAT_R8G8B8A8_UNORM;
-    case GPUFormat_RGBA8_SNORM:
-        return VK_FORMAT_R8G8B8A8_SNORM;
-    case GPUFormat_RGBA8_UINT:
-        return VK_FORMAT_R8G8B8A8_UINT;
-    case GPUFormat_RGBA8_SINT:
-        return VK_FORMAT_R8G8B8A8_SINT;
-    case GPUFormat_RGBA8_SRGB:
-        return VK_FORMAT_R8G8B8A8_SRGB;
-    case GPUFormat_BGRA8_UNORM:
-        return VK_FORMAT_B8G8R8A8_UNORM;
-    case GPUFormat_BGRA8_SNORM:
-        return VK_FORMAT_B8G8R8A8_SNORM;
-    case GPUFormat_BGRA8_UINT:
-        return VK_FORMAT_B8G8R8A8_UINT;
-    case GPUFormat_BGRA8_SINT:
-        return VK_FORMAT_B8G8R8A8_SINT;
-    case GPUFormat_BGRA8_SRGB:
-        return VK_FORMAT_B8G8R8A8_SRGB;
-    case GPUFormat_R16_UNORM:
-        return VK_FORMAT_R16_UNORM;
-    case GPUFormat_R16_SNORM:
-        return VK_FORMAT_R16_SNORM;
-    case GPUFormat_R16_UINT:
-        return VK_FORMAT_R16_UINT;
-    case GPUFormat_R16_SINT:
-        return VK_FORMAT_R16_SINT;
-    case GPUFormat_R16_SFLOAT:
-        return VK_FORMAT_R16_SFLOAT;
-    case GPUFormat_RG16_UNORM:
-        return VK_FORMAT_R16G16_UNORM;
-    case GPUFormat_RG16_SNORM:
-        return VK_FORMAT_R16G16_SNORM;
-    case GPUFormat_RG16_UINT:
-        return VK_FORMAT_R16G16_UINT;
-    case GPUFormat_RG16_SINT:
-        return VK_FORMAT_R16G16_SINT;
-    case GPUFormat_RG16_SFLOAT:
-        return VK_FORMAT_R16G16_SFLOAT;
-    case GPUFormat_RGB16_UNORM:
-        return VK_FORMAT_R16G16B16_UNORM;
-    case GPUFormat_RGB16_SNORM:
-        return VK_FORMAT_R16G16B16_SNORM;
-    case GPUFormat_RGB16_UINT:
-        return VK_FORMAT_R16G16B16_UINT;
-    case GPUFormat_RGB16_SINT:
-        return VK_FORMAT_R16G16B16_SINT;
-    case GPUFormat_RGB16_SFLOAT:
-        return VK_FORMAT_R16G16B16_SFLOAT;
-    case GPUFormat_RGBA16_UNORM:
-        return VK_FORMAT_R16G16B16A16_UNORM;
-    case GPUFormat_RGBA16_SNORM:
-        return VK_FORMAT_R16G16B16A16_SNORM;
-    case GPUFormat_RGBA16_UINT:
-        return VK_FORMAT_R16G16B16A16_UINT;
-    case GPUFormat_RGBA16_SINT:
-        return VK_FORMAT_R16G16B16A16_SINT;
-    case GPUFormat_RGBA16_SFLOAT:
-        return VK_FORMAT_R16G16B16A16_SFLOAT;
-    case GPUFormat_R32_UINT:
-        return VK_FORMAT_R32_UINT;
-    case GPUFormat_R32_SINT:
-        return VK_FORMAT_R32_SINT;
-    case GPUFormat_R32_SFLOAT:
-        return VK_FORMAT_R32_SFLOAT;
-    case GPUFormat_RG32_UINT:
-        return VK_FORMAT_R32G32_UINT;
-    case GPUFormat_RG32_SINT:
-        return VK_FORMAT_R32G32_SINT;
-    case GPUFormat_RG32_SFLOAT:
-        return VK_FORMAT_R32G32_SFLOAT;
-    case GPUFormat_RGB32_UINT:
-        return VK_FORMAT_R32G32B32_UINT;
-    case GPUFormat_RGB32_SINT:
-        return VK_FORMAT_R32G32B32_SINT;
-    case GPUFormat_RGB32_SFLOAT:
-        return VK_FORMAT_R32G32B32_SFLOAT;
-    case GPUFormat_RGBA32_UINT:
-        return VK_FORMAT_R32G32B32A32_UINT;
-    case GPUFormat_RGBA32_SINT:
-        return VK_FORMAT_R32G32B32A32_SINT;
-    case GPUFormat_RGBA32_SFLOAT:
-        return VK_FORMAT_R32G32B32A32_SFLOAT;
-    case GPUFormat_D16_UNORM:
-        return VK_FORMAT_D16_UNORM;
-    case GPUFormat_D32_SFLOAT:
-        return VK_FORMAT_D32_SFLOAT;
-    case GPUFormat_S8_UINT:
-        return VK_FORMAT_S8_UINT;
-    case GPUFormat_D16_UNORM_S8_UINT:
-        return VK_FORMAT_D16_UNORM_S8_UINT;
-    case GPUFormat_D24_UNORM_S8_UINT:
-        return VK_FORMAT_D24_UNORM_S8_UINT;
-    case GPUFormat_D32_SFLOAT_S8_UINT:
-        return VK_FORMAT_D32_SFLOAT_S8_UINT;
-    default:
-        break;
-    }
-
-    return VK_FORMAT_UNDEFINED;
-}
 
 /// @brief Vulkan debug message callback.
 /// @param Severity 
@@ -1047,7 +982,7 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BG
     VmaAllocationCreateInfo AllocationCreateInfo{};
     AllocationCreateInfo.flags = 0;
     AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    AllocationCreateInfo.preferredFlags = GPUHeapTypePropertyFlags[HeapType - 1];
+    AllocationCreateInfo.preferredFlags = GPUHeapTypeLookupTable[HeapType];
     AllocationCreateInfo.requiredFlags = 0;
     AllocationCreateInfo.memoryTypeBits = 0;
     AllocationCreateInfo.pool = VK_NULL_HANDLE;
@@ -1077,32 +1012,15 @@ void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
 TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
 {
     // Set correct image type
-    VkImageType ImageType = VK_IMAGE_TYPE_MAX_ENUM;
-    {
-        switch (TextureDesc.TextureType)
-        {
-        case TextureType_1D:
-            ImageType = VK_IMAGE_TYPE_1D;
-            break;
-        case TextureType_2D:
-            ImageType = VK_IMAGE_TYPE_2D;
-            break;
-        case TextureType_3D:
-            ImageType = VK_IMAGE_TYPE_3D;
-            break;        
-        default:
-            break;
-        }
-    }
+    VkImageType ImageType = GPUTextureTypeLookupTable[TextureDesc.TextureType];
+    VkFormat ImageFormat = GPUFormatLookupTable[TextureDesc.TextureFormat];
 
     // Set up correct image layers and depth
     VkExtent3D ImageExtent = VkExtent3D{ TextureDesc.Width, TextureDesc.Height, TextureDesc.DepthOrLayers };
     uint32_t ImageArrayLayers = 1;
-    {
-        if (ImageType != VK_IMAGE_TYPE_3D) {
-            ImageExtent.depth = 1;
-            ImageArrayLayers = TextureDesc.DepthOrLayers;
-        }
+    if (ImageType != VK_IMAGE_TYPE_3D) {
+        ImageExtent.depth = 1;
+        ImageArrayLayers = TextureDesc.DepthOrLayers;
     }
 
     // Create image
@@ -1111,7 +1029,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, 
     ImageCreateInfo.pNext = nullptr;
     ImageCreateInfo.flags = 0; // TODO(nemjit001): Check if specifying flags is needed
     ImageCreateInfo.imageType = ImageType;
-    ImageCreateInfo.format = ConvertToVkFormat(TextureDesc.TextureFormat);
+    ImageCreateInfo.format = ImageFormat;
     ImageCreateInfo.extent = ImageExtent;
     ImageCreateInfo.mipLevels = TextureDesc.MipLevels;
     ImageCreateInfo.arrayLayers = ImageArrayLayers;
@@ -1126,7 +1044,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, 
     VmaAllocationCreateInfo AllocationCreateInfo{};
     AllocationCreateInfo.flags = 0;
     AllocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    AllocationCreateInfo.preferredFlags = GPUHeapTypePropertyFlags[HeapType - 1];
+    AllocationCreateInfo.preferredFlags = GPUHeapTypeLookupTable[HeapType];
     AllocationCreateInfo.requiredFlags = 0;
     AllocationCreateInfo.memoryTypeBits = 0;
     AllocationCreateInfo.pool = VK_NULL_HANDLE;

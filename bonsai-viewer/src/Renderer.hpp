@@ -25,9 +25,10 @@ enum RendererResult : uint32_t
 /// @brief Available GPU heap types.
 enum GPUHeapType : uint32_t
 {
-    GPUHeapType_Default     = 1,
-    GPUHeapType_Upload      = 2,
-    GPUHeapType_Readback    = 3,
+    GPUHeapType_Default     = 0,
+    GPUHeapType_Upload      = 1,
+    GPUHeapType_Readback    = 2,
+    GPUHeapType_COUNT,
 };
 
 /// @brief Available GPU format types.
@@ -109,14 +110,17 @@ enum GPUFormat : uint32_t
     GPUFormat_D16_UNORM_S8_UINT,
     GPUFormat_D24_UNORM_S8_UINT,
     GPUFormat_D32_SFLOAT_S8_UINT,
+
+    GPUFormat_COUNT,
 };
 
 /// @brief Available renderer texture types.
 enum GPUTextureType : uint32_t
 {
-    TextureType_1D  = 1,
-    TextureType_2D  = 2,
-    TextureType_3D  = 3,
+    GPUTextureType_1D  = 0,
+    GPUTextureType_2D  = 1,
+    GPUTextureType_3D  = 2,
+    GPUTextureType_COUNT,
 };
 
 /// @brief Flags specifying GPU buffer usage.
