@@ -970,7 +970,7 @@ void BVulkanRenderer::Frame()
     }
 }
 
-TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
+BGPUBufferHandle BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
 {
     VkBufferCreateInfo BufferCreateInfo{};
     BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1001,7 +1001,7 @@ TRenderHandle<BGPUBuffer> BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BG
     return pImpl->BufferPool.Allocate(NewBuffer);
 }
 
-void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
+void BVulkanRenderer::DestroyBuffer(BGPUBufferHandle Buffer)
 {
     BGPUBuffer BufferResource{};
     if (!pImpl->BufferPool.GetResource(Buffer, BufferResource)) {
@@ -1012,7 +1012,7 @@ void BVulkanRenderer::DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer)
     pImpl->BufferPool.Free(Buffer);
 }
 
-TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
+BGPUTextureHandle BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
 {
     // Set correct image type
     VkImageType ImageType = GPUTextureTypeLookupTable[TextureDesc.TextureType];
@@ -1063,7 +1063,7 @@ TRenderHandle<BGPUTexture> BVulkanRenderer::CreateTexture(GPUHeapType HeapType, 
     return pImpl->TexturePool.Allocate(NewTexture);
 }
 
-void BVulkanRenderer::DestroyTexture(TRenderHandle<BGPUTexture> Texture)
+void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
 {
     BGPUTexture TextureResource{};
     if (!pImpl->TexturePool.GetResource(Texture, TextureResource)) {
@@ -1074,17 +1074,17 @@ void BVulkanRenderer::DestroyTexture(TRenderHandle<BGPUTexture> Texture)
     pImpl->TexturePool.Free(Texture);
 }
 
-TRenderHandle<BGPUPipelineState> BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
+BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
     return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
 }
 
-TRenderHandle<BGPUPipelineState> BVulkanRenderer::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)
+BGPUPipelineStateHandle BVulkanRenderer::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)
 {
     return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
 }
 
-void BVulkanRenderer::DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState)
+void BVulkanRenderer::DestroyPipelineState(BGPUPipelineStateHandle PipelineState)
 {
     BGPUPipelineState PSOResource{};
     if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {

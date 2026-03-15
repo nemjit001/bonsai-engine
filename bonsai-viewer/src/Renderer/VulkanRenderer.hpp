@@ -49,19 +49,19 @@ public:
 
     void Frame() override;
 
-    TRenderHandle<BGPUBuffer> CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
+    BGPUBufferHandle CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
     
-    void DestroyBuffer(TRenderHandle<BGPUBuffer> Buffer) override;
+    void DestroyBuffer(BGPUBufferHandle Buffer) override;
 
-    TRenderHandle<BGPUTexture> CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc) override;
+    BGPUTextureHandle CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc) override;
 
-    void DestroyTexture(TRenderHandle<BGPUTexture> Texture) override;
+    void DestroyTexture(BGPUTextureHandle Texture) override;
 
-    TRenderHandle<BGPUPipelineState> CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc) override;
+    BGPUPipelineStateHandle CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc) override;
 
-    TRenderHandle<BGPUPipelineState> CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc) override;
+    BGPUPipelineStateHandle CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc) override;
 
-    void DestroyPipelineState(TRenderHandle<BGPUPipelineState> PipelineState) override;
+    void DestroyPipelineState(BGPUPipelineStateHandle PipelineState) override;
 
 private:
     std::unique_ptr<BVulkanRendererImpl> pImpl;
