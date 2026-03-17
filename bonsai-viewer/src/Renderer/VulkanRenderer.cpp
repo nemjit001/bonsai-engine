@@ -13,7 +13,8 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "Logging.hpp"
-#include "RenderResourcePool.hpp"
+#include "Renderer/RenderResourcePool.hpp"
+#include "Renderer/ShaderCompiler.hpp"
 
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2
@@ -23,6 +24,10 @@ static constexpr bool RendererDebugEnabled = true;
 #else
 static constexpr bool RendererDebugEnabled = false;
 #endif //!NDEBUG
+
+static constexpr char const* VulkanVertexShaderTargetProfile    = "vs_6_5";
+static constexpr char const* VulkanPixelShaderTargetProfile     = "ps_6_5";
+static constexpr char const* VulkanComputeShaderTargetProfile   = "cs_6_5";
 
 /// @brief Device extension names that are enabled by default.
 static constexpr std::array DefaultDeviceExtensionNames = {
@@ -543,18 +548,19 @@ static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& Sw
     return true;
 }
 
-/// @brief Create a Vulkan shader module from a shader source structure.
+/// @brief Create a Vulkan shader module from a SPIRV bytecode.
 /// @param Device 
-/// @param ShaderSource 
+/// @param ByteCode 
+/// @param CodeSize 
 /// @return 
-static VkShaderModule CreateShaderModule(VkDevice Device, BShaderSource ShaderSource)
+static VkShaderModule CreateShaderModule(VkDevice Device, uint32_t const* ByteCode, size_t CodeSize)
 {
     VkShaderModuleCreateInfo ShaderModuleCreateInfo{};
     ShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     ShaderModuleCreateInfo.pNext = nullptr;
     ShaderModuleCreateInfo.flags = 0;
-    ShaderModuleCreateInfo.pCode = static_cast<uint32_t const*>(ShaderSource.Source);
-    ShaderModuleCreateInfo.codeSize = static_cast<uint32_t>(ShaderSource.SourceLength);
+    ShaderModuleCreateInfo.pCode = ByteCode;
+    ShaderModuleCreateInfo.codeSize = CodeSize;
 
     VkShaderModule ShaderModule = VK_NULL_HANDLE;
     if (vkCreateShaderModule(Device, &ShaderModuleCreateInfo, nullptr, &ShaderModule) != VK_SUCCESS) {
@@ -1097,7 +1103,24 @@ void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
 
 BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
-    VkShaderModule ComputeShader = CreateShaderModule(pImpl->Device, PipelineDesc.ComputeShader);
+    // Compile shader source file into SPIRV
+    CComPtr<IDxcBlob> ComputeShaderBytecode;
+    if (BShaderCompiler::CompileFile(
+            PipelineDesc.ComputeShader.ShaderPath,
+            PipelineDesc.ComputeShader.Entrypoint,
+            VulkanComputeShaderTargetProfile,
+            &ComputeShaderBytecode
+        ) != SHADER_COMPILER_RESULT_OK
+    ) {
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+
+    // Create shader module from source blobs
+    VkShaderModule ComputeShader = CreateShaderModule(
+        pImpl->Device,
+        static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()),
+        ComputeShaderBytecode->GetBufferSize()
+    );
     if (ComputeShader == VK_NULL_HANDLE) {
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }

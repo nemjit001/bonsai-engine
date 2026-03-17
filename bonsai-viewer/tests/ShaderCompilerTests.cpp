@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ShaderCompiler.hpp"
+#include "Renderer/ShaderCompiler.hpp"
 
 static constexpr char const* ComputeShaderSource = R"(
 [shader("compute")]
@@ -10,32 +10,8 @@ void CSMain()
 }
 )";
 
-TEST(ShaderCompilerTests, TestPreprocessComputeShader)
+TEST(ShaderCompilerTests, TestCompileShaderSource)
 {
-    CComPtr<IDxcBlob> PreprocessOutput;
-    ShaderCompilerResult Result = BShaderCompiler::PreprocessShaderSource(
-        ComputeShaderSource, sizeof(ComputeShaderSource),
-        nullptr, 0, // No include directories
-        &PreprocessOutput
-    );
-    ASSERT_EQ(Result, SHADER_COMPILER_RESULT_OK);
-}
-
-TEST(ShaderCompilerTests, TestCompileComputeShader)
-{
-    CComPtr<IDxcBlob> PreprocessOutput;
-    ShaderCompilerResult PreprocessResult = BShaderCompiler::PreprocessShaderSource(
-        ComputeShaderSource, sizeof(ComputeShaderSource),
-        nullptr, 0, // No include directories
-        &PreprocessOutput
-    );
-    ASSERT_EQ(PreprocessResult, SHADER_COMPILER_RESULT_OK);
-
-    CComPtr<IDxcBlob> CompileOutput;
-    ShaderCompilerResult CompileResult = BShaderCompiler::CompileShaderSource(
-        static_cast<char const*>(PreprocessOutput->GetBufferPointer()), PreprocessOutput->GetBufferSize(),
-        nullptr, 0, // No additional CLI args
-        &CompileOutput
-    );
-    ASSERT_EQ(CompileResult, SHADER_COMPILER_RESULT_OK);
+    CComPtr<IDxcBlob> Output;
+    ASSERT_EQ(BShaderCompiler::CompileShaderSource(ComputeShaderSource, "CSMain", "cs_6_0", &Output), SHADER_COMPILER_RESULT_OK);
 }

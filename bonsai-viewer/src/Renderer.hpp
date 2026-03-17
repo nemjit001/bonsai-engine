@@ -196,13 +196,12 @@ struct BGPUTextureDesc
 };
 
 /// @brief A BShaderSource is used as input for a shader stage in a pipeline state object.
-/// A ShaderSource will be compiled into a backend-specific representation.
+/// A ShaderSource structure will be compiled into a backend-specific representation.
 struct BShaderSource
 {
     ShaderStage Stage;
     char const* Entrypoint;
-    void const* Source;
-    size_t SourceLength;
+    char const* ShaderPath;
 };
 
 /// @brief A BGPUComputePipelineStateDesc is used to describe a compute pipeline state on creation.
