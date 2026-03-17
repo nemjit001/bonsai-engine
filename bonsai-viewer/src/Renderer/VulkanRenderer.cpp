@@ -558,7 +558,7 @@ static bool CreateSwapchainImageViews(VkDevice Device, SwapchainConfig const& Sw
     return true;
 }
 
-/// @brief Create a Vulkan shader module from a SPIRV bytecode.
+/// @brief Create a Vulkan shader module from SPIRV bytecode.
 /// @param Device 
 /// @param ByteCode 
 /// @param CodeSize 
@@ -1136,7 +1136,7 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     }
 
     // Reflect shader pipeline layout
-    // TODO(nemjit001): Reflect pipeline layout from shader source
+    // TODO(nemjit001): Reflect pipeline layout from shader source (generate descriptor set layouts based on spirv bindings)
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo{};
     PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     PipelineLayoutCreateInfo.pNext = nullptr;
