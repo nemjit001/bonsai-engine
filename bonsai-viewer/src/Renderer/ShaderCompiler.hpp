@@ -14,6 +14,27 @@
 #include <filesystem>
 #include <dxcapi.h>
 
+#define DXC_ARG_GENERATE_SPIRV 						L"-spirv"
+#define DXC_ARG_GENERATE_METAL 						L"-metal"
+#define DXC_ARG_VK_USE_DX_LAYOUT 					L"-fvk-use-dx-layout"
+#define DXC_ARG_VK_USE_GL_LAYOUT 					L"-fvk-use-gl-layout"
+#define DXC_ARG_VK_USE_SCALAR_LAYOUT 				L"-fvk-use-scalar-layout"
+#define DXC_ARG_VK_USE_DX_POSITION_W 				L"-fvk-use-dx-position-w"
+#define DXC_ARG_VK_INVERT_Y 						L"-fvk-invert-y"
+#define DXC_ARG_VK_SUPPORT_NONZERO_BASE_INSTANCE 	L"-fvk-support-nonzero-base-instance"
+#define DXC_ARG_VK_SUPPORT_NONZERO_BASE_VERTEX 		L"-fvk-support-nonzero-base-vertex"
+#define DXC_ARG_SPIRV_REFLECT						L"-spv-reflect"
+#define DXC_ARG_SPIRV_TARGET_ENV(env)				L"-spv-target-env=" env
+#define DXC_ARG_SPIRV_USE_EXTENSION(ext)			L"-fspv-extension=<value>" ext
+#define DXC_ARG_SPIRV_ENABLE_MAXIMAL_RECONVERGENCE	L"-fspv-enable-maximal-reconvergence"
+#define DXC_ARG_SPIRV_FLATTEN_RESOURCE_ARRAYS 		L"-fspv-flatten-resource-arrays"
+#define DXC_ARG_SPIRV_PRESERVE_BINDINGS		 		L"-fspv-preserve-bindings"
+#define DXC_ARG_SPIRV_PRESERVE_INTERFACE 			L"-fspv-preserve-interface"
+#define DXC_ARG_SPIRV_REDUCE_LOAD_SIZE 				L"-fspv-reduce-load-size"
+#define DXC_ARG_SPIRV_USE_LEGACY_BUFFER_MTX_ORDER	L"-fspv-use-legacy-buffer-matrix-order"
+#define DXC_ARG_SPIRV_USE_UNKNOWN_IMAGE_FORMAT 		L"-fspv-use-unknown-image-format"
+#define DXC_ARG_SPIRV_USE_VULKAN_MEMORY_MODEL 		L"-fspv-use-vulkan-memory-model"
+
 /// @brief ShaderCompiler return codes.
 enum ShaderCompilerResult : uint32_t
 {
