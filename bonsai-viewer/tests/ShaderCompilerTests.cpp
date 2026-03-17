@@ -1,3 +1,4 @@
+#include <array>
 #include <gtest/gtest.h>
 #include "Renderer/ShaderCompiler.hpp"
 
@@ -10,9 +11,15 @@ void CSMain()
 }
 )";
 
+static constexpr std::array TestShaderCompilerArgs = {
+    DXC_ARG_GENERATE_SPIRV, // Spir-V bytecode gen works on all target platforms
+};
+
 TEST(ShaderCompilerTests, TestCompileShaderSource)
 {
     BShaderCompilerArgs CompilerArgs{};
+    CompilerArgs.Arguments = TestShaderCompilerArgs.data();
+    CompilerArgs.ArgumentCount = TestShaderCompilerArgs.size();
     CompilerArgs.IncludePaths = nullptr;
     CompilerArgs.IncludePathCount = 0;
     CompilerArgs.Defines = nullptr;

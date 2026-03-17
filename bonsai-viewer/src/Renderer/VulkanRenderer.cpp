@@ -10,6 +10,7 @@
 #include <vector>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <spirv-reflect/spirv_reflect.h>
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "Logging.hpp"
@@ -19,20 +20,29 @@
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2
 
+#define BONSAI_VK_VERTEX_SHADER_TARGET_PROFILE  "vs_6_5"
+#define BONSAI_VK_PIXEL_SHADER_TARGET_PROFILE   "ps_6_5"
+#define BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE "cs_6_5"
+
 #ifndef NDEBUG
 static constexpr bool RendererDebugEnabled = true;
 #else
 static constexpr bool RendererDebugEnabled = false;
 #endif //!NDEBUG
 
-static constexpr char const* VulkanVertexShaderTargetProfile    = "vs_6_5";
-static constexpr char const* VulkanPixelShaderTargetProfile     = "ps_6_5";
-static constexpr char const* VulkanComputeShaderTargetProfile   = "cs_6_5";
-
 /// @brief Device extension names that are enabled by default.
 static constexpr std::array DefaultDeviceExtensionNames = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_EXT_MEMORY_BUDGET_EXTENSION_NAME,
+};
+
+/// @brief Default shader compiler compilation args.
+static constexpr std::array DefaultShaderCompilationArgs = {
+    DXC_ARG_DEBUG,
+    DXC_ARG_PACK_MATRIX_ROW_MAJOR,
+    DXC_ARG_GENERATE_SPIRV,
+    DXC_ARG_SPIRV_PRESERVE_BINDINGS,
+    DXC_ARG_SPIRV_TARGET_ENV("vulkan1.3"),
 };
 
 /// @brief Lookup table for GPUHeapType -> VkMemoryPropertyFlags
@@ -1105,11 +1115,14 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
 {
     // Compile shader source file into SPIRV
     BShaderCompilerArgs CompilerArgs{};
+    CompilerArgs.Arguments = DefaultShaderCompilationArgs.data();
+    CompilerArgs.ArgumentCount = DefaultShaderCompilationArgs.size();
+
     CComPtr<IDxcBlob> ComputeShaderBytecode;
     if (BShaderCompiler::CompileFile(
             PipelineDesc.ComputeShader.ShaderPath,
             PipelineDesc.ComputeShader.Entrypoint,
-            VulkanComputeShaderTargetProfile,
+            BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE,
             CompilerArgs,
             &ComputeShaderBytecode
         ) != SHADER_COMPILER_RESULT_OK) {
@@ -1117,16 +1130,12 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     }
 
     // Create shader module from source blobs
-    VkShaderModule ComputeShader = CreateShaderModule(
-        pImpl->Device,
-        static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()),
-        ComputeShaderBytecode->GetBufferSize()
-    );
+    VkShaderModule ComputeShader = CreateShaderModule(pImpl->Device, static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()), ComputeShaderBytecode->GetBufferSize());
     if (ComputeShader == VK_NULL_HANDLE) {
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 
-    // Create pipeline layout
+    // Reflect shader pipeline layout
     // TODO(nemjit001): Reflect pipeline layout from shader source
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo{};
     PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
