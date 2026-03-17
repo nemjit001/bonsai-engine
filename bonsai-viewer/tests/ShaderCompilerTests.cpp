@@ -12,6 +12,12 @@ void CSMain()
 
 TEST(ShaderCompilerTests, TestCompileShaderSource)
 {
+    BShaderCompilerArgs CompilerArgs{};
+    CompilerArgs.IncludePaths = nullptr;
+    CompilerArgs.IncludePathCount = 0;
+    CompilerArgs.Defines = nullptr;
+    CompilerArgs.DefineCount = 0;
+
     CComPtr<IDxcBlob> Output;
-    ASSERT_EQ(BShaderCompiler::CompileShaderSource(ComputeShaderSource, "CSMain", "cs_6_0", &Output), SHADER_COMPILER_RESULT_OK);
+    ASSERT_EQ(BShaderCompiler::CompileShaderSource(ComputeShaderSource, "CSMain", "cs_6_0", CompilerArgs, &Output), SHADER_COMPILER_RESULT_OK);
 }

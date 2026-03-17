@@ -22,6 +22,17 @@ enum ShaderCompilerResult : uint32_t
 	SHADER_COMPILER_RESULT_COMPILATION_FAILED	= 2,
 };
 
+/// @brief Shader compilation arguments.
+struct BShaderCompilerArgs
+{
+	LPCWSTR const* Arguments;
+	size_t ArgumentCount;
+	LPCWSTR const* IncludePaths;
+	size_t IncludePathCount;
+	DxcDefine const* Defines;
+	size_t DefineCount;
+};
+
 /// @brief The ShaderCompiler static class can used to compile shader source code into a binary representation using the DirectX Shader Compiler.
 /// HLSL target profiles are used to specify shader type and capabilities.
 class BShaderCompiler
@@ -30,26 +41,31 @@ public:
 	/// @brief Compile a shader source file.
 	/// @param FilePath 
 	/// @param Entrypoint 
-	/// @param TargetProfile 
+	/// @param TargetProfile  
+	/// @param CompilerArgs 
 	/// @param OutBlob 
 	/// @return 
 	static ShaderCompilerResult CompileFile(
 		char const* FilePath,
 		char const* Entrypoint,
 		char const* TargetProfile,
+		BShaderCompilerArgs const& CompilerArgs,
 		IDxcBlob** OutBlob
 	);
 
 	/// @brief Compile a shader source string.
+	/// This function does not support using #include directives.
 	/// @param ShaderSource 
 	/// @param Entrypoint 
 	/// @param TargetProfile 
+	/// @param CompilerArgs 
 	/// @param OutBlob 
 	/// @return 
 	static ShaderCompilerResult CompileShaderSource(
 		char const* ShaderSource,
 		char const* Entrypoint,
 		char const* TargetProfile,
+		BShaderCompilerArgs const& CompilerArgs,
 		IDxcBlob** OutBlob
 	);
 
@@ -63,6 +79,11 @@ private:
 	/// @return 
 	static std::wstring ToWideString(std::string const& str);
 
+	/// @brief Compile a source buffer.
+	/// @param SourceBuffer 
+	/// @param CompilerArgs 
+	/// @param OutBlob 
+	/// @return 
 	static ShaderCompilerResult Compile(
 		DxcBuffer* SourceBuffer,
 		IDxcCompilerArgs* CompilerArgs,

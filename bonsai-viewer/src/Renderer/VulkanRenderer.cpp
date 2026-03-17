@@ -1104,14 +1104,15 @@ void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
 BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
     // Compile shader source file into SPIRV
+    BShaderCompilerArgs CompilerArgs{};
     CComPtr<IDxcBlob> ComputeShaderBytecode;
     if (BShaderCompiler::CompileFile(
             PipelineDesc.ComputeShader.ShaderPath,
             PipelineDesc.ComputeShader.Entrypoint,
             VulkanComputeShaderTargetProfile,
+            CompilerArgs,
             &ComputeShaderBytecode
-        ) != SHADER_COMPILER_RESULT_OK
-    ) {
+        ) != SHADER_COMPILER_RESULT_OK) {
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 

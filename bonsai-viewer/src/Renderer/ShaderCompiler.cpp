@@ -6,6 +6,7 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include <vector>
 #include "Logging.hpp"
 
 CComPtr<IDxcUtils> BShaderCompiler::Utils;
@@ -16,6 +17,7 @@ ShaderCompilerResult BShaderCompiler::CompileFile(
     char const* FilePath,
     char const* Entrypoint,
     char const* TargetProfile,
+    BShaderCompilerArgs const& CompilerArgs,
     IDxcBlob** OutBlob
 )
 {
@@ -33,18 +35,32 @@ ShaderCompilerResult BShaderCompiler::CompileFile(
         return SHADER_COMPILER_RESULT_COMPILATION_FAILED;
     }
 
+    // Generate list of include paths
+    std::vector<std::wstring> IncludePathNames;
+    IncludePathNames.resize(CompilerArgs.IncludePathCount);
+    for (size_t i = 0; i < CompilerArgs.IncludePathCount; i++) {
+        IncludePathNames[i] = L"-I " + std::wstring(CompilerArgs.IncludePaths[i]);
+    }
+
     // Set up compiler args
-    // TODO(nemjit001): Handle defines and preset compiler args
     std::wstring EntrypointName = ToWideString(Entrypoint);
     std::wstring TargetProfileName = ToWideString(TargetProfile);
-    CComPtr<IDxcCompilerArgs> CompilerArgs;
+    std::vector<LPCWSTR> Arguments;
+    for (size_t i = 0; i < CompilerArgs.ArgumentCount; i++) {
+        Arguments.push_back(CompilerArgs.Arguments[i]);
+    }
+    for (auto const& IncludePath : IncludePathNames) {
+        Arguments.push_back(IncludePath.c_str());
+    }
+
+    CComPtr<IDxcCompilerArgs> DxcCompilerArgs;
     Utils->BuildArguments(
         FileName.c_str(),
         EntrypointName.c_str(),
         TargetProfileName.c_str(),
-        nullptr, 0,
-        nullptr, 0,
-        &CompilerArgs
+        Arguments.data(), static_cast<UINT32>(Arguments.size()),
+        CompilerArgs.Defines, CompilerArgs.DefineCount,
+        &DxcCompilerArgs
     );
 
     // Compile source file
@@ -53,13 +69,14 @@ ShaderCompilerResult BShaderCompiler::CompileFile(
     SourceBuffer.Size = SourceBlob->GetBufferSize();
     SourceBuffer.Encoding = CodePage;
 
-    return Compile(&SourceBuffer, CompilerArgs, OutBlob);
+    return Compile(&SourceBuffer, DxcCompilerArgs, OutBlob);
 }
 
 ShaderCompilerResult BShaderCompiler::CompileShaderSource(
     char const* ShaderSource,
     char const* Entrypoint,
     char const* TargetProfile,
+    BShaderCompilerArgs const& CompilerArgs,
     IDxcBlob** OutBlob
 )
 {
@@ -68,17 +85,21 @@ ShaderCompilerResult BShaderCompiler::CompileShaderSource(
     }
 
     // Set up compiler args
-    // TODO(nemjit001): Handle defines and preset compiler args
     std::wstring EntrypointName = ToWideString(Entrypoint);
     std::wstring TargetProfileName = ToWideString(TargetProfile);
-    CComPtr<IDxcCompilerArgs> CompilerArgs;
+    std::vector<LPCWSTR> Arguments;
+    for (size_t i = 0; i < CompilerArgs.ArgumentCount; i++) {
+        Arguments.push_back(CompilerArgs.Arguments[i]);
+    }
+
+    CComPtr<IDxcCompilerArgs> DxcCompilerArgs;
     Utils->BuildArguments(
         nullptr,
         EntrypointName.c_str(),
         TargetProfileName.c_str(),
-        nullptr, 0,
-        nullptr, 0,
-        &CompilerArgs
+        Arguments.data(), static_cast<UINT32>(Arguments.size()),
+        CompilerArgs.Defines, CompilerArgs.DefineCount,
+        &DxcCompilerArgs
     );
 
     // Compile source file
@@ -87,7 +108,7 @@ ShaderCompilerResult BShaderCompiler::CompileShaderSource(
     SourceBuffer.Size = std::strlen(ShaderSource);
     SourceBuffer.Encoding = DXC_CP_ACP;
 
-    return Compile(&SourceBuffer, CompilerArgs, OutBlob);
+    return Compile(&SourceBuffer, DxcCompilerArgs, OutBlob);
 }
 
 bool BShaderCompiler::LazyInit()
