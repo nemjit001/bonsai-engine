@@ -204,6 +204,15 @@ struct BShaderSource
     char const* ShaderPath;
 };
 
+/// @brief A GPUPipelineLocalSize is used to store the local dispatch size of GPGPU workloads.
+/// This can be queried for pipelines after creation.
+struct BGPUPipelineLocalSize
+{
+    uint32_t SizeX;
+    uint32_t SizeY;
+    uint32_t SizeZ;
+};
+
 /// @brief A BGPUComputePipelineStateDesc is used to describe a compute pipeline state on creation.
 struct BGPUComputePipelineStateDesc
 {

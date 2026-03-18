@@ -32,6 +32,7 @@ public:
     VkPipelineBindPoint BindPoint;
     VkPipelineLayout PipelineLayout;
     VkPipeline Pipeline;
+    BGPUPipelineLocalSize DispatchSize;
     std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 };
 

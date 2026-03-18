@@ -637,7 +637,13 @@ static bool CompileShader(BShaderSource const& ShaderSource, IDxcBlob** OutShade
 /// @param OutPushConstantRanges 
 /// @param OutDescriptorSetLayouts 
 /// @return 
-static bool ReflectPipelineLayout(VkDevice Device, std::vector<CompiledShader> const& Shaders, std::vector<VkPushConstantRange>& OutPushConstantRanges, std::vector<VkDescriptorSetLayout>& OutDescriptorSetLayouts)
+static bool ReflectPipelineLayout(
+    VkDevice Device,
+    std::vector<CompiledShader> const& Shaders,
+    std::vector<BGPUPipelineLocalSize>& OutLocalSizes,
+    std::vector<VkPushConstantRange>& OutPushConstantRanges,
+    std::vector<VkDescriptorSetLayout>& OutDescriptorSetLayouts
+)
 {
     // Create reflect modules
     std::vector<SpvReflectShaderModule> ReflectModules;
@@ -649,12 +655,21 @@ static bool ReflectPipelineLayout(VkDevice Device, std::vector<CompiledShader> c
         ReflectModules.push_back(Module);
     }
 
-    // Parse descriptor set layouts and push constant ranges
+    // Parse dispatch sizes, descriptor set layouts, and push constant ranges
+    OutLocalSizes.clear();
     OutPushConstantRanges.clear();
     std::vector<std::vector<VkDescriptorSetLayoutBinding>> DescriptorSetBindings;
     uint32_t MaxDescriptorSetIdx = 0;
     for (auto const& Module : ReflectModules)
     {
+        // Store 1st entrypoint dispatch size for shader
+        BGPUPipelineLocalSize LocalSize{};
+        LocalSize.SizeX = Module.entry_points[Module.entry_point_id].local_size.x;
+        LocalSize.SizeY = Module.entry_points[Module.entry_point_id].local_size.y;
+        LocalSize.SizeZ = Module.entry_points[Module.entry_point_id].local_size.z;
+
+        OutLocalSizes.push_back(LocalSize);
+
         // Parse per-entrypoint descriptor set layouts & push constants
         for (uint32_t EntrypointIdx = 0; EntrypointIdx < Module.entry_point_count; EntrypointIdx++)
         {
@@ -1295,9 +1310,11 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     ComputeShader.Bytecode = ComputeShaderBytecode;
 
     // Reflect & create shader pipeline layout
+    std::vector<CompiledShader> const CompiledShaders = { ComputeShader };
+    std::vector<BGPUPipelineLocalSize> LocalSizes;
     std::vector<VkPushConstantRange> PushConstantRanges;
     std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
-    if (!ReflectPipelineLayout(pImpl->Device, { ComputeShader }, PushConstantRanges, DescriptorSetLayouts))
+    if (!ReflectPipelineLayout(pImpl->Device, CompiledShaders, LocalSizes, PushConstantRanges, DescriptorSetLayouts))
     {
         for (auto const& Layout : DescriptorSetLayouts) {
             vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
@@ -1368,7 +1385,8 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     }
 
     vkDestroyShaderModule(pImpl->Device, ComputeShaderModule, nullptr);
-    BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline, DescriptorSetLayouts };
+    BGPUPipelineLocalSize PipelineDispatchSize = LocalSizes[0]; // always using 1st dispatch size
+    BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline, PipelineDispatchSize, DescriptorSetLayouts };
     return pImpl->PSOPool.Allocate(NewPSO);
 }
 
