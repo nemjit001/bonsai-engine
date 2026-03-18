@@ -20,9 +20,12 @@
 #define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
 #define BONSAI_FRAMES_IN_FLIGHT     2
 
-#define BONSAI_VK_VERTEX_SHADER_TARGET_PROFILE  "vs_6_5"
-#define BONSAI_VK_PIXEL_SHADER_TARGET_PROFILE   "ps_6_5"
-#define BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE "cs_6_5"
+#define BONSAI_VK_VERTEX_SHADER_TARGET_PROFILE      "vs_6_5"
+#define BONSAI_VK_HULL_SHADER_TARGET_PROFILE        "hs_6_5"
+#define BONSAI_VK_DOMAIN_SHADER_TARGET_PROFILE      "ds_6_5"
+#define BONSAI_VK_GEOMETRY_SHADER_TARGET_PROFILE    "gs_6_5"
+#define BONSAI_VK_PIXEL_SHADER_TARGET_PROFILE       "ps_6_5"
+#define BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE     "cs_6_5"
 
 #ifndef NDEBUG
 static constexpr bool RendererDebugEnabled = true;
@@ -40,6 +43,7 @@ static constexpr std::array DefaultDeviceExtensionNames = {
 static constexpr std::array DefaultShaderCompilationArgs = {
     DXC_ARG_DEBUG,
     DXC_ARG_PACK_MATRIX_ROW_MAJOR,
+    DXC_ARG_OPTIMIZATION_LEVEL3,
     DXC_ARG_GENERATE_SPIRV,
     DXC_ARG_SPIRV_PRESERVE_BINDINGS,
     DXC_ARG_SPIRV_TARGET_ENV("vulkan1.3"),
@@ -153,6 +157,13 @@ struct SwapchainConfig
     VkSurfaceFormatKHR SurfaceFormat;
     VkPresentModeKHR PresentMode;
     VkSurfaceTransformFlagBitsKHR CurrentTransform;
+};
+
+/// @brief A CompiledShader contains shader SPIR-V bytecode and the associated shader stage.
+struct CompiledShader
+{
+    ShaderStage Stage;
+    IDxcBlob* Bytecode;
 };
 
 /// @brief Vulkan renderer backend implementation.
@@ -578,6 +589,69 @@ static VkShaderModule CreateShaderModule(VkDevice Device, uint32_t const* ByteCo
     }
 
     return ShaderModule;
+}
+
+/// @brief Compile a shader into SPIR-V bytecode.
+/// @param ShaderSource 
+/// @param OutShaderBytecode 
+/// @return 
+static bool CompileShader(BShaderSource const& ShaderSource, IDxcBlob** OutShaderBytecode)
+{
+    // TODO(nemjit001): Push additional stage-specific compilation args.
+    char const* TargetProfile = nullptr;
+    std::vector<LPCWSTR> CompilationArgs(std::begin(DefaultShaderCompilationArgs), std::end(DefaultShaderCompilationArgs));
+    switch(ShaderSource.Stage)
+    {
+    case ShaderStage_Vertex:
+        TargetProfile = BONSAI_VK_VERTEX_SHADER_TARGET_PROFILE;
+        break;
+    case ShaderStage_Hull:
+        TargetProfile = BONSAI_VK_HULL_SHADER_TARGET_PROFILE;
+        break;
+    case ShaderStage_Domain:
+        TargetProfile = BONSAI_VK_DOMAIN_SHADER_TARGET_PROFILE;
+        break;
+    case ShaderStage_Geometry:
+        TargetProfile = BONSAI_VK_GEOMETRY_SHADER_TARGET_PROFILE;
+        break;
+    case ShaderStage_Pixel:
+        TargetProfile = BONSAI_VK_PIXEL_SHADER_TARGET_PROFILE;
+        break;
+    case ShaderStage_Compute:
+        TargetProfile = BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE;
+        break;
+    default:
+        return false;
+    }
+
+    // TODO(nemjit001): Push additional shader defines and default include dirs
+    BShaderCompilerArgs CompilerArgs{};
+    CompilerArgs.Arguments = CompilationArgs.data();
+    CompilerArgs.ArgumentCount = CompilationArgs.size();
+
+    return SHADER_COMPILER_RESULT_OK == BShaderCompiler::CompileFile(ShaderSource.ShaderPath, ShaderSource.Entrypoint, TargetProfile, CompilerArgs, OutShaderBytecode);
+}
+
+/// @brief Reflect pipeline layout from a list of compiled shaders.
+/// @param Shaders 
+static void ReflectPipelineLayout(std::vector<CompiledShader> const& Shaders)
+{
+    // Create reflect modules
+    std::vector<SpvReflectShaderModule> ReflectModules;
+    ReflectModules.reserve(Shaders.size());
+    for (auto const& Shader : Shaders)
+    {
+        SpvReflectShaderModule Module{};
+        spvReflectCreateShaderModule2(SPV_REFLECT_MODULE_FLAG_NONE, Shader.Bytecode->GetBufferSize(), Shader.Bytecode->GetBufferPointer(), &Module);    
+        ReflectModules.push_back(Module);
+    }
+
+    // TODO(nemjit001): for each shader, parse bindings and update descriptor set layouts & pc ranges
+
+    // Destroy reflect modules
+    for (auto& Module : ReflectModules) {
+        spvReflectDestroyShaderModule(&Module);
+    }
 }
 
 static void RecordRenderCommands(BVulkanRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
@@ -1113,30 +1187,18 @@ void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
 
 BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
-    // Compile shader source file into SPIRV
-    BShaderCompilerArgs CompilerArgs{};
-    CompilerArgs.Arguments = DefaultShaderCompilationArgs.data();
-    CompilerArgs.ArgumentCount = DefaultShaderCompilationArgs.size();
-
+    // Compile shader source into bytecode
     CComPtr<IDxcBlob> ComputeShaderBytecode;
-    if (BShaderCompiler::CompileFile(
-            PipelineDesc.ComputeShader.ShaderPath,
-            PipelineDesc.ComputeShader.Entrypoint,
-            BONSAI_VK_COMPUTE_SHADER_TARGET_PROFILE,
-            CompilerArgs,
-            &ComputeShaderBytecode
-        ) != SHADER_COMPILER_RESULT_OK) {
+    if (!CompileShader(PipelineDesc.ComputeShader, &ComputeShaderBytecode)) {
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 
-    // Create shader module from source blobs
-    VkShaderModule ComputeShader = CreateShaderModule(pImpl->Device, static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()), ComputeShaderBytecode->GetBufferSize());
-    if (ComputeShader == VK_NULL_HANDLE) {
-        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
-    }
+    CompiledShader ComputeShader{};
+    ComputeShader.Stage = PipelineDesc.ComputeShader.Stage;
+    ComputeShader.Bytecode = ComputeShaderBytecode;
 
-    // Reflect shader pipeline layout
-    // TODO(nemjit001): Reflect pipeline layout from shader source (generate descriptor set layouts based on spirv bindings)
+    // Reflect & create shader pipeline layout
+    ReflectPipelineLayout({ ComputeShader });
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo{};
     PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     PipelineLayoutCreateInfo.pNext = nullptr;
@@ -1147,19 +1209,23 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
     VkPipelineLayout PipelineLayout = VK_NULL_HANDLE;
-    if (vkCreatePipelineLayout(pImpl->Device, &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
-    {
-        vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+    if (vkCreatePipelineLayout(pImpl->Device, &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS) {
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
     
+    // Create shader module from source blob
+    VkShaderModule ComputeShaderModule = CreateShaderModule(pImpl->Device, static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()), ComputeShaderBytecode->GetBufferSize());
+    if (ComputeShaderModule == VK_NULL_HANDLE) {
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+
     // Create pipeline state
     VkPipelineShaderStageCreateInfo ComputeStageCreateInfo{};
     ComputeStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     ComputeStageCreateInfo.pName = nullptr;
     ComputeStageCreateInfo.flags = 0;
     ComputeStageCreateInfo.stage = static_cast<VkShaderStageFlagBits>(PipelineDesc.ComputeShader.Stage);
-    ComputeStageCreateInfo.module = ComputeShader;
+    ComputeStageCreateInfo.module = ComputeShaderModule;
     ComputeStageCreateInfo.pName = PipelineDesc.ComputeShader.Entrypoint;
     ComputeStageCreateInfo.pSpecializationInfo = nullptr;
 
@@ -1175,11 +1241,11 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     VkPipeline ComputePipeline = VK_NULL_HANDLE;
     if (vkCreateComputePipelines(pImpl->Device, VK_NULL_HANDLE, 1, &ComputePipelineCreateInfo, nullptr, &ComputePipeline) != VK_SUCCESS)
     {
-        vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+        vkDestroyShaderModule(pImpl->Device, ComputeShaderModule, nullptr);
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 
-    vkDestroyShaderModule(pImpl->Device, ComputeShader, nullptr);
+    vkDestroyShaderModule(pImpl->Device, ComputeShaderModule, nullptr);
     BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline };
     return pImpl->PSOPool.Allocate(NewPSO);
 }
