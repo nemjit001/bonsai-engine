@@ -4,6 +4,7 @@
 #if BONSAI_VULKAN_SUPPORT
 
 #include <memory>
+#include <vector>
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "Renderer.hpp"
@@ -31,6 +32,7 @@ public:
     VkPipelineBindPoint BindPoint;
     VkPipelineLayout PipelineLayout;
     VkPipeline Pipeline;
+    std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 };
 
 /// @brief Renderer backend implementation.

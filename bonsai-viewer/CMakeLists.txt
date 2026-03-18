@@ -7,12 +7,14 @@ find_package(SDL3 REQUIRED)
 find_package(tinyobjloader REQUIRED)
 find_package(unofficial-spirv-reflect REQUIRED)
 find_package(volk REQUIRED)
+find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator REQUIRED)
 
 set(BONSAI_VULKAN_LIBS
         GPUOpen::VulkanMemoryAllocator
         unofficial::spirv-reflect
         volk::volk_headers
+        Vulkan::Headers
 )
 
 set(BONSAI_DX12_LIBS

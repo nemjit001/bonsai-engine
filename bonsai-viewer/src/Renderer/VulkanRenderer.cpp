@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <cstdio>
-#include <vector>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <spirv-reflect/spirv_reflect.h>
@@ -633,8 +632,12 @@ static bool CompileShader(BShaderSource const& ShaderSource, IDxcBlob** OutShade
 }
 
 /// @brief Reflect pipeline layout from a list of compiled shaders.
+/// @param Device
 /// @param Shaders 
-static void ReflectPipelineLayout(std::vector<CompiledShader> const& Shaders)
+/// @param OutPushConstantRanges 
+/// @param OutDescriptorSetLayouts 
+/// @return 
+static bool ReflectPipelineLayout(VkDevice Device, std::vector<CompiledShader> const& Shaders, std::vector<VkPushConstantRange>& OutPushConstantRanges, std::vector<VkDescriptorSetLayout>& OutDescriptorSetLayouts)
 {
     // Create reflect modules
     std::vector<SpvReflectShaderModule> ReflectModules;
@@ -646,12 +649,106 @@ static void ReflectPipelineLayout(std::vector<CompiledShader> const& Shaders)
         ReflectModules.push_back(Module);
     }
 
-    // TODO(nemjit001): for each shader, parse bindings and update descriptor set layouts & pc ranges
+    // Parse descriptor set layouts and push constant ranges
+    OutPushConstantRanges.clear();
+    std::vector<std::vector<VkDescriptorSetLayoutBinding>> DescriptorSetBindings;
+    uint32_t MaxDescriptorSetIdx = 0;
+    for (auto const& Module : ReflectModules)
+    {
+        // Parse per-entrypoint descriptor set layouts & push constants
+        for (uint32_t EntrypointIdx = 0; EntrypointIdx < Module.entry_point_count; EntrypointIdx++)
+        {
+            // Get entrypoint in reflect module
+            SpvReflectEntryPoint const& Entrypoint = Module.entry_points[EntrypointIdx];
 
-    // Destroy reflect modules
+            // Parse push constant ranges in entrypoint. Each shader stage entrypoint may only have 1 associated push constant range.
+            for (uint32_t PushConstantIdx = 0; PushConstantIdx < Entrypoint.used_push_constant_count; PushConstantIdx++)
+            {
+                SpvReflectBlockVariable const& PushConstantBlock = Module.push_constant_blocks[Entrypoint.used_push_constants[PushConstantIdx]];
+                auto const Iter = std::find_if(std::begin(OutPushConstantRanges), std::end(OutPushConstantRanges), [&](VkPushConstantRange const& PushConstant) {
+                    return PushConstant.offset == PushConstantBlock.absolute_offset && PushConstant.size == PushConstantBlock.padded_size;
+                });
+                
+                if (Iter != std::end(OutPushConstantRanges))
+                {
+                    VkPushConstantRange& StoredPushConstant = *Iter;
+                    StoredPushConstant.stageFlags |= Entrypoint.shader_stage; // Only need to update stage flags here
+                }
+                else
+                {
+                    VkPushConstantRange NewPushConstantRange{};
+                    NewPushConstantRange.offset = PushConstantBlock.absolute_offset;
+                    NewPushConstantRange.size = PushConstantBlock.padded_size;
+                    NewPushConstantRange.stageFlags = Entrypoint.shader_stage;
+
+                    OutPushConstantRanges.push_back(NewPushConstantRange);
+                }
+            }
+
+            // Parse descriptor sets in entrypoint
+            for (uint32_t DescriptorSetIdx = 0; DescriptorSetIdx < Entrypoint.descriptor_set_count; DescriptorSetIdx++)
+            {
+                // Resize descriptor sets array
+                SpvReflectDescriptorSet const& DescriptorSet = Entrypoint.descriptor_sets[DescriptorSetIdx];
+                MaxDescriptorSetIdx = std::max(MaxDescriptorSetIdx, DescriptorSet.set);
+                DescriptorSetBindings.resize(MaxDescriptorSetIdx);
+
+                // Parse descriptor bindings in entrypoint
+                std::vector<VkDescriptorSetLayoutBinding>& CurrentSetBindings = DescriptorSetBindings[DescriptorSet.set];
+                for (uint32_t DescriptorBindingIdx = 0; DescriptorBindingIdx < DescriptorSet.binding_count; DescriptorBindingIdx++)
+                {
+                    SpvReflectDescriptorBinding const* DescriptorBinding = DescriptorSet.bindings[DescriptorBindingIdx];
+                    auto const Iter = std::find_if(std::begin(CurrentSetBindings), std::end(CurrentSetBindings), [&](VkDescriptorSetLayoutBinding const& Binding) {
+                        return Binding.binding == DescriptorBinding->binding;
+                    });
+
+                    if (Iter != std::end(CurrentSetBindings))
+                    {
+                        VkDescriptorSetLayoutBinding& StoredDescriptorBinding = *Iter;
+                        StoredDescriptorBinding.stageFlags |= Entrypoint.shader_stage; // Only need to update used stage flags here
+                    }
+                    else
+                    {
+                        VkDescriptorSetLayoutBinding NewDescriptorBinding{};
+                        NewDescriptorBinding.binding = DescriptorBinding->binding;
+                        NewDescriptorBinding.descriptorType = static_cast<VkDescriptorType>(DescriptorBinding->descriptor_type);
+                        NewDescriptorBinding.descriptorCount = DescriptorBinding->count;
+                        NewDescriptorBinding.stageFlags = Entrypoint.shader_stage;
+                        NewDescriptorBinding.pImmutableSamplers = nullptr;
+                        
+                        CurrentSetBindings.push_back(NewDescriptorBinding);
+                    }
+                }
+            }
+        }
+    }
+
+    // Destroy reflect modules :)
     for (auto& Module : ReflectModules) {
         spvReflectDestroyShaderModule(&Module);
     }
+
+    // Create descriptor set layouts
+    OutDescriptorSetLayouts.clear();
+    OutDescriptorSetLayouts.reserve(DescriptorSetBindings.size());
+    for (auto const& Bindings : DescriptorSetBindings)
+    {
+        VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo{};
+        DescriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        DescriptorSetLayoutCreateInfo.pNext = nullptr;
+        DescriptorSetLayoutCreateInfo.flags = 0; // TODO(nemjit001): Check if update after bind is needed (bindless rendering etc.)
+        DescriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(Bindings.size());
+        DescriptorSetLayoutCreateInfo.pBindings = Bindings.data();
+
+        VkDescriptorSetLayout DescriptorSetLayout = VK_NULL_HANDLE;
+        if (vkCreateDescriptorSetLayout(Device, &DescriptorSetLayoutCreateInfo, nullptr, &DescriptorSetLayout)) {
+            return false;
+        }
+
+        OutDescriptorSetLayouts.push_back(DescriptorSetLayout);
+    }
+
+    return true;
 }
 
 static void RecordRenderCommands(BVulkanRendererImpl const* RendererImpl, uint32_t SwapImageIndex, VkCommandBuffer FrameCommandBuffer)
@@ -1198,24 +1295,45 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     ComputeShader.Bytecode = ComputeShaderBytecode;
 
     // Reflect & create shader pipeline layout
-    ReflectPipelineLayout({ ComputeShader });
+    std::vector<VkPushConstantRange> PushConstantRanges;
+    std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
+    if (!ReflectPipelineLayout(pImpl->Device, { ComputeShader }, PushConstantRanges, DescriptorSetLayouts))
+    {
+        for (auto const& Layout : DescriptorSetLayouts) {
+            vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
+        }
+
+        return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
+    }
+
     VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo{};
     PipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     PipelineLayoutCreateInfo.pNext = nullptr;
     PipelineLayoutCreateInfo.flags = 0;
-    PipelineLayoutCreateInfo.setLayoutCount = 0;
-    PipelineLayoutCreateInfo.pSetLayouts = nullptr;
-    PipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-    PipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+    PipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(DescriptorSetLayouts.size());
+    PipelineLayoutCreateInfo.pSetLayouts = DescriptorSetLayouts.data();
+    PipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(PushConstantRanges.size());
+    PipelineLayoutCreateInfo.pPushConstantRanges = PushConstantRanges.data();
 
     VkPipelineLayout PipelineLayout = VK_NULL_HANDLE;
-    if (vkCreatePipelineLayout(pImpl->Device, &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(pImpl->Device, &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
+    {
+        for (auto const& Layout : DescriptorSetLayouts) {
+            vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
+        }
+
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
     
     // Create shader module from source blob
     VkShaderModule ComputeShaderModule = CreateShaderModule(pImpl->Device, static_cast<uint32_t const*>(ComputeShaderBytecode->GetBufferPointer()), ComputeShaderBytecode->GetBufferSize());
-    if (ComputeShaderModule == VK_NULL_HANDLE) {
+    if (ComputeShaderModule == VK_NULL_HANDLE)
+    {
+        for (auto const& Layout : DescriptorSetLayouts) {
+            vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
+        }
+        vkDestroyPipelineLayout(pImpl->Device, PipelineLayout, nullptr);
+
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 
@@ -1241,12 +1359,16 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     VkPipeline ComputePipeline = VK_NULL_HANDLE;
     if (vkCreateComputePipelines(pImpl->Device, VK_NULL_HANDLE, 1, &ComputePipelineCreateInfo, nullptr, &ComputePipeline) != VK_SUCCESS)
     {
+        for (auto const& Layout : DescriptorSetLayouts) {
+            vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
+        }
+        vkDestroyPipelineLayout(pImpl->Device, PipelineLayout, nullptr);
         vkDestroyShaderModule(pImpl->Device, ComputeShaderModule, nullptr);
         return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
     }
 
     vkDestroyShaderModule(pImpl->Device, ComputeShaderModule, nullptr);
-    BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline };
+    BGPUPipelineState const NewPSO{ VK_PIPELINE_BIND_POINT_COMPUTE, PipelineLayout, ComputePipeline, DescriptorSetLayouts };
     return pImpl->PSOPool.Allocate(NewPSO);
 }
 
@@ -1260,6 +1382,10 @@ void BVulkanRenderer::DestroyPipelineState(BGPUPipelineStateHandle PipelineState
     BGPUPipelineState PSOResource{};
     if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {
         return;
+    }
+
+    for (auto const& Layout : PSOResource.DescriptorSetLayouts) {
+        vkDestroyDescriptorSetLayout(pImpl->Device, Layout, nullptr);
     }
 
     vkDestroyPipeline(pImpl->Device, PSOResource.Pipeline, nullptr);
