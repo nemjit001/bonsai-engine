@@ -20,15 +20,15 @@ jobs:
         include:
           - os: windows-latest
             configure_preset: msvc-x64
-            build_preset: msvc-release
+            build_preset: msvc-x64-release
             build_type: Release
           - os: ubuntu-latest
             configure_preset: gcc-x64
-            build_preset: gcc-release
+            build_preset: gcc-x64-release
             build_type: Release
           - os: ubuntu-latest
             configure_preset: clang-x64
-            build_preset: clang-release
+            build_preset: clang-x64-release
             build_type: Release
         exclude:
           - os: windows-latest
@@ -44,7 +44,7 @@ jobs:
         submodules: 'recursive'
 
     - name: Do VCPKG Setup
-      uses: lukka/run-vcpkg@v11
+      uses: lukka/run-vcpkg@v11.5
 
     - name: Install Linux Packages
       if: matrix.os == 'ubuntu-latest'
