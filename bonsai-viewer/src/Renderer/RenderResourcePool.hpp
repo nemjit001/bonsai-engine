@@ -3,7 +3,7 @@
 #define RENDER_RESOURCE_POOL_HPP
 
 #include <vector>
-#include "Renderer.hpp"
+#include "RenderHandle.hpp"
 
 /// @brief Typed resource pool for internally tracking renderer resources.
 /// @tparam RenderType 

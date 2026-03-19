@@ -35,6 +35,7 @@ add_library(BonsaiViewerLib
         src/Scene.hpp
         src/Assets/StaticMesh.cpp
         src/Assets/StaticMesh.hpp
+        src/Renderer/RenderHandle.hpp
         src/Renderer/RenderResourcePool.hpp
         src/Renderer/RenderResourcePool.inl
         src/Renderer/ShaderCompiler.cpp
