@@ -1411,4 +1411,14 @@ void BVulkanRenderer::DestroyPipelineState(BGPUPipelineStateHandle PipelineState
     pImpl->PSOPool.Free(PipelineState);
 }
 
+BGPUPipelineLocalSize BVulkanRenderer::GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState)
+{
+    BGPUPipelineState PSOResource{};
+    if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {
+        return {};
+    }
+
+    return PSOResource.LocalSize;
+}
+
 #endif //BONSAI_VULKAN_SUPPORT

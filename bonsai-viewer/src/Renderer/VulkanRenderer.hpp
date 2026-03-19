@@ -32,7 +32,7 @@ public:
     VkPipelineBindPoint BindPoint;
     VkPipelineLayout PipelineLayout;
     VkPipeline Pipeline;
-    BGPUPipelineLocalSize DispatchSize;
+    BGPUPipelineLocalSize LocalSize;
     std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 };
 
@@ -40,7 +40,7 @@ public:
 struct BVulkanRendererImpl;
 
 /// @brief Vulkan implementation of a renderer backend.
-class BVulkanRenderer : public BRenderer
+class BVulkanRenderer : public IRenderer
 {
 public:
     BVulkanRenderer();
@@ -65,6 +65,8 @@ public:
     BGPUPipelineStateHandle CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc) override;
 
     void DestroyPipelineState(BGPUPipelineStateHandle PipelineState) override;
+
+    BGPUPipelineLocalSize GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState) override;
 
 private:
     std::unique_ptr<BVulkanRendererImpl> pImpl;

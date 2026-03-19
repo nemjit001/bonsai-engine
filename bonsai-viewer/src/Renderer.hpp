@@ -213,24 +213,29 @@ struct BGPUComputePipelineStateDesc
 
 /// @brief A BGPURenderPipelineStateDesc is used to describe a render pipeline state on creation.
 struct BGPURenderPipelineStateDesc
-{
+{   
+    BShaderSource* VertexShader;
+    BShaderSource* HullShader;
+    BShaderSource* DomainShader;
+    BShaderSource* GeometryShader;
+    BShaderSource* PixelShader;
+
     // TODO(nemjit001): Render pipeline desc
-    // - [ ] add graphics pipeline shader data
     // - [ ] add fixed function state
 };
 
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
-class BRenderer
+class IRenderer
 {
 public:
-    BRenderer() = default;
-    virtual ~BRenderer() = default;
+    IRenderer() = default;
+    virtual ~IRenderer() = default;
 
-    BRenderer(BRenderer const&) = delete;
-    BRenderer& operator=(BRenderer const&) = delete;
+    IRenderer(IRenderer const&) = delete;
+    IRenderer& operator=(IRenderer const&) = delete;
 
-    BRenderer(BRenderer&&) = default;
-    BRenderer& operator=(BRenderer&&) = default;
+    IRenderer(IRenderer&&) = default;
+    IRenderer& operator=(IRenderer&&) = default;
 
     /// @brief Initialize the renderer.
     /// @return 
@@ -240,6 +245,7 @@ public:
     virtual void Shutdown() = 0;
 
     /// @brief Render a new frame.
+    [[deprecated]]
     virtual void Frame() = 0;
 
     /// @brief Create a new GPU buffer.
@@ -273,6 +279,11 @@ public:
     /// @brief Destroy a GPU pipeline state object.
     /// @param PipelineState 
     virtual void DestroyPipelineState(BGPUPipelineStateHandle PipelineState) = 0;
+
+    /// @brief Get the local dispatch size for a pipeline state object.
+    /// @param PipelineState 
+    /// @return 
+    virtual BGPUPipelineLocalSize GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState) = 0;
 };
 
 #endif //RENDERER_HPP
