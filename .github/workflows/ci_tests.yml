@@ -53,13 +53,6 @@ jobs:
           cmake clang gcc \
           autoconf autoconf-archive automake libtool libltdl-dev
 
-    - name: Prepare Vulkan SDK
-      uses: humbletim/setup-vulkan-sdk@v1.2.1
-      with:
-        vulkan-query-version: latest
-        vulkan-components: Vulkan-Headers
-        vulkan-use-cache: true
-
     - name: Set reusable strings
       id: strings
       shell: bash

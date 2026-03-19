@@ -39,6 +39,26 @@ public:
 /// @brief Renderer backend implementation.
 struct BVulkanRendererImpl;
 
+/// @brief Vulkan implementation of a GPU command list.
+class BVulkanCommandList : public IGPUCommandList
+{
+public:
+    BVulkanCommandList();
+    ~BVulkanCommandList() override;
+
+    bool Reset() override;
+
+    bool Close() override;
+
+    void SetPipelineState(BGPUPipelineStateHandle PipelineState) override;
+
+    void Dispatch(uint32_t X, uint32_t Y, uint32_t Z) override;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> pImpl;
+};
+
 /// @brief Vulkan implementation of a renderer backend.
 class BVulkanRenderer : public IRenderer
 {
@@ -49,8 +69,6 @@ public:
     RendererResult Init() override;
 
     void Shutdown() override;
-
-    void Frame() override;
 
     BGPUBufferHandle CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
     

@@ -27,6 +27,14 @@ enum RendererResult : uint32_t
     RENDERER_RESULT_IMGUI_BAD_INIT          = 0x0040,
 };
 
+/// @brief Available GPU command queues.
+enum GPUCommandQueue : uint32_t
+{
+    GPUCommandQueue_Direct      = 0,    //> Support for graphics, compute, and transfer operations.
+    GPUCommandQueue_Compute     = 1,    //> Support for compute and transfer operations.
+    GPUCommandQueue_Transfer    = 2,    //> Support for transfer operations only.
+};
+
 /// @brief Available GPU heap types.
 enum GPUHeapType : uint32_t
 {
@@ -224,6 +232,39 @@ struct BGPURenderPipelineStateDesc
     // - [ ] add fixed function state
 };
 
+/// @brief A GPUCommandList can be used to record rendering commands for a given renderer backend.
+/// Command list creation and submission is queue-specific.
+class IGPUCommandList
+{
+public:
+    IGPUCommandList() = default;
+    virtual ~IGPUCommandList() = default;
+
+    IGPUCommandList(IGPUCommandList const&) = delete;
+    IGPUCommandList& operator=(IGPUCommandList const&) = delete;
+
+    IGPUCommandList(IGPUCommandList&&) = default;
+    IGPUCommandList& operator=(IGPUCommandList&&) = default;
+
+    /// @brief Reset the command list.
+    /// @return 
+    virtual bool Reset() = 0;
+
+    /// @brief Close the command list.
+    /// @return 
+    virtual bool Close() = 0;
+
+    /// @brief Set the active PSO.
+    /// @param PipelineState 
+    virtual void SetPipelineState(BGPUPipelineStateHandle PipelineState) = 0;
+
+    /// @brief Dispatch a bound pipeline state as compute workload.
+    /// @param X 
+    /// @param Y 
+    /// @param Z 
+    virtual void Dispatch(uint32_t X, uint32_t Y, uint32_t Z) = 0;
+};
+
 /// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
 class IRenderer
 {
@@ -243,10 +284,6 @@ public:
 
     /// @brief Shut down the renderer.
     virtual void Shutdown() = 0;
-
-    /// @brief Render a new frame.
-    [[deprecated]]
-    virtual void Frame() = 0;
 
     /// @brief Create a new GPU buffer.
     /// @param BufferDesc 

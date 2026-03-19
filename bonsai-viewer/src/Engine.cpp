@@ -30,8 +30,7 @@ EngineResult BEngine::Run()
             }
         }
 
-        // Render frame
-        Renderer->Frame();
+        // TODO(nemjit001): Render frame
     }
 
     // Perform cleanup

@@ -165,6 +165,12 @@ struct CompiledShader
     IDxcBlob* Bytecode;
 };
 
+/// @brief Vulkan command list implementation.
+struct BVulkanCommandList::Impl
+{
+    // TODO(nemjit001): Set up internal implementation for Vulkan command list.
+};
+
 /// @brief Vulkan renderer backend implementation.
 struct BVulkanRendererImpl
 {
@@ -195,7 +201,6 @@ struct BVulkanRendererImpl
 
     /** Frame state */
     std::vector<VkCommandPool> GraphicsCmdPools;        // Sized on frames in flight
-    std::vector<VkCommandBuffer> FrameCommandBuffers;   // Sized on frames in flight
     uint64_t FrameIndex;
 
     /** Resource pools */
@@ -809,6 +814,43 @@ static void RecordRenderCommands(BVulkanRendererImpl const* RendererImpl, uint32
     }
 }
 
+/*
+ * VulkanCommandList Implementation
+ */
+
+BVulkanCommandList::BVulkanCommandList()
+    :
+    pImpl(std::make_unique<Impl>())
+{
+    //
+}
+
+BVulkanCommandList::~BVulkanCommandList() = default;
+
+bool BVulkanCommandList::Reset()
+{
+    return false;
+}
+
+bool BVulkanCommandList::Close()
+{
+    return false;
+}
+
+void BVulkanCommandList::SetPipelineState(BGPUPipelineStateHandle PipelineState)
+{
+    //
+}
+
+void BVulkanCommandList::Dispatch(uint32_t X, uint32_t Y, uint32_t Z)
+{
+    //
+}
+
+/*
+ * VulkanRenderer Implementation
+ */
+
 BVulkanRenderer::BVulkanRenderer()
     :
     pImpl(std::make_unique<BVulkanRendererImpl>())
@@ -1054,24 +1096,6 @@ RendererResult BVulkanRenderer::Init()
         GraphicsCmdPools.push_back(GraphicsPool);
     }
 
-    std::vector<VkCommandBuffer> FrameCommandBuffers{};
-    FrameCommandBuffers.reserve(BONSAI_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
-    {
-        VkCommandBufferAllocateInfo FrameCommandAllocateInfo{};
-        FrameCommandAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        FrameCommandAllocateInfo.pNext = nullptr;
-        FrameCommandAllocateInfo.commandPool = GraphicsCmdPools[i];
-        FrameCommandAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        FrameCommandAllocateInfo.commandBufferCount = 1;
-
-        VkCommandBuffer FrameCommandBuffer = VK_NULL_HANDLE;
-        if (vkAllocateCommandBuffers(Device, &FrameCommandAllocateInfo, &FrameCommandBuffer) != VK_SUCCESS) {
-            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
-        }
-        FrameCommandBuffers.push_back(FrameCommandBuffer);
-    }
-
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -1090,7 +1114,6 @@ RendererResult BVulkanRenderer::Init()
     pImpl->FrameReady = FrameReady;
     pImpl->RenderingFinished = RenderingFinished;
     pImpl->GraphicsCmdPools = GraphicsCmdPools;
-    pImpl->FrameCommandBuffers = FrameCommandBuffers;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
 }
@@ -1133,64 +1156,6 @@ void BVulkanRenderer::Shutdown()
     vkDestroyInstance(pImpl->Instance, nullptr);
     SDL_DestroyWindow(pImpl->Window);
     volkFinalize();
-}
-
-void BVulkanRenderer::Frame()
-{
-    // Acquire next frame
-    uint32_t const FrameInFlight = pImpl->FrameIndex % BONSAI_FRAMES_IN_FLIGHT;
-    vkWaitForFences(pImpl->Device, 1, &pImpl->FrameReady[FrameInFlight], VK_TRUE, UINT64_MAX);
-
-    uint32_t SwapImageIndex = 0;
-    VkResult const AcquireResult = vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, pImpl->SwapImageAvailable[FrameInFlight], VK_NULL_HANDLE, &SwapImageIndex);
-    if (AcquireResult != VK_SUCCESS) {
-        return;
-    }
-
-    // Reset frame state
-    vkResetFences(pImpl->Device, 1, &pImpl->FrameReady[FrameInFlight]);
-    pImpl->FrameIndex++; // Advance frame counter after fence reset. This is done here because after this point any failure needs to use the next available sync primitives to avoid deadlocks.
-
-    VkCommandBuffer FrameCommandBuffer = pImpl->FrameCommandBuffers[FrameInFlight];
-    vkResetCommandBuffer(FrameCommandBuffer, 0 /* No flags */);
-
-    // Record commands
-    // TODO(nemjit001): Check if a separate function call is really what we want, especially with multiple render passes this may become a monster function...
-    RecordRenderCommands(pImpl.get(), SwapImageIndex, FrameCommandBuffer);
-
-    // Submit frame
-    VkPipelineStageFlags WaitStages[] = {
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    };
-    VkSubmitInfo SubmitInfo{};
-    SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    SubmitInfo.pNext = nullptr;
-    SubmitInfo.waitSemaphoreCount = 1;
-    SubmitInfo.pWaitSemaphores = &pImpl->SwapImageAvailable[FrameInFlight];
-    SubmitInfo.pWaitDstStageMask = WaitStages;
-    SubmitInfo.commandBufferCount = 1;
-    SubmitInfo.pCommandBuffers = &FrameCommandBuffer;
-    SubmitInfo.signalSemaphoreCount = 1;
-    SubmitInfo.pSignalSemaphores = &pImpl->RenderingFinished[SwapImageIndex];
-    if (vkQueueSubmit(pImpl->GraphicsQueue, 1, &SubmitInfo, pImpl->FrameReady[FrameInFlight]) != VK_SUCCESS) {
-        return;
-    }
-
-    // Present frame
-    VkPresentInfoKHR PresentInfo{};
-    PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    PresentInfo.pNext = nullptr;
-    PresentInfo.waitSemaphoreCount = 1;
-    PresentInfo.pWaitSemaphores = &pImpl->RenderingFinished[SwapImageIndex];
-    PresentInfo.swapchainCount = 1;
-    PresentInfo.pSwapchains = &pImpl->Swapchain;
-    PresentInfo.pImageIndices = &SwapImageIndex;
-    PresentInfo.pResults = nullptr;
-
-    VkResult const PresentResult = vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo);
-    if (PresentResult != VK_SUCCESS) {
-        return;
-    }
 }
 
 BGPUBufferHandle BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
