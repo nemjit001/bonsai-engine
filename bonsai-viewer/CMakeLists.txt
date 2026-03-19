@@ -1,14 +1,14 @@
 project("Bonsai Viewer" VERSION 0.1.0)
 
-find_package(directx-dxc REQUIRED)
-find_package(directx-headers REQUIRED)
-find_package(glm REQUIRED)
-find_package(SDL3 REQUIRED)
-find_package(tinyobjloader REQUIRED)
+find_package(directx-dxc CONFIG REQUIRED)
+find_package(directx-headers CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
 find_package(unofficial-spirv-reflect REQUIRED)
-find_package(volk REQUIRED)
-find_package(Vulkan REQUIRED)
-find_package(VulkanMemoryAllocator REQUIRED)
+find_package(volk CONFIG REQUIRED)
+find_package(VulkanHeaders CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 set(BONSAI_VULKAN_LIBS
         GPUOpen::VulkanMemoryAllocator

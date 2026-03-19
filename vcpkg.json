@@ -13,7 +13,7 @@
     "spirv-reflect",
     "tinyobjloader",
     "volk",
-    "vulkan",
+    "vulkan-headers",
     "vulkan-memory-allocator"
   ]
 }
