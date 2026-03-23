@@ -1,4 +1,4 @@
-#include "VulkanRenderer.hpp"
+#include "VulkanRenderBackend.hpp"
 #if BONSAI_VULKAN_SUPPORT
 
 #define VMA_IMPLEMENTATION
@@ -179,6 +179,7 @@ struct CompiledShader
 struct BVulkanCommandListImpl
 {
     BVulkanRendererImpl const* Renderer; //> Needed for resource pool access.
+    VkCommandPool CommandPool;
     VkCommandBuffer CommandBuffer;
 };
 
@@ -205,8 +206,10 @@ struct BVulkanRendererImpl
     std::vector<VkImage> SwapchainImages;
     std::vector<VkImageView> SwapchainImageViews;
 
+    /** Internal command state */
+    // TODO(nemjit001): Create per-queue pools sized on frames in flight
+
     /** Frame state */
-    std::vector<VkCommandPool> GraphicsCmdPools;    // Sized on frames in flight
     uint32_t SwapImageIdx;
     uint64_t FrameIndex;
 
@@ -817,9 +820,14 @@ BVulkanCommandList::BVulkanCommandList(BVulkanRendererImpl const* RendererImpl)
     pImpl(std::make_unique<BVulkanCommandListImpl>())
 {
     pImpl->Renderer = RendererImpl;
+    pImpl->CommandPool = VK_NULL_HANDLE;
+    pImpl->CommandBuffer = VK_NULL_HANDLE;
 }
 
-BVulkanCommandList::~BVulkanCommandList() = default;
+BVulkanCommandList::~BVulkanCommandList()
+{
+    vkFreeCommandBuffers(pImpl->Renderer->Device, pImpl->CommandPool, 1, &pImpl->CommandBuffer);
+}
 
 bool BVulkanCommandList::Reset()
 {
@@ -863,19 +871,19 @@ void BVulkanCommandList::Dispatch(uint32_t X, uint32_t Y, uint32_t Z)
 }
 
 /*
- * VulkanRenderer Implementation
+ * VulkanRenderBackend Implementation
  */
 
-BVulkanRenderer::BVulkanRenderer()
+BVulkanRenderBackend::BVulkanRenderBackend()
     :
     pImpl(std::make_unique<BVulkanRendererImpl>())
 {
     //
 }
 
-BVulkanRenderer::~BVulkanRenderer() = default;
+BVulkanRenderBackend::~BVulkanRenderBackend() = default;
 
-RendererResult BVulkanRenderer::Init()
+RendererResult BVulkanRenderBackend::Init()
 {
     if (volkInitialize() != VK_SUCCESS) {
         return RENDERER_RESULT_SYMBOL_LOADING_BAD_INIT;
@@ -1058,24 +1066,6 @@ RendererResult BVulkanRenderer::Init()
         return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
     }
 
-    // Create frame state
-    std::vector<VkCommandPool> GraphicsCmdPools{};
-    GraphicsCmdPools.reserve(BONSAI_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
-    {
-        VkCommandPoolCreateInfo GraphicsPoolCreateInfo{};
-        GraphicsPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        GraphicsPoolCreateInfo.pNext = nullptr;
-        GraphicsPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        GraphicsPoolCreateInfo.queueFamilyIndex = DeviceQueueFamilies.GraphicsFamily;
-
-        VkCommandPool GraphicsPool = VK_NULL_HANDLE;
-        if (vkCreateCommandPool(Device, &GraphicsPoolCreateInfo, nullptr, &GraphicsPool) != VK_SUCCESS) {
-            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
-        }
-        GraphicsCmdPools.push_back(GraphicsPool);
-    }
-
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -1090,21 +1080,15 @@ RendererResult BVulkanRenderer::Init()
     pImpl->Swapchain = Swapchain;
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
-    pImpl->GraphicsCmdPools = GraphicsCmdPools;
     pImpl->SwapImageIdx = 0;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
 }
 
-void BVulkanRenderer::Shutdown()
+void BVulkanRenderBackend::Shutdown()
 {
     // Ensure any work on the GPU finishes before cleanup starts
     vkDeviceWaitIdle(pImpl->Device);
-
-    // Clean up frame state
-    for (auto const& GraphicsCmdPool : pImpl->GraphicsCmdPools) {
-        vkDestroyCommandPool(pImpl->Device, GraphicsCmdPool, nullptr);
-    }
 
     // Clean up swap state
     for (auto const& View : pImpl->SwapchainImageViews) {
@@ -1126,13 +1110,13 @@ void BVulkanRenderer::Shutdown()
     volkFinalize();
 }
 
-void BVulkanRenderer::NewFrame()
+void BVulkanRenderBackend::NewFrame()
 {
     // TODO(nemjit001): Check how this should be sync'd, i.e. does starting a new frame need to wait on gfx queue as it kind of is graphics work.
     vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &pImpl->SwapImageIdx);
 }
 
-void BVulkanRenderer::Present()
+void BVulkanRenderBackend::Present()
 {
     // TODO(nemjit001): Presentation should definitely wait on graphics work to complete, needs to use a semaphore
     VkPresentInfoKHR PresentInfo{};
@@ -1149,48 +1133,72 @@ void BVulkanRenderer::Present()
     vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo); // TODO(nemjit001): Handle present failure
 }
 
-void BVulkanRenderer::Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList const** CommandLists)
+void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists)
 {
-    // Get raw command buffer handles from submission
-    std::vector<VkCommandBuffer> CommandBuffers;
-    CommandBuffers.reserve(CommandListCount);
+    // Get command buffer handles for submission
+    std::vector<VkCommandBufferSubmitInfo> CommandBufferInfos;
+    CommandBufferInfos.reserve(CommandListCount);
     for (uint32_t i = 0; i < CommandListCount; i++)
     {
+        if (CommandLists[i] == nullptr) {
+            continue;
+        }
+
         // This down cast can be asumed safe since only a single renderer should be active at a given time.
         BVulkanCommandList const* VulkanCommandList = static_cast<BVulkanCommandList const*>(CommandLists[i]);
         BVulkanCommandListImpl const* CommandListImpl = VulkanCommandList->GetImpl();
-        CommandBuffers.push_back(CommandListImpl->CommandBuffer);
+
+        VkCommandBufferSubmitInfo CommandBufferInfo{};
+        CommandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        CommandBufferInfo.pNext = nullptr;
+        CommandBufferInfo.commandBuffer = CommandListImpl->CommandBuffer;
+        CommandBufferInfo.deviceMask = 0;
+
+        CommandBufferInfos.push_back(CommandBufferInfo);
     }
 
-    // Select correct command queue for submission
+    // Select correct command queue & sync state for submission
+    // TODO(nemjit001): Wait on fence signaling previous work finish for queue
     VkQueue TargetQueue = VK_NULL_HANDLE;
-    if (CommandQueue == GPUCommandQueue_Direct) {
+    if (CommandQueue == GPUCommandQueue_Direct)
+    {
         TargetQueue = pImpl->GraphicsQueue;
     }
-    else if (CommandQueue == GPUCommandQueue_Compute) {
+    else if (CommandQueue == GPUCommandQueue_Compute)
+    {
         TargetQueue = pImpl->ComputeQueue;
     }
-    else if (CommandQueue == GPUCommandQueue_Transfer) {
+    else if (CommandQueue == GPUCommandQueue_Transfer)
+    {
         TargetQueue = pImpl->TransferQueue;
     }
 
     // Submit commands :)
     // TODO(nemjit001): Determine sync primitives based on queue type
-    VkSubmitInfo SubmitInfo{};
+    VkSubmitInfo2 SubmitInfo{};
     SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     SubmitInfo.pNext = nullptr;
-    SubmitInfo.waitSemaphoreCount = 0;
-    SubmitInfo.pWaitDstStageMask = nullptr;
-    SubmitInfo.pWaitDstStageMask = nullptr;
-    SubmitInfo.commandBufferCount = static_cast<uint32_t>(CommandBuffers.size());
-    SubmitInfo.pCommandBuffers = CommandBuffers.data();
-    SubmitInfo.signalSemaphoreCount = 0;
-    SubmitInfo.pSignalSemaphores = nullptr;
+    SubmitInfo.waitSemaphoreInfoCount = 0;
+    SubmitInfo.pWaitSemaphoreInfos = nullptr;
+    SubmitInfo.commandBufferInfoCount = static_cast<uint32_t>(CommandBufferInfos.size());
+    SubmitInfo.pCommandBufferInfos = CommandBufferInfos.data();
+    SubmitInfo.signalSemaphoreInfoCount = 0;
+    SubmitInfo.pSignalSemaphoreInfos = nullptr;
 
-    vkQueueSubmit(TargetQueue, 1, &SubmitInfo, VK_NULL_HANDLE);
+    vkQueueSubmit2(TargetQueue, 1, &SubmitInfo, VK_NULL_HANDLE);
 }
 
-BGPUBufferHandle BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
+IGPUCommandList* BVulkanRenderBackend::CreateCommandList()
+{
+    return new BVulkanCommandList(pImpl.get());
+}
+
+void BVulkanRenderBackend::DestroyCommandList(IGPUCommandList* CommandList)
+{
+    delete CommandList;
+}
+
+BGPUBufferHandle BVulkanRenderBackend::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
 {
     VkBufferCreateInfo BufferCreateInfo{};
     BufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1221,7 +1229,7 @@ BGPUBufferHandle BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferD
     return pImpl->BufferPool.Allocate(NewBuffer);
 }
 
-void BVulkanRenderer::DestroyBuffer(BGPUBufferHandle Buffer)
+void BVulkanRenderBackend::DestroyBuffer(BGPUBufferHandle Buffer)
 {
     BGPUBuffer BufferResource{};
     if (!pImpl->BufferPool.GetResource(Buffer, BufferResource)) {
@@ -1232,7 +1240,7 @@ void BVulkanRenderer::DestroyBuffer(BGPUBufferHandle Buffer)
     pImpl->BufferPool.Free(Buffer);
 }
 
-BGPUTextureHandle BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
+BGPUTextureHandle BVulkanRenderBackend::CreateTexture(GPUHeapType HeapType, BGPUTextureDesc TextureDesc)
 {
     // Set correct image type
     VkImageType ImageType = GPUTextureTypeLookupTable[TextureDesc.TextureType];
@@ -1257,7 +1265,7 @@ BGPUTextureHandle BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextu
     ImageCreateInfo.mipLevels = TextureDesc.MipLevels;
     ImageCreateInfo.arrayLayers = ImageArrayLayers;
     ImageCreateInfo.samples = static_cast<VkSampleCountFlagBits>(TextureDesc.SampleCount);
-    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // TODO(nemjit001): Specify texture tiling mode, this is similar to DX12's resource layout parameter
+    ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL; // Texture tiling should (almost) always be set to optimal, staging buffers will be used for populating texture memory.
     ImageCreateInfo.usage = static_cast<VkImageUsageFlags>(TextureDesc.TextureUsage);
     ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ImageCreateInfo.queueFamilyIndexCount = 0;
@@ -1283,7 +1291,7 @@ BGPUTextureHandle BVulkanRenderer::CreateTexture(GPUHeapType HeapType, BGPUTextu
     return pImpl->TexturePool.Allocate(NewTexture);
 }
 
-void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
+void BVulkanRenderBackend::DestroyTexture(BGPUTextureHandle Texture)
 {
     BGPUTexture TextureResource{};
     if (!pImpl->TexturePool.GetResource(Texture, TextureResource)) {
@@ -1294,7 +1302,7 @@ void BVulkanRenderer::DestroyTexture(BGPUTextureHandle Texture)
     pImpl->TexturePool.Free(Texture);
 }
 
-BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
+BGPUPipelineStateHandle BVulkanRenderBackend::CreateComputePipelineState(BGPUComputePipelineStateDesc PipelineDesc)
 {
     // Compile shader source into bytecode
     CComPtr<IDxcBlob> ComputeShaderBytecode;
@@ -1387,12 +1395,12 @@ BGPUPipelineStateHandle BVulkanRenderer::CreateComputePipelineState(BGPUComputeP
     return pImpl->PSOPool.Allocate(NewPSO);
 }
 
-BGPUPipelineStateHandle BVulkanRenderer::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)
+BGPUPipelineStateHandle BVulkanRenderBackend::CreateRenderPipelineState(BGPURenderPipelineStateDesc PipelineDesc)
 {
     return TRenderResourcePool<BGPUPipelineState>::CreateInvalidHandle();
 }
 
-void BVulkanRenderer::DestroyPipelineState(BGPUPipelineStateHandle PipelineState)
+void BVulkanRenderBackend::DestroyPipelineState(BGPUPipelineStateHandle PipelineState)
 {
     BGPUPipelineState PSOResource{};
     if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {
@@ -1408,7 +1416,7 @@ void BVulkanRenderer::DestroyPipelineState(BGPUPipelineStateHandle PipelineState
     pImpl->PSOPool.Free(PipelineState);
 }
 
-BGPUPipelineLocalSize BVulkanRenderer::GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState)
+BGPUPipelineLocalSize BVulkanRenderBackend::GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState)
 {
     BGPUPipelineState PSOResource{};
     if (!pImpl->PSOPool.GetResource(PipelineState, PSOResource)) {

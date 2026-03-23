@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 
-class IRenderer;
+class IRenderBackend;
 
 /// @brief Error codes for the engine class 
 enum EngineResult : uint32_t
@@ -41,7 +41,7 @@ private:
     void Shutdown();
 
 private:
-    std::unique_ptr<IRenderer> Renderer;
+    std::unique_ptr<IRenderBackend> RenderBackend;
 };
 
 #endif //ENGINE_HPP

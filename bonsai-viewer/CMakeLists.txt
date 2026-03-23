@@ -30,7 +30,7 @@ add_library(BonsaiViewerLib
         src/Engine.hpp
         src/Logging.cpp
         src/Logging.hpp
-        src/Renderer.hpp
+        src/RenderBackend.hpp
         src/Scene.cpp
         src/Scene.hpp
         src/Assets/StaticMesh.cpp
@@ -40,8 +40,8 @@ add_library(BonsaiViewerLib
         src/Renderer/RenderResourcePool.inl
         src/Renderer/ShaderCompiler.cpp
         src/Renderer/ShaderCompiler.hpp
-        src/Renderer/VulkanRenderer.cpp
-        src/Renderer/VulkanRenderer.hpp
+        src/Renderer/VulkanRenderBackend.cpp
+        src/Renderer/VulkanRenderBackend.hpp
         src/Scene/Camera.cpp
         src/Scene/Camera.hpp
         src/Scene/Light.cpp

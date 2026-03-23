@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "Logging.hpp"
-#include "Renderer/VulkanRenderer.hpp"
+#include "Renderer/VulkanRenderBackend.hpp"
 
 BEngine::BEngine() = default;
 BEngine::~BEngine() = default;
@@ -16,7 +16,7 @@ EngineResult BEngine::Run()
     if (InitResult != ENGINE_RESULT_OK) {
         return InitResult;
     }
-    
+
     // Run main loop
     bool Running = true;
     while (Running)
@@ -31,8 +31,8 @@ EngineResult BEngine::Run()
         }
 
         // Render a frame
-        Renderer->NewFrame();
-        Renderer->Present();
+        RenderBackend->NewFrame();
+        RenderBackend->Present();
     }
 
     // Perform cleanup
@@ -50,9 +50,9 @@ EngineResult BEngine::Init()
         return ENGINE_RESULT_PLATFORM_BAD_INIT;
     }
 
-    BONSAI_LOG(LogVerbosity::Info, "Initializing Renderer");
-    Renderer = std::make_unique<BVulkanRenderer>();
-    RendererResult const RendererInitResult = Renderer->Init();
+    BONSAI_LOG(LogVerbosity::Info, "Initializing RenderBackend");
+    RenderBackend = std::make_unique<BVulkanRenderBackend>();
+    RendererResult const RendererInitResult = RenderBackend->Init();
     if (RendererInitResult != RENDERER_RESULT_OK) {
         return ENGINE_RESULT_RENDERER_BAD_INIT;
     }
@@ -64,8 +64,8 @@ EngineResult BEngine::Init()
 void BEngine::Shutdown()
 {
     BONSAI_LOG(LogVerbosity::Info, "Shutting down Bonsai Viewer");
-    BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up Renderer");
-    Renderer->Shutdown();
+    BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up RenderBackend");
+    RenderBackend->Shutdown();
 
     BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up SDL3");
     SDL_Quit();

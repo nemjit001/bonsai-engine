@@ -7,7 +7,7 @@
 #include <vector>
 #include <volk.h>
 #include <vk_mem_alloc.h>
-#include "Renderer.hpp"
+#include "RenderBackend.hpp"
 
 /// @brief Command list implementation.
 struct BVulkanCommandListImpl;
@@ -67,11 +67,11 @@ private:
 };
 
 /// @brief Vulkan implementation of a renderer backend.
-class BVulkanRenderer : public IRenderer
+class BVulkanRenderBackend : public IRenderBackend
 {
 public:
-    BVulkanRenderer();
-    ~BVulkanRenderer() override;
+    BVulkanRenderBackend();
+    ~BVulkanRenderBackend() override;
 
     RendererResult Init() override;
 
@@ -81,7 +81,11 @@ public:
 
     void Present() override;
 
-    void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList const** CommandLists) override;
+    void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists) override;
+
+    IGPUCommandList* CreateCommandList() override;
+
+    void DestroyCommandList(IGPUCommandList* CommandList) override;
 
     BGPUBufferHandle CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
     

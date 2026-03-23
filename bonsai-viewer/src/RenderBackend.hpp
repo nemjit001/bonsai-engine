@@ -265,18 +265,18 @@ public:
     virtual void Dispatch(uint32_t X, uint32_t Y, uint32_t Z) = 0;
 };
 
-/// @brief A Renderer implements a graphics backend that handles the implementation of a low level rendering API.
-class IRenderer
+/// @brief A RenderBackend implements a graphics backend that handles the implementation of a low level rendering API.
+class IRenderBackend
 {
 public:
-    IRenderer() = default;
-    virtual ~IRenderer() = default;
+    IRenderBackend() = default;
+    virtual ~IRenderBackend() = default;
 
-    IRenderer(IRenderer const&) = delete;
-    IRenderer& operator=(IRenderer const&) = delete;
+    IRenderBackend(IRenderBackend const&) = delete;
+    IRenderBackend& operator=(IRenderBackend const&) = delete;
 
-    IRenderer(IRenderer&&) = default;
-    IRenderer& operator=(IRenderer&&) = default;
+    IRenderBackend(IRenderBackend&&) = default;
+    IRenderBackend& operator=(IRenderBackend&&) = default;
 
     /// @brief Initialize the renderer.
     /// @return 
@@ -295,7 +295,15 @@ public:
     /// @param CommandQueue 
     /// @param CommandListCount 
     /// @param CommandLists 
-    virtual void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList const** CommandLists) = 0;
+    virtual void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists) = 0;
+
+    /// @brief Create a new GPU command list.
+    /// @return 
+    virtual IGPUCommandList* CreateCommandList() = 0;
+
+    /// @brief Destroy a GPU command list.
+    /// @param CommandList 
+    virtual void DestroyCommandList(IGPUCommandList* CommandList) = 0;
 
     /// @brief Create a new GPU buffer.
     /// @param BufferDesc 
