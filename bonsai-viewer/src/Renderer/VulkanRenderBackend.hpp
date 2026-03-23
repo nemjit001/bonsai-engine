@@ -81,6 +81,8 @@ public:
 
     void Present() override;
 
+    uint64_t GetFrameIndex() override;
+
     void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists) override;
 
     IGPUCommandList* CreateCommandList() override;

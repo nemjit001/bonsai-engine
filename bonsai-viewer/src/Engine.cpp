@@ -30,9 +30,7 @@ EngineResult BEngine::Run()
             }
         }
 
-        // Render a frame
-        RenderBackend->NewFrame();
-        RenderBackend->Present();
+        // TODO(nemjit001): Render a frame using the active render backend
     }
 
     // Perform cleanup

@@ -23,7 +23,7 @@ enum RendererResult : uint32_t
     RENDERER_RESULT_GFX_API_BAD_INIT        = 0x0004,
     RENDERER_RESULT_UNSUPPORTED_GFX_DEVICE  = 0x0008,
     RENDERER_RESULT_SWAPCHAIN_BAD_INIT      = 0x0010,
-    RENDERER_RESULT_FRAME_STATE_BAD_INIT    = 0x0020,
+    RENDERER_RESULT_SYNC_STATE_BAD_INIT     = 0x0020,
     RENDERER_RESULT_IMGUI_BAD_INIT          = 0x0040,
 };
 
@@ -290,6 +290,10 @@ public:
 
     /// @brief Present the active renderer frame.
     virtual void Present() = 0;
+
+    /// @brief Get the current frame index.
+    /// @return 
+    virtual uint64_t GetFrameIndex() = 0;
 
     /// @brief Execute command lists on a given queue. Queues are internally synchronized.
     /// @param CommandQueue 

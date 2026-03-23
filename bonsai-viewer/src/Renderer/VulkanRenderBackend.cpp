@@ -16,8 +16,7 @@
 #include "Renderer/RenderResourcePool.hpp"
 #include "Renderer/ShaderCompiler.hpp"
 
-#define BONSAI_VULKAN_API_VERSION   VK_API_VERSION_1_3
-#define BONSAI_FRAMES_IN_FLIGHT     2
+#define BONSAI_VULKAN_API_VERSION                   VK_API_VERSION_1_3
 
 #define BONSAI_VK_VERTEX_SHADER_TARGET_PROFILE      "vs_6_5"
 #define BONSAI_VK_HULL_SHADER_TARGET_PROFILE        "hs_6_5"
@@ -206,8 +205,10 @@ struct BVulkanRendererImpl
     std::vector<VkImage> SwapchainImages;
     std::vector<VkImageView> SwapchainImageViews;
 
-    /** Internal command state */
-    // TODO(nemjit001): Create per-queue pools sized on frames in flight
+    /** Sync state */
+    // TODO(nemjit001): Store sync state (per queue fence for work signaling + semaphores on gfx queue for swap sync)
+    //                  Sync state needs number of frames in flight from parent application
+    std::vector<VkSemaphore> SwapImageReadySempahores; // Sized on swap image count
 
     /** Frame state */
     uint32_t SwapImageIdx;
@@ -1066,6 +1067,20 @@ RendererResult BVulkanRenderBackend::Init()
         return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
     }
 
+    // Create sync state
+    std::vector<VkSemaphore> SwapImageReadySemaphores(SwapImageCount, VK_NULL_HANDLE);
+    for (uint32_t i = 0; i < SwapImageCount; i++)
+    {
+        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
+        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        SemaphoreCreateInfo.pNext = nullptr;
+        SemaphoreCreateInfo.flags = 0;
+
+        if (vkCreateSemaphore(pImpl->Device, &SemaphoreCreateInfo, nullptr, &SwapImageReadySemaphores[i]) != VK_SUCCESS) {
+            return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
+        }
+    }
+
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -1089,6 +1104,11 @@ void BVulkanRenderBackend::Shutdown()
 {
     // Ensure any work on the GPU finishes before cleanup starts
     vkDeviceWaitIdle(pImpl->Device);
+
+    // Clean up sync state
+    for (auto const& Semaphore : pImpl->SwapImageReadySempahores) {
+        vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
+    }
 
     // Clean up swap state
     for (auto const& View : pImpl->SwapchainImageViews) {
@@ -1118,12 +1138,11 @@ void BVulkanRenderBackend::NewFrame()
 
 void BVulkanRenderBackend::Present()
 {
-    // TODO(nemjit001): Presentation should definitely wait on graphics work to complete, needs to use a semaphore
     VkPresentInfoKHR PresentInfo{};
     PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     PresentInfo.pNext = nullptr;
-    PresentInfo.waitSemaphoreCount = 0;
-    PresentInfo.pWaitSemaphores = nullptr;
+    PresentInfo.waitSemaphoreCount = 1;
+    PresentInfo.pWaitSemaphores = &pImpl->SwapImageReadySempahores[pImpl->SwapImageIdx];
     PresentInfo.swapchainCount = 1;
     PresentInfo.pSwapchains = &pImpl->Swapchain;
     PresentInfo.pImageIndices = &pImpl->SwapImageIdx;
@@ -1131,6 +1150,11 @@ void BVulkanRenderBackend::Present()
 
     pImpl->FrameIndex += 1;
     vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo); // TODO(nemjit001): Handle present failure
+}
+
+uint64_t BVulkanRenderBackend::GetFrameIndex()
+{
+    return pImpl->FrameIndex;
 }
 
 void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists)
