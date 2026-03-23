@@ -285,6 +285,18 @@ public:
     /// @brief Shut down the renderer.
     virtual void Shutdown() = 0;
 
+    /// @brief Start a new frame in the renderer.
+    virtual void NewFrame() = 0;
+
+    /// @brief Present the active renderer frame.
+    virtual void Present() = 0;
+
+    /// @brief Execute command lists on a given queue. Queues are internally synchronized.
+    /// @param CommandQueue 
+    /// @param CommandListCount 
+    /// @param CommandLists 
+    virtual void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList const** CommandLists) = 0;
+
     /// @brief Create a new GPU buffer.
     /// @param BufferDesc 
     /// @return 

@@ -28,12 +28,12 @@ public:
     /// @param Handle Resource handle.
     /// @param OutResource Output resource.
     /// @return 
-    bool GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource);
+    bool GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource) const;
 
     /// @brief Check if a resource with a given handle is valid.
     /// @param Handle
     /// @return 
-    bool IsValidResource(TRenderHandle<RenderType> Handle);
+    bool IsValidResource(TRenderHandle<RenderType> Handle) const;
 
 private:
     std::vector<RenderType> Resources;

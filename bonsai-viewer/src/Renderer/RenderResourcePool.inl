@@ -54,7 +54,7 @@ void TRenderResourcePool<RenderType>::Free(TRenderHandle<RenderType> Handle)
 }
 
 template<class RenderType>
-bool TRenderResourcePool<RenderType>::GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource)
+bool TRenderResourcePool<RenderType>::GetResource(TRenderHandle<RenderType> Handle, RenderType& OutResource) const
 {
     if (!IsValidResource(Handle)) {
         return false;
@@ -65,7 +65,7 @@ bool TRenderResourcePool<RenderType>::GetResource(TRenderHandle<RenderType> Hand
 }
 
 template<class RenderType>
-bool TRenderResourcePool<RenderType>::IsValidResource(TRenderHandle<RenderType> Handle)
+bool TRenderResourcePool<RenderType>::IsValidResource(TRenderHandle<RenderType> Handle) const
 {
     BONSAI_ASSERT(Resources.size() == ResourceVersions.size());
     if (Handle.ResourceId >= Resources.size()) {

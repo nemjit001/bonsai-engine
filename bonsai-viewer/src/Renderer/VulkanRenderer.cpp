@@ -32,6 +32,16 @@ static constexpr bool RendererDebugEnabled = true;
 static constexpr bool RendererDebugEnabled = false;
 #endif //!NDEBUG
 
+/// @brief Instance extension names that are enabled by default.
+static constexpr std::array DefaultInstanceDebugExtensionNames = {
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+};
+
+/// @brief Instance layer names that are enabled on debug.
+static constexpr std::array DefaultInstanceDebugLayerNames = {
+    "VK_LAYER_KHRONOS_validation",
+};
+
 /// @brief Device extension names that are enabled by default.
 static constexpr std::array DefaultDeviceExtensionNames = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -166,9 +176,10 @@ struct CompiledShader
 };
 
 /// @brief Vulkan command list implementation.
-struct BVulkanCommandList::Impl
+struct BVulkanCommandListImpl
 {
-    // TODO(nemjit001): Set up internal implementation for Vulkan command list.
+    BVulkanRendererImpl const* Renderer; //> Needed for resource pool access.
+    VkCommandBuffer CommandBuffer;
 };
 
 /// @brief Vulkan renderer backend implementation.
@@ -194,13 +205,9 @@ struct BVulkanRendererImpl
     std::vector<VkImage> SwapchainImages;
     std::vector<VkImageView> SwapchainImageViews;
 
-    /** Sync state */
-    std::vector<VkSemaphore> SwapImageAvailable;        // Sized on frames in flight
-    std::vector<VkFence> FrameReady;                    // Sized on frames in flight
-    std::vector<VkSemaphore> RenderingFinished;         // Sized on swap image count
-
     /** Frame state */
-    std::vector<VkCommandPool> GraphicsCmdPools;        // Sized on frames in flight
+    std::vector<VkCommandPool> GraphicsCmdPools;    // Sized on frames in flight
+    uint32_t SwapImageIdx;
     uint64_t FrameIndex;
 
     /** Resource pools */
@@ -226,6 +233,36 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
     return VK_FALSE;
 }
 
+/// @brief Check if a list of instance layers is available for use.
+/// @param LayerNames List of layers to check availability for.
+/// @return 
+static bool InstanceLayersAvailable(std::vector<char const*> const& LayerNames)
+{
+    uint32_t LayerCount = 0;
+    vkEnumerateInstanceLayerProperties(&LayerCount, nullptr);
+    std::vector<VkLayerProperties> AvailableLayers(LayerCount);
+    vkEnumerateInstanceLayerProperties(&LayerCount, AvailableLayers.data());
+
+    for (auto const& RequestedLayerName : LayerNames)
+    {
+        bool Available = false;
+        for (auto const& AvailableLayer : AvailableLayers)
+        {
+            if (std::strcmp(AvailableLayer.layerName, RequestedLayerName) == 0)
+            {
+                Available = true;
+                break;
+            }
+        }
+
+        if (!Available) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /// @brief Check if a list of instance extensions is available for use.
 /// @param ExtensionNames List of extensions to check availability for.
 /// @return 
@@ -241,7 +278,7 @@ static bool InstanceExtensionsAvailable(std::vector<char const*> const& Extensio
         bool Available = false;
         for (auto const& AvailableExtension : AvailableExtensions)
         {
-            if (strcmp(AvailableExtension.extensionName, RequestedExtensionName) == 0)
+            if (std::strcmp(AvailableExtension.extensionName, RequestedExtensionName) == 0)
             {
                 Available = true;
                 break;
@@ -272,7 +309,7 @@ static bool DeviceExtensionsAvailable(VkPhysicalDevice PhysicalDevice, std::vect
         bool Available = false;
         for (auto const& AvailableExtension : AvailableExtensions)
         {
-            if (strcmp(AvailableExtension.extensionName, RequestedExtensionName) == 0)
+            if (std::strcmp(AvailableExtension.extensionName, RequestedExtensionName) == 0)
             {
                 Available = true;
                 break;
@@ -355,6 +392,7 @@ static bool GetDeviceQueueFamilies(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR
     std::vector<VkQueueFamilyProperties> QueueFamilies(QueueCount);
     vkGetPhysicalDeviceQueueFamilyProperties(PhysicalDevice, &QueueCount, QueueFamilies.data());
 
+    // FIXME(nemjit001): This assumes that async queues are available, add fallback selection on single queue too
     OutQueueFamilies.GraphicsFamily = FindQueueFamily(QueueFamilies, PhysicalDevice, DefaultSurface, VK_QUEUE_GRAPHICS_BIT, 0);
     OutQueueFamilies.ComputeFamily = FindQueueFamily(QueueFamilies, PhysicalDevice, VK_NULL_HANDLE, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT);
     OutQueueFamilies.TransferFamily = FindQueueFamily(QueueFamilies, PhysicalDevice, VK_NULL_HANDLE, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT);
@@ -446,7 +484,6 @@ static VkPhysicalDevice SelectPhysicalDevice(
         }
 
         // Query surface and queue setup support
-        // FIXME(nemjit001): Have fallback queue setup for single queue physical devices
         QueueFamilyInfo RequestedQueueFamilies{};
         if (!PhysicalDeviceHasSurfaceSupport(PhysicalDevice, DefaultSurface)
             || !GetDeviceQueueFamilies(PhysicalDevice, DefaultSurface, RequestedQueueFamilies)) {
@@ -775,33 +812,54 @@ static bool ReflectPipelineLayout(
  * VulkanCommandList Implementation
  */
 
-BVulkanCommandList::BVulkanCommandList()
+BVulkanCommandList::BVulkanCommandList(BVulkanRendererImpl const* RendererImpl)
     :
-    pImpl(std::make_unique<Impl>())
+    pImpl(std::make_unique<BVulkanCommandListImpl>())
 {
-    //
+    pImpl->Renderer = RendererImpl;
 }
 
 BVulkanCommandList::~BVulkanCommandList() = default;
 
 bool BVulkanCommandList::Reset()
 {
-    return false;
+    if (vkResetCommandBuffer(pImpl->CommandBuffer, 0) != VK_SUCCESS) {
+        return false;
+    }
+
+    VkCommandBufferBeginInfo BeginInfo{};
+    BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    BeginInfo.pNext = nullptr;
+    BeginInfo.flags = 0;
+    BeginInfo.pInheritanceInfo = nullptr;
+
+    if (vkBeginCommandBuffer(pImpl->CommandBuffer, &BeginInfo) != VK_SUCCESS) {
+        return false;
+    }
+
+    return true;
 }
 
 bool BVulkanCommandList::Close()
 {
-    return false;
+    return VK_SUCCESS == vkEndCommandBuffer(pImpl->CommandBuffer);
 }
 
 void BVulkanCommandList::SetPipelineState(BGPUPipelineStateHandle PipelineState)
 {
-    //
+    BGPUPipelineState PSOResource{};
+    if (!pImpl->Renderer->PSOPool.GetResource(PipelineState, PSOResource))
+    {
+        BONSAI_LOG(LogVerbosity::Warning, "Skipping command, attempted to set unknown PSO (PSO handle %d:%d)", PipelineState.ResourceId, PipelineState.ResourceVersion);
+        return;
+    }
+
+    vkCmdBindPipeline(pImpl->CommandBuffer, PSOResource.BindPoint, PSOResource.Pipeline);
 }
 
 void BVulkanCommandList::Dispatch(uint32_t X, uint32_t Y, uint32_t Z)
 {
-    //
+    vkCmdDispatch(pImpl->CommandBuffer, X, Y, Z);
 }
 
 /*
@@ -840,7 +898,26 @@ RendererResult BVulkanRenderer::Init()
 
     uint32_t WindowExtensionCount = 0;
     char const** WindowExtensionNames = const_cast<char const**>(SDL_Vulkan_GetInstanceExtensions(&WindowExtensionCount));
+    std::vector<char const*> InstanceLayerNames;
     std::vector<char const*> InstanceExtensionNames(WindowExtensionNames, WindowExtensionNames + WindowExtensionCount);
+    if constexpr (RendererDebugEnabled)
+    {   // Enable debug extension and layer names when debug is enabled
+        InstanceLayerNames.insert(
+            std::end(InstanceLayerNames),
+            std::begin(DefaultInstanceDebugLayerNames),
+            std::end(DefaultInstanceDebugLayerNames)
+        );
+
+        InstanceExtensionNames.insert(
+            std::end(InstanceExtensionNames),
+            std::begin(DefaultInstanceDebugExtensionNames),
+            std::end(DefaultInstanceDebugExtensionNames)
+        );
+    }
+
+    if (!InstanceLayersAvailable(InstanceLayerNames) || !InstanceExtensionsAvailable(InstanceExtensionNames)) {
+        return RENDERER_RESULT_GFX_API_BAD_INIT;
+    }
 
     [[maybe_unused]]
     VkDebugUtilsMessengerCreateInfoEXT DebugMessengerCreateInfo{};
@@ -858,21 +935,13 @@ RendererResult BVulkanRenderer::Init()
     DebugMessengerCreateInfo.pfnUserCallback = VulkanDebugCallback;
     DebugMessengerCreateInfo.pUserData = nullptr;
 
-    if constexpr (RendererDebugEnabled) { // Enable the debug utils extension when debug is enabled
-        InstanceExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
-
-    if (!InstanceExtensionsAvailable(InstanceExtensionNames)) {
-        return RENDERER_RESULT_GFX_API_BAD_INIT;
-    }
-
     VkInstanceCreateInfo InstanceCreateInfo{};
     InstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     InstanceCreateInfo.pNext = nullptr;
     InstanceCreateInfo.flags = 0;
     InstanceCreateInfo.pApplicationInfo = &AppInfo;
-    InstanceCreateInfo.enabledLayerCount = 0;
-    InstanceCreateInfo.ppEnabledLayerNames = nullptr;
+    InstanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(InstanceLayerNames.size());
+    InstanceCreateInfo.ppEnabledLayerNames = InstanceLayerNames.data();
     InstanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(InstanceExtensionNames.size());
     InstanceCreateInfo.ppEnabledExtensionNames = InstanceExtensionNames.data();
     if constexpr (RendererDebugEnabled) { // Enable debug messages for startup
@@ -989,52 +1058,6 @@ RendererResult BVulkanRenderer::Init()
         return RENDERER_RESULT_SWAPCHAIN_BAD_INIT;
     }
 
-    // Create sync primitives
-    std::vector<VkSemaphore> SwapImageAvailable{};
-    std::vector<VkFence> FrameReady{};
-    SwapImageAvailable.reserve(BONSAI_FRAMES_IN_FLIGHT);
-    FrameReady.reserve(BONSAI_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
-    {
-        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
-        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        SemaphoreCreateInfo.pNext = nullptr;
-        SemaphoreCreateInfo.flags = 0;
-
-        VkSemaphore Semaphore = VK_NULL_HANDLE;
-        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &Semaphore) != VK_SUCCESS) {
-            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
-        }
-        SwapImageAvailable.push_back(Semaphore);
-
-        VkFenceCreateInfo FenceCreateInfo{};
-        FenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        FenceCreateInfo.pNext = nullptr;
-        FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        VkFence Fence = VK_NULL_HANDLE;
-        if (vkCreateFence(Device, &FenceCreateInfo, nullptr, &Fence)) {
-            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
-        }
-        FrameReady.push_back(Fence);
-    }
-
-    std::vector<VkSemaphore> RenderingFinished{};
-    RenderingFinished.reserve(SwapImageCount);
-    for (uint32_t i = 0; i < SwapImageCount; i++)
-    {
-        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
-        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        SemaphoreCreateInfo.pNext = nullptr;
-        SemaphoreCreateInfo.flags = 0;
-
-        VkSemaphore Semaphore = VK_NULL_HANDLE;
-        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &Semaphore) != VK_SUCCESS) {
-            return RENDERER_RESULT_FRAME_STATE_BAD_INIT;
-        }
-        RenderingFinished.push_back(Semaphore);
-    }
-
     // Create frame state
     std::vector<VkCommandPool> GraphicsCmdPools{};
     GraphicsCmdPools.reserve(BONSAI_FRAMES_IN_FLIGHT);
@@ -1067,10 +1090,8 @@ RendererResult BVulkanRenderer::Init()
     pImpl->Swapchain = Swapchain;
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
-    pImpl->SwapImageAvailable = SwapImageAvailable;
-    pImpl->FrameReady = FrameReady;
-    pImpl->RenderingFinished = RenderingFinished;
     pImpl->GraphicsCmdPools = GraphicsCmdPools;
+    pImpl->SwapImageIdx = 0;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
 }
@@ -1083,16 +1104,6 @@ void BVulkanRenderer::Shutdown()
     // Clean up frame state
     for (auto const& GraphicsCmdPool : pImpl->GraphicsCmdPools) {
         vkDestroyCommandPool(pImpl->Device, GraphicsCmdPool, nullptr);
-    }
-
-    // Clean up sync state
-    for (auto const& Semaphore : pImpl->RenderingFinished) {
-        vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
-    }
-
-    for (uint32_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyFence(pImpl->Device, pImpl->FrameReady[i], nullptr);
-        vkDestroySemaphore(pImpl->Device, pImpl->SwapImageAvailable[i], nullptr);
     }
 
     // Clean up swap state
@@ -1113,6 +1124,70 @@ void BVulkanRenderer::Shutdown()
     vkDestroyInstance(pImpl->Instance, nullptr);
     SDL_DestroyWindow(pImpl->Window);
     volkFinalize();
+}
+
+void BVulkanRenderer::NewFrame()
+{
+    // TODO(nemjit001): Check how this should be sync'd, i.e. does starting a new frame need to wait on gfx queue as it kind of is graphics work.
+    vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &pImpl->SwapImageIdx);
+}
+
+void BVulkanRenderer::Present()
+{
+    // TODO(nemjit001): Presentation should definitely wait on graphics work to complete, needs to use a semaphore
+    VkPresentInfoKHR PresentInfo{};
+    PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    PresentInfo.pNext = nullptr;
+    PresentInfo.waitSemaphoreCount = 0;
+    PresentInfo.pWaitSemaphores = nullptr;
+    PresentInfo.swapchainCount = 1;
+    PresentInfo.pSwapchains = &pImpl->Swapchain;
+    PresentInfo.pImageIndices = &pImpl->SwapImageIdx;
+    PresentInfo.pResults = nullptr;
+
+    pImpl->FrameIndex += 1;
+    vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo); // TODO(nemjit001): Handle present failure
+}
+
+void BVulkanRenderer::Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList const** CommandLists)
+{
+    // Get raw command buffer handles from submission
+    std::vector<VkCommandBuffer> CommandBuffers;
+    CommandBuffers.reserve(CommandListCount);
+    for (uint32_t i = 0; i < CommandListCount; i++)
+    {
+        // This down cast can be asumed safe since only a single renderer should be active at a given time.
+        BVulkanCommandList const* VulkanCommandList = static_cast<BVulkanCommandList const*>(CommandLists[i]);
+        BVulkanCommandListImpl const* CommandListImpl = VulkanCommandList->GetImpl();
+        CommandBuffers.push_back(CommandListImpl->CommandBuffer);
+    }
+
+    // Select correct command queue for submission
+    VkQueue TargetQueue = VK_NULL_HANDLE;
+    if (CommandQueue == GPUCommandQueue_Direct) {
+        TargetQueue = pImpl->GraphicsQueue;
+    }
+    else if (CommandQueue == GPUCommandQueue_Compute) {
+        TargetQueue = pImpl->ComputeQueue;
+    }
+    else if (CommandQueue == GPUCommandQueue_Transfer) {
+        TargetQueue = pImpl->TransferQueue;
+    }
+
+    // Submit commands :)
+    // TODO(nemjit001): Determine sync primitives based on queue type
+    VkSubmitInfo SubmitInfo{};
+    SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    SubmitInfo.pNext = nullptr;
+    SubmitInfo.waitSemaphoreCount = 0;
+    SubmitInfo.pWaitDstStageMask = nullptr;
+    SubmitInfo.pWaitDstStageMask = nullptr;
+    SubmitInfo.commandBufferCount = static_cast<uint32_t>(CommandBuffers.size());
+    SubmitInfo.pCommandBuffers = CommandBuffers.data();
+    SubmitInfo.signalSemaphoreCount = 0;
+    SubmitInfo.pSignalSemaphores = nullptr;
+
+    vkQueueSubmit(TargetQueue, 1, &SubmitInfo, VK_NULL_HANDLE);
 }
 
 BGPUBufferHandle BVulkanRenderer::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
