@@ -33,6 +33,7 @@ enum GPUCommandQueue : uint32_t
     GPUCommandQueue_Direct      = 0,    //> Support for graphics, compute, and transfer operations.
     GPUCommandQueue_Compute     = 1,    //> Support for compute and transfer operations.
     GPUCommandQueue_Transfer    = 2,    //> Support for transfer operations only.
+    GPUCommandQueue_COUNT,
 };
 
 /// @brief Available GPU heap types.

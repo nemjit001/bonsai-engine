@@ -13,7 +13,7 @@
 struct BVulkanCommandListImpl;
 
 /// @brief Renderer backend implementation.
-struct BVulkanRendererImpl;
+struct BVulkanRenderBackendImpl;
 
 /// @brief Vulkan GPU buffer implementation.
 class BGPUBuffer
@@ -46,7 +46,7 @@ public:
 class BVulkanCommandList : public IGPUCommandList
 {
 public:
-    BVulkanCommandList(BVulkanRendererImpl const* RendererImpl);
+    BVulkanCommandList(BVulkanRenderBackendImpl const* RendererImpl);
     ~BVulkanCommandList() override;
 
     bool Reset() override;
@@ -106,7 +106,7 @@ public:
     BGPUPipelineLocalSize GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState) override;
 
 private:
-    std::unique_ptr<BVulkanRendererImpl> pImpl;
+    std::unique_ptr<BVulkanRenderBackendImpl> pImpl;
 };
 
 #endif //BONSAI_VULKAN_SUPPORT

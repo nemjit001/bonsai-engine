@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstdio>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 #include <spirv-reflect/spirv_reflect.h>
@@ -177,13 +176,13 @@ struct CompiledShader
 /// @brief Vulkan command list implementation.
 struct BVulkanCommandListImpl
 {
-    BVulkanRendererImpl const* Renderer; //> Needed for resource pool access.
+    BVulkanRenderBackendImpl const* RenderBackend; //> Needed for resource pool access.
     VkCommandPool CommandPool;
     VkCommandBuffer CommandBuffer;
 };
 
-/// @brief Vulkan renderer backend implementation.
-struct BVulkanRendererImpl
+/// @brief Vulkan render backend implementation.
+struct BVulkanRenderBackendImpl
 {
     /** Instance state */
     SDL_Window* Window; // Main window
@@ -206,9 +205,12 @@ struct BVulkanRendererImpl
     std::vector<VkImageView> SwapchainImageViews;
 
     /** Sync state */
-    // TODO(nemjit001): Store sync state (per queue fence for work signaling + semaphores on gfx queue for swap sync)
-    //                  Sync state needs number of frames in flight from parent application
+    // TODO(nemjit001): Might need to store swap access semaphores
+    // TODO(nemjit001): Size queue fences on frames in flight (provided by application?)
     std::vector<VkSemaphore> SwapImageReadySempahores; // Sized on swap image count
+    VkFence GraphicsQueueFence;
+    VkFence ComputeQueueFence;
+    VkFence TransferQueueFence;
 
     /** Frame state */
     uint32_t SwapImageIdx;
@@ -816,18 +818,18 @@ static bool ReflectPipelineLayout(
  * VulkanCommandList Implementation
  */
 
-BVulkanCommandList::BVulkanCommandList(BVulkanRendererImpl const* RendererImpl)
+BVulkanCommandList::BVulkanCommandList(BVulkanRenderBackendImpl const* RenderBackendImpl)
     :
     pImpl(std::make_unique<BVulkanCommandListImpl>())
 {
-    pImpl->Renderer = RendererImpl;
+    pImpl->RenderBackend = RenderBackendImpl;
     pImpl->CommandPool = VK_NULL_HANDLE;
     pImpl->CommandBuffer = VK_NULL_HANDLE;
 }
 
 BVulkanCommandList::~BVulkanCommandList()
 {
-    vkFreeCommandBuffers(pImpl->Renderer->Device, pImpl->CommandPool, 1, &pImpl->CommandBuffer);
+    vkFreeCommandBuffers(pImpl->RenderBackend->Device, pImpl->CommandPool, 1, &pImpl->CommandBuffer);
 }
 
 bool BVulkanCommandList::Reset()
@@ -857,9 +859,9 @@ bool BVulkanCommandList::Close()
 void BVulkanCommandList::SetPipelineState(BGPUPipelineStateHandle PipelineState)
 {
     BGPUPipelineState PSOResource{};
-    if (!pImpl->Renderer->PSOPool.GetResource(PipelineState, PSOResource))
+    if (!pImpl->RenderBackend->PSOPool.GetResource(PipelineState, PSOResource))
     {
-        BONSAI_LOG(LogVerbosity::Warning, "Skipping command, attempted to set unknown PSO (PSO handle %d:%d)", PipelineState.ResourceId, PipelineState.ResourceVersion);
+        BONSAI_LOG(LogVerbosity::Warning, "Skipping command: attempted to set unknown PSO (PSO handle %d:%d)", PipelineState.ResourceId, PipelineState.ResourceVersion);
         return;
     }
 
@@ -877,7 +879,7 @@ void BVulkanCommandList::Dispatch(uint32_t X, uint32_t Y, uint32_t Z)
 
 BVulkanRenderBackend::BVulkanRenderBackend()
     :
-    pImpl(std::make_unique<BVulkanRendererImpl>())
+    pImpl(std::make_unique<BVulkanRenderBackendImpl>())
 {
     //
 }
@@ -928,7 +930,6 @@ RendererResult BVulkanRenderBackend::Init()
         return RENDERER_RESULT_GFX_API_BAD_INIT;
     }
 
-    [[maybe_unused]]
     VkDebugUtilsMessengerCreateInfoEXT DebugMessengerCreateInfo{};
     DebugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     DebugMessengerCreateInfo.pNext = nullptr;
@@ -1076,9 +1077,24 @@ RendererResult BVulkanRenderBackend::Init()
         SemaphoreCreateInfo.pNext = nullptr;
         SemaphoreCreateInfo.flags = 0;
 
-        if (vkCreateSemaphore(pImpl->Device, &SemaphoreCreateInfo, nullptr, &SwapImageReadySemaphores[i]) != VK_SUCCESS) {
+        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &SwapImageReadySemaphores[i]) != VK_SUCCESS) {
             return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
         }
+    }
+
+    VkFenceCreateInfo QueueFenceCreateInfo{};
+    QueueFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    QueueFenceCreateInfo.pNext = nullptr;
+    QueueFenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    
+    VkFence GraphicsQueueFence = VK_NULL_HANDLE;
+    VkFence ComputeQueueFence = VK_NULL_HANDLE;
+    VkFence TransferQueueFence = VK_NULL_HANDLE;
+    if (vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &GraphicsQueueFence) != VK_SUCCESS
+        || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &ComputeQueueFence) != VK_SUCCESS
+        || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &TransferQueueFence) != VK_SUCCESS
+    ) {
+        return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
     }
 
     pImpl->Window = Window;
@@ -1095,6 +1111,10 @@ RendererResult BVulkanRenderBackend::Init()
     pImpl->Swapchain = Swapchain;
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
+    pImpl->SwapImageReadySempahores = SwapImageReadySemaphores;
+    pImpl->GraphicsQueueFence = GraphicsQueueFence;
+    pImpl->ComputeQueueFence = ComputeQueueFence;
+    pImpl->TransferQueueFence = TransferQueueFence;
     pImpl->SwapImageIdx = 0;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
@@ -1106,6 +1126,9 @@ void BVulkanRenderBackend::Shutdown()
     vkDeviceWaitIdle(pImpl->Device);
 
     // Clean up sync state
+    vkDestroyFence(pImpl->Device, pImpl->TransferQueueFence, nullptr);
+    vkDestroyFence(pImpl->Device, pImpl->ComputeQueueFence, nullptr);
+    vkDestroyFence(pImpl->Device, pImpl->GraphicsQueueFence, nullptr);
     for (auto const& Semaphore : pImpl->SwapImageReadySempahores) {
         vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
     }
@@ -1132,7 +1155,11 @@ void BVulkanRenderBackend::Shutdown()
 
 void BVulkanRenderBackend::NewFrame()
 {
-    // TODO(nemjit001): Check how this should be sync'd, i.e. does starting a new frame need to wait on gfx queue as it kind of is graphics work.
+    // Wait for graphics queue to be idle
+    vkWaitForFences(pImpl->Device, 1, &pImpl->GraphicsQueueFence, VK_TRUE, UINT64_MAX);
+
+    // Acquire next swap image
+    // TODO(nemjit001): Sync w/ graphics queue using semaphores (e.g. ping/pong semaphores between submissions?)
     vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &pImpl->SwapImageIdx);
 }
 
@@ -1182,23 +1209,30 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
     }
 
     // Select correct command queue & sync state for submission
-    // TODO(nemjit001): Wait on fence signaling previous work finish for queue
     VkQueue TargetQueue = VK_NULL_HANDLE;
+    VkFence TargetQueueFence = VK_NULL_HANDLE;
     if (CommandQueue == GPUCommandQueue_Direct)
     {
         TargetQueue = pImpl->GraphicsQueue;
+        TargetQueueFence = pImpl->GraphicsQueueFence;
     }
     else if (CommandQueue == GPUCommandQueue_Compute)
     {
         TargetQueue = pImpl->ComputeQueue;
+        TargetQueueFence = pImpl->ComputeQueueFence;
     }
     else if (CommandQueue == GPUCommandQueue_Transfer)
     {
         TargetQueue = pImpl->TransferQueue;
+        TargetQueueFence = pImpl->TransferQueueFence;
     }
 
+    // Wait on previous submission
+    // FIXME(nemjit001): This is suboptimal synchronization, but for the general case it should work fine
+    vkWaitForFences(pImpl->Device, 1, &TargetQueueFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(pImpl->Device, 1, &TargetQueueFence);
+
     // Submit commands :)
-    // TODO(nemjit001): Determine sync primitives based on queue type
     VkSubmitInfo2 SubmitInfo{};
     SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     SubmitInfo.pNext = nullptr;
@@ -1209,7 +1243,7 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
     SubmitInfo.signalSemaphoreInfoCount = 0;
     SubmitInfo.pSignalSemaphoreInfos = nullptr;
 
-    vkQueueSubmit2(TargetQueue, 1, &SubmitInfo, VK_NULL_HANDLE);
+    vkQueueSubmit2(TargetQueue, 1, &SubmitInfo, TargetQueueFence);
 }
 
 IGPUCommandList* BVulkanRenderBackend::CreateCommandList()
