@@ -131,9 +131,9 @@ enum GPUFormat : uint32_t
 /// @brief Available renderer texture types.
 enum GPUTextureType : uint32_t
 {
-    GPUTextureType_1D  = 0,
-    GPUTextureType_2D  = 1,
-    GPUTextureType_3D  = 2,
+    GPUTextureType_1D       = 0,
+    GPUTextureType_2D       = 1,
+    GPUTextureType_3D       = 2,
     GPUTextureType_COUNT,
 };
 

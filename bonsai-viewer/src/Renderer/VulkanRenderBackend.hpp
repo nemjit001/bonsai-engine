@@ -60,7 +60,7 @@ public:
     /// @brief Get the underlying implementation pointer. Command lists are available as full types in the API,
     /// so this function may be used by the render backend to query backend-specific data.
     /// @return 
-    BVulkanCommandListImpl const* GetImpl() const { return pImpl.get(); }
+    BVulkanCommandListImpl* GetImpl() { return pImpl.get(); }
 
 private:
     std::unique_ptr<BVulkanCommandListImpl> pImpl;

@@ -1114,7 +1114,7 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
         }
     }
     
-    // Set up implementation pointer
+    // Set up implementation state
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -1221,7 +1221,7 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
         }
 
         // This down cast can be asumed safe since only a single renderer should be active at a given time.
-        BVulkanCommandList const* VulkanCommandList = static_cast<BVulkanCommandList const*>(CommandLists[i]);
+        BVulkanCommandList* VulkanCommandList = static_cast<BVulkanCommandList*>(CommandLists[i]);
         BVulkanCommandListImpl const* CommandListImpl = VulkanCommandList->GetImpl();
 
         VkCommandBufferSubmitInfo CommandBufferInfo{};
