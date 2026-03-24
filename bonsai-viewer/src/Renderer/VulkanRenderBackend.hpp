@@ -73,7 +73,7 @@ public:
     BVulkanRenderBackend();
     ~BVulkanRenderBackend() override;
 
-    RendererResult Init() override;
+    RendererResult Init(BRenderBackendInitInfo InitInfo) override;
 
     void Shutdown() override;
 

@@ -233,6 +233,12 @@ struct BGPURenderPipelineStateDesc
     // - [ ] add fixed function state
 };
 
+/// @brief Init info for a render backend.
+struct BRenderBackendInitInfo
+{
+    uint32_t NumFramesInFlight; //> Number of frames that might overlap during command recording.
+};
+
 /// @brief A GPUCommandList can be used to record rendering commands for a given renderer backend.
 /// Command list creation and submission is queue-specific.
 class IGPUCommandList
@@ -280,8 +286,9 @@ public:
     IRenderBackend& operator=(IRenderBackend&&) = default;
 
     /// @brief Initialize the renderer.
+    /// @param InitInfo Initialization info.
     /// @return 
-    virtual RendererResult Init() = 0;
+    virtual RendererResult Init(BRenderBackendInitInfo InitInfo) = 0;
 
     /// @brief Shut down the renderer.
     virtual void Shutdown() = 0;

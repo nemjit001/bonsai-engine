@@ -11,6 +11,7 @@
 #include <spirv-reflect/spirv_reflect.h>
 #include <volk.h>
 #include <vk_mem_alloc.h>
+#include "Assert.hpp"
 #include "Logging.hpp"
 #include "Renderer/RenderResourcePool.hpp"
 #include "Renderer/ShaderCompiler.hpp"
@@ -206,13 +207,13 @@ struct BVulkanRenderBackendImpl
 
     /** Sync state */
     // TODO(nemjit001): Might need to store swap access semaphores
-    // TODO(nemjit001): Size queue fences on frames in flight (provided by application?)
-    std::vector<VkSemaphore> SwapImageReadySempahores; // Sized on swap image count
-    VkFence GraphicsQueueFence;
-    VkFence ComputeQueueFence;
-    VkFence TransferQueueFence;
+    std::vector<VkSemaphore> SwapImageReadySempahores;  //> Sized on swap image count
+    std::vector<VkFence> GraphicsQueueFences;            //> Sized on frames in flight
+    std::vector<VkFence> ComputeQueueFences;             //> Sized on frames in flight
+    std::vector<VkFence> TransferQueueFences;            //> Sized on frames in flight
 
     /** Frame state */
+    uint32_t FramesInFlight;
     uint32_t SwapImageIdx;
     uint64_t FrameIndex;
 
@@ -886,14 +887,27 @@ BVulkanRenderBackend::BVulkanRenderBackend()
 
 BVulkanRenderBackend::~BVulkanRenderBackend() = default;
 
-RendererResult BVulkanRenderBackend::Init()
+RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
 {
+    BONSAI_ASSERT(InitInfo.NumFramesInFlight != 0);
+
+    // Load Vulkan symbols & create window
     if (volkInitialize() != VK_SUCCESS) {
         return RENDERER_RESULT_SYMBOL_LOADING_BAD_INIT;
     }
+    BONSAI_LOG(LogVerbosity::Verbose, "Volk: Loaded Vulkan symbols (%d.%d.%d)",   
+        VK_API_VERSION_MAJOR(volkGetInstanceVersion()),
+        VK_API_VERSION_MINOR(volkGetInstanceVersion()),
+        VK_API_VERSION_PATCH(volkGetInstanceVersion())
+    );
 
-    SDL_Window* Window = SDL_CreateWindow("Vulkan Window", 1280, 720, SDL_WINDOW_VULKAN);
+    SDL_Window* Window = SDL_CreateWindow("Vulkan Window", 1280, 720, SDL_WINDOW_VULKAN); // TODO(nemjit001): Take initial window configuration from init info
     if (!Window) {
+        return RENDERER_RESULT_WINDOW_BAD_INIT;
+    }
+
+    // Verify init info params
+    if (InitInfo.NumFramesInFlight == 0) {
         return RENDERER_RESULT_WINDOW_BAD_INIT;
     }
 
@@ -912,7 +926,8 @@ RendererResult BVulkanRenderBackend::Init()
     std::vector<char const*> InstanceLayerNames;
     std::vector<char const*> InstanceExtensionNames(WindowExtensionNames, WindowExtensionNames + WindowExtensionCount);
     if constexpr (RendererDebugEnabled)
-    {   // Enable debug extension and layer names when debug is enabled
+    {
+        // Enable debug extension and layer names when debug is enabled
         InstanceLayerNames.insert(
             std::end(InstanceLayerNames),
             std::begin(DefaultInstanceDebugLayerNames),
@@ -1082,21 +1097,25 @@ RendererResult BVulkanRenderBackend::Init()
         }
     }
 
-    VkFenceCreateInfo QueueFenceCreateInfo{};
-    QueueFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    QueueFenceCreateInfo.pNext = nullptr;
-    QueueFenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    
-    VkFence GraphicsQueueFence = VK_NULL_HANDLE;
-    VkFence ComputeQueueFence = VK_NULL_HANDLE;
-    VkFence TransferQueueFence = VK_NULL_HANDLE;
-    if (vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &GraphicsQueueFence) != VK_SUCCESS
-        || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &ComputeQueueFence) != VK_SUCCESS
-        || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &TransferQueueFence) != VK_SUCCESS
-    ) {
-        return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
+    std::vector<VkFence> GraphicsQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
+    std::vector<VkFence> ComputeQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
+    std::vector<VkFence> TransferQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
+    for (uint32_t i = 0; i < InitInfo.NumFramesInFlight; i++)
+    {
+        VkFenceCreateInfo QueueFenceCreateInfo{};
+        QueueFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        QueueFenceCreateInfo.pNext = nullptr;
+        QueueFenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        
+        if (vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &GraphicsQueueFences[i]) != VK_SUCCESS
+            || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &ComputeQueueFences[i]) != VK_SUCCESS
+            || vkCreateFence(Device, &QueueFenceCreateInfo, nullptr, &TransferQueueFences[i]) != VK_SUCCESS
+        ) {
+            return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
+        }
     }
-
+    
+    // Set up implementation pointer
     pImpl->Window = Window;
     pImpl->Instance = Instance;
     pImpl->DebugMessenger = DebugMessenger;
@@ -1112,9 +1131,10 @@ RendererResult BVulkanRenderBackend::Init()
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
     pImpl->SwapImageReadySempahores = SwapImageReadySemaphores;
-    pImpl->GraphicsQueueFence = GraphicsQueueFence;
-    pImpl->ComputeQueueFence = ComputeQueueFence;
-    pImpl->TransferQueueFence = TransferQueueFence;
+    pImpl->GraphicsQueueFences = GraphicsQueueFences;
+    pImpl->ComputeQueueFences = ComputeQueueFences;
+    pImpl->TransferQueueFences = TransferQueueFences;
+    pImpl->FramesInFlight = InitInfo.NumFramesInFlight;
     pImpl->SwapImageIdx = 0;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
@@ -1126,9 +1146,13 @@ void BVulkanRenderBackend::Shutdown()
     vkDeviceWaitIdle(pImpl->Device);
 
     // Clean up sync state
-    vkDestroyFence(pImpl->Device, pImpl->TransferQueueFence, nullptr);
-    vkDestroyFence(pImpl->Device, pImpl->ComputeQueueFence, nullptr);
-    vkDestroyFence(pImpl->Device, pImpl->GraphicsQueueFence, nullptr);
+    for (uint32_t i = 0; i < pImpl->FramesInFlight; i++)
+    {
+        vkDestroyFence(pImpl->Device, pImpl->TransferQueueFences[i], nullptr);
+        vkDestroyFence(pImpl->Device, pImpl->ComputeQueueFences[i], nullptr);
+        vkDestroyFence(pImpl->Device, pImpl->GraphicsQueueFences[i], nullptr);
+    }
+
     for (auto const& Semaphore : pImpl->SwapImageReadySempahores) {
         vkDestroySemaphore(pImpl->Device, Semaphore, nullptr);
     }
@@ -1156,7 +1180,8 @@ void BVulkanRenderBackend::Shutdown()
 void BVulkanRenderBackend::NewFrame()
 {
     // Wait for graphics queue to be idle
-    vkWaitForFences(pImpl->Device, 1, &pImpl->GraphicsQueueFence, VK_TRUE, UINT64_MAX);
+    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->FramesInFlight;
+    vkWaitForFences(pImpl->Device, 1, &pImpl->GraphicsQueueFences[FrameInFlight], VK_TRUE, UINT64_MAX);
 
     // Acquire next swap image
     // TODO(nemjit001): Sync w/ graphics queue using semaphores (e.g. ping/pong semaphores between submissions?)
@@ -1175,7 +1200,7 @@ void BVulkanRenderBackend::Present()
     PresentInfo.pImageIndices = &pImpl->SwapImageIdx;
     PresentInfo.pResults = nullptr;
 
-    pImpl->FrameIndex += 1;
+    pImpl->FrameIndex++;
     vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo); // TODO(nemjit001): Handle present failure
 }
 
@@ -1209,22 +1234,23 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
     }
 
     // Select correct command queue & sync state for submission
+    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->FramesInFlight;
     VkQueue TargetQueue = VK_NULL_HANDLE;
     VkFence TargetQueueFence = VK_NULL_HANDLE;
     if (CommandQueue == GPUCommandQueue_Direct)
     {
         TargetQueue = pImpl->GraphicsQueue;
-        TargetQueueFence = pImpl->GraphicsQueueFence;
+        TargetQueueFence = pImpl->GraphicsQueueFences[FrameInFlight];
     }
     else if (CommandQueue == GPUCommandQueue_Compute)
     {
         TargetQueue = pImpl->ComputeQueue;
-        TargetQueueFence = pImpl->ComputeQueueFence;
+        TargetQueueFence = pImpl->ComputeQueueFences[FrameInFlight];
     }
     else if (CommandQueue == GPUCommandQueue_Transfer)
     {
         TargetQueue = pImpl->TransferQueue;
-        TargetQueueFence = pImpl->TransferQueueFence;
+        TargetQueueFence = pImpl->TransferQueueFences[FrameInFlight];
     }
 
     // Wait on previous submission

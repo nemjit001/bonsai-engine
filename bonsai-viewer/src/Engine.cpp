@@ -49,8 +49,11 @@ EngineResult BEngine::Init()
     }
 
     BONSAI_LOG(LogVerbosity::Info, "Initializing RenderBackend");
+    BRenderBackendInitInfo RenderBackendInitInfo{};
+    RenderBackendInitInfo.NumFramesInFlight = 2; // Use double buffering
+
     RenderBackend = std::make_unique<BVulkanRenderBackend>();
-    RendererResult const RendererInitResult = RenderBackend->Init();
+    RendererResult const RendererInitResult = RenderBackend->Init(RenderBackendInitInfo);
     if (RendererInitResult != RENDERER_RESULT_OK) {
         return ENGINE_RESULT_RENDERER_BAD_INIT;
     }
