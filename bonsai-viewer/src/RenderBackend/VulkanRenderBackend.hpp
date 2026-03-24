@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VULKAN_RENDERER_HPP
-#define VULKAN_RENDERER_HPP
+#ifndef VULKAN_RENDER_BACKEND_HPP
+#define VULKAN_RENDER_BACKEND_HPP
 #if BONSAI_VULKAN_SUPPORT
 
 #include <memory>
@@ -110,4 +110,4 @@ private:
 };
 
 #endif //BONSAI_VULKAN_SUPPORT
-#endif //VULKAN_RENDERER_HPP
+#endif //VULKAN_RENDER_BACKEND_HPP

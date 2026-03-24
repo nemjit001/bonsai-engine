@@ -1,6 +1,6 @@
 #pragma once
-#ifndef RENDERER_HPP
-#define RENDERER_HPP
+#ifndef RENDER_BACKEND_HPP
+#define RENDER_BACKEND_HPP
 
 #include <cstdint>
 #include "RenderBackend/RenderHandle.hpp"
@@ -358,4 +358,4 @@ public:
     virtual BGPUPipelineLocalSize GetPipelineLocalSize(BGPUPipelineStateHandle PipelineState) = 0;
 };
 
-#endif //RENDERER_HPP
+#endif //RENDER_BACKEND_HPP

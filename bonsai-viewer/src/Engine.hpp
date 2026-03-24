@@ -6,6 +6,7 @@
 #include <memory>
 
 class IRenderBackend;
+class BRenderer;
 
 /// @brief Error codes for the engine class 
 enum EngineResult : uint32_t
@@ -42,6 +43,7 @@ private:
 
 private:
     std::unique_ptr<IRenderBackend> RenderBackend;
+    std::unique_ptr<BRenderer> Renderer;
 };
 
 #endif //ENGINE_HPP

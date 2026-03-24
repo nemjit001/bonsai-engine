@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "Logging.hpp"
+#include "Renderer.hpp"
 #include "RenderBackend/VulkanRenderBackend.hpp"
 
 BEngine::BEngine() = default;
@@ -30,7 +31,8 @@ EngineResult BEngine::Run()
             }
         }
 
-        // TODO(nemjit001): Render a frame using the active render backend
+        // Render next frame
+        Renderer->Frame();
     }
 
     // Perform cleanup
@@ -43,23 +45,27 @@ EngineResult BEngine::Init()
     std::filesystem::path CurrentPath = std::filesystem::current_path();
     BONSAI_LOG(LogVerbosity::Info, "Initializing Bonsai Viewer from %s", CurrentPath.string().c_str());
 
-    BONSAI_LOG(LogVerbosity::Info, "Initializing SDL3");
+    BONSAI_LOG(LogVerbosity::Verbose, "Initializing SDL3");
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         return ENGINE_RESULT_PLATFORM_BAD_INIT;
     }
 
-    BONSAI_LOG(LogVerbosity::Info, "Initializing RenderBackend");
+    BONSAI_LOG(LogVerbosity::Verbose, "Initializing RenderBackend");
     BRenderBackendInitInfo RenderBackendInitInfo{};
     RenderBackendInitInfo.WindowTitle = "Bonsai Viewer";
     RenderBackendInitInfo.WindowWidth = 1280;
     RenderBackendInitInfo.WindowHeight = 720;
-    RenderBackendInitInfo.NumFramesInFlight = 2; // Use double buffering
+    RenderBackendInitInfo.NumFramesInFlight = BRenderer::FRAMES_IN_FLIGHT;
 
     RenderBackend = std::make_unique<BVulkanRenderBackend>();
     RendererResult const RendererInitResult = RenderBackend->Init(RenderBackendInitInfo);
     if (RendererInitResult != RENDERER_RESULT_OK) {
         return ENGINE_RESULT_RENDERER_BAD_INIT;
     }
+
+    BONSAI_LOG(LogVerbosity::Verbose, "Initializing Renderer");
+    Renderer = std::make_unique<BRenderer>();
+    Renderer->Init(RenderBackend.get());
 
     BONSAI_LOG(LogVerbosity::Info, "Initialized Bonsai Viewer");
     return ENGINE_RESULT_OK;
@@ -68,6 +74,9 @@ EngineResult BEngine::Init()
 void BEngine::Shutdown()
 {
     BONSAI_LOG(LogVerbosity::Info, "Shutting down Bonsai Viewer");
+    BONSAI_LOG(LogVerbosity::Verbose, "Shutting down Renderer");
+    Renderer->Shutdown();
+
     BONSAI_LOG(LogVerbosity::Verbose, "Cleaning up RenderBackend");
     RenderBackend->Shutdown();
 
