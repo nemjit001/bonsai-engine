@@ -890,6 +890,11 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
 {
     BONSAI_ASSERT(InitInfo.NumFramesInFlight != 0);
 
+    // Verify init info params
+    if (InitInfo.NumFramesInFlight == 0) {
+        return RENDERER_RESULT_GFX_API_BAD_INIT;
+    }
+
     // Load Vulkan symbols & create window
     if (volkInitialize() != VK_SUCCESS) {
         return RENDERER_RESULT_SYMBOL_LOADING_BAD_INIT;
@@ -900,13 +905,8 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
         VK_API_VERSION_PATCH(volkGetInstanceVersion())
     );
 
-    SDL_Window* Window = SDL_CreateWindow("Vulkan Window", 1280, 720, SDL_WINDOW_VULKAN); // TODO(nemjit001): Take initial window configuration from init info
+    SDL_Window* Window = SDL_CreateWindow(InitInfo.WindowTitle, InitInfo.WindowWidth, InitInfo.WindowHeight, SDL_WINDOW_VULKAN);
     if (!Window) {
-        return RENDERER_RESULT_WINDOW_BAD_INIT;
-    }
-
-    // Verify init info params
-    if (InitInfo.NumFramesInFlight == 0) {
         return RENDERER_RESULT_WINDOW_BAD_INIT;
     }
 

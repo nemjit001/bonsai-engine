@@ -50,6 +50,9 @@ EngineResult BEngine::Init()
 
     BONSAI_LOG(LogVerbosity::Info, "Initializing RenderBackend");
     BRenderBackendInitInfo RenderBackendInitInfo{};
+    RenderBackendInitInfo.WindowTitle = "Bonsai Viewer";
+    RenderBackendInitInfo.WindowWidth = 1280;
+    RenderBackendInitInfo.WindowHeight = 720;
     RenderBackendInitInfo.NumFramesInFlight = 2; // Use double buffering
 
     RenderBackend = std::make_unique<BVulkanRenderBackend>();

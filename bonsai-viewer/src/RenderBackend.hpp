@@ -236,6 +236,9 @@ struct BGPURenderPipelineStateDesc
 /// @brief Init info for a render backend.
 struct BRenderBackendInitInfo
 {
+    char const* WindowTitle;
+    uint32_t WindowWidth;
+    uint32_t WindowHeight;
     uint32_t NumFramesInFlight; //> Number of frames that might overlap during command recording.
 };
 
