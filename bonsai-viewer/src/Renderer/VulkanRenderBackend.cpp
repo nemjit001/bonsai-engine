@@ -206,14 +206,13 @@ struct BVulkanRenderBackendImpl
     std::vector<VkImageView> SwapchainImageViews;
 
     /** Sync state */
-    // TODO(nemjit001): Might need to store swap access semaphores
     std::vector<VkSemaphore> SwapImageReadySempahores;  //> Sized on swap image count
-    std::vector<VkFence> GraphicsQueueFences;            //> Sized on frames in flight
-    std::vector<VkFence> ComputeQueueFences;             //> Sized on frames in flight
-    std::vector<VkFence> TransferQueueFences;            //> Sized on frames in flight
+    std::vector<VkFence> GraphicsQueueFences;           //> Sized on frames in flight
+    std::vector<VkFence> ComputeQueueFences;            //> Sized on frames in flight
+    std::vector<VkFence> TransferQueueFences;           //> Sized on frames in flight
 
     /** Frame state */
-    uint32_t FramesInFlight;
+    uint32_t NumFramesInFlight;
     uint32_t SwapImageIdx;
     uint64_t FrameIndex;
 
@@ -1134,7 +1133,7 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
     pImpl->GraphicsQueueFences = GraphicsQueueFences;
     pImpl->ComputeQueueFences = ComputeQueueFences;
     pImpl->TransferQueueFences = TransferQueueFences;
-    pImpl->FramesInFlight = InitInfo.NumFramesInFlight;
+    pImpl->NumFramesInFlight = InitInfo.NumFramesInFlight;
     pImpl->SwapImageIdx = 0;
     pImpl->FrameIndex = 0;
     return RENDERER_RESULT_OK;
@@ -1146,7 +1145,7 @@ void BVulkanRenderBackend::Shutdown()
     vkDeviceWaitIdle(pImpl->Device);
 
     // Clean up sync state
-    for (uint32_t i = 0; i < pImpl->FramesInFlight; i++)
+    for (uint32_t i = 0; i < pImpl->NumFramesInFlight; i++)
     {
         vkDestroyFence(pImpl->Device, pImpl->TransferQueueFences[i], nullptr);
         vkDestroyFence(pImpl->Device, pImpl->ComputeQueueFences[i], nullptr);
@@ -1180,12 +1179,13 @@ void BVulkanRenderBackend::Shutdown()
 void BVulkanRenderBackend::NewFrame()
 {
     // Wait for graphics queue to be idle
-    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->FramesInFlight;
+    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->NumFramesInFlight;
     vkWaitForFences(pImpl->Device, 1, &pImpl->GraphicsQueueFences[FrameInFlight], VK_TRUE, UINT64_MAX);
+    vkResetFences(pImpl->Device, 1, &pImpl->GraphicsQueueFences[FrameInFlight]);
 
     // Acquire next swap image
-    // TODO(nemjit001): Sync w/ graphics queue using semaphores (e.g. ping/pong semaphores between submissions?)
-    vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &pImpl->SwapImageIdx);
+    // This is synchronized using fences as if it was graphics work
+    vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, pImpl->GraphicsQueueFences[FrameInFlight], &pImpl->SwapImageIdx);
 }
 
 void BVulkanRenderBackend::Present()
@@ -1233,14 +1233,24 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
         CommandBufferInfos.push_back(CommandBufferInfo);
     }
 
-    // Select correct command queue & sync state for submission
-    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->FramesInFlight;
+    // Select correct queue & sync state for submission based on frame index and queue type
+    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->NumFramesInFlight;
     VkQueue TargetQueue = VK_NULL_HANDLE;
     VkFence TargetQueueFence = VK_NULL_HANDLE;
+    std::vector<VkSemaphoreSubmitInfo> SignalSemaphoreInfos{};
     if (CommandQueue == GPUCommandQueue_Direct)
     {
         TargetQueue = pImpl->GraphicsQueue;
         TargetQueueFence = pImpl->GraphicsQueueFences[FrameInFlight];
+
+        VkSemaphoreSubmitInfo SignalSemaphoreInfo{};
+        SignalSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        SignalSemaphoreInfo.pNext = nullptr;
+        SignalSemaphoreInfo.semaphore = pImpl->SwapImageReadySempahores[pImpl->SwapImageIdx];
+        SignalSemaphoreInfo.stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        SignalSemaphoreInfo.deviceIndex = 0;
+
+        SignalSemaphoreInfos.push_back(SignalSemaphoreInfo);
     }
     else if (CommandQueue == GPUCommandQueue_Compute)
     {
@@ -1266,8 +1276,8 @@ void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t Comman
     SubmitInfo.pWaitSemaphoreInfos = nullptr;
     SubmitInfo.commandBufferInfoCount = static_cast<uint32_t>(CommandBufferInfos.size());
     SubmitInfo.pCommandBufferInfos = CommandBufferInfos.data();
-    SubmitInfo.signalSemaphoreInfoCount = 0;
-    SubmitInfo.pSignalSemaphoreInfos = nullptr;
+    SubmitInfo.signalSemaphoreInfoCount = static_cast<uint32_t>(SignalSemaphoreInfos.size());
+    SubmitInfo.pSignalSemaphoreInfos = SignalSemaphoreInfos.data();
 
     vkQueueSubmit2(TargetQueue, 1, &SubmitInfo, TargetQueueFence);
 }
