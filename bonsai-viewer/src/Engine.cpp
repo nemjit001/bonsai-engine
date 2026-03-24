@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "Logging.hpp"
-#include "Renderer/VulkanRenderBackend.hpp"
+#include "RenderBackend/VulkanRenderBackend.hpp"
 
 BEngine::BEngine() = default;
 BEngine::~BEngine() = default;

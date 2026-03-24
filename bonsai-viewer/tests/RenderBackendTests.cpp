@@ -1,7 +1,7 @@
 #include <array>
 #include <gtest/gtest.h>
-#include "Renderer/RenderResourcePool.hpp"
-#include "Renderer/ShaderCompiler.hpp"
+#include "RenderBackend/RenderResourcePool.hpp"
+#include "RenderBackend/ShaderCompiler.hpp"
 
 struct MockResource
 {

@@ -13,8 +13,8 @@
 #include <vk_mem_alloc.h>
 #include "Assert.hpp"
 #include "Logging.hpp"
-#include "Renderer/RenderResourcePool.hpp"
-#include "Renderer/ShaderCompiler.hpp"
+#include "RenderBackend/RenderResourcePool.hpp"
+#include "RenderBackend/ShaderCompiler.hpp"
 
 #define BONSAI_VULKAN_API_VERSION                   VK_API_VERSION_1_3
 

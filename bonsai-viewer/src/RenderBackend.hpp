@@ -3,7 +3,7 @@
 #define RENDERER_HPP
 
 #include <cstdint>
-#include "Renderer/RenderHandle.hpp"
+#include "RenderBackend/RenderHandle.hpp"
 
 class BGPUBuffer;
 using BGPUBufferHandle = TRenderHandle<BGPUBuffer>;

@@ -35,13 +35,13 @@ add_library(BonsaiViewerLib
         src/Scene.hpp
         src/Assets/StaticMesh.cpp
         src/Assets/StaticMesh.hpp
-        src/Renderer/RenderHandle.hpp
-        src/Renderer/RenderResourcePool.hpp
-        src/Renderer/RenderResourcePool.inl
-        src/Renderer/ShaderCompiler.cpp
-        src/Renderer/ShaderCompiler.hpp
-        src/Renderer/VulkanRenderBackend.cpp
-        src/Renderer/VulkanRenderBackend.hpp
+        src/RenderBackend/RenderHandle.hpp
+        src/RenderBackend/RenderResourcePool.hpp
+        src/RenderBackend/RenderResourcePool.inl
+        src/RenderBackend/ShaderCompiler.cpp
+        src/RenderBackend/ShaderCompiler.hpp
+        src/RenderBackend/VulkanRenderBackend.cpp
+        src/RenderBackend/VulkanRenderBackend.hpp
         src/Scene/Camera.cpp
         src/Scene/Camera.hpp
         src/Scene/Light.cpp
