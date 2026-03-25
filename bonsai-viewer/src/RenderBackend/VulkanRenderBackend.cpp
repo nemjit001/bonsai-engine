@@ -198,10 +198,11 @@ struct BVulkanRenderBackendImpl
     std::vector<VkImageView> SwapchainImageViews;
 
     /** Sync state */
-    std::vector<VkSemaphore> SwapImageReadySempahores;  //> Sized on swap image count
-    std::vector<VkFence> GraphicsQueueFences;           //> Sized on frames in flight
-    std::vector<VkFence> ComputeQueueFences;            //> Sized on frames in flight
-    std::vector<VkFence> TransferQueueFences;           //> Sized on frames in flight
+    std::vector<VkSemaphore> SwapImageReadySempahores;      //> Sized on swap image count
+    std::vector<VkSemaphore> RenderingFinishedSemaphores;   //> Sized on frames in flight
+    std::vector<VkFence> GraphicsQueueFences;               //> Sized on frames in flight
+    std::vector<VkFence> ComputeQueueFences;                //> Sized on frames in flight
+    std::vector<VkFence> TransferQueueFences;               //> Sized on frames in flight
 
     /** Frame state */
     uint32_t NumFramesInFlight;
@@ -1029,11 +1030,21 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
         }
     }
 
+    std::vector<VkSemaphore> RenderingFinishedSemaphores(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
     std::vector<VkFence> GraphicsQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
     std::vector<VkFence> ComputeQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
     std::vector<VkFence> TransferQueueFences(InitInfo.NumFramesInFlight, VK_NULL_HANDLE);
     for (uint32_t i = 0; i < InitInfo.NumFramesInFlight; i++)
     {
+        VkSemaphoreCreateInfo SemaphoreCreateInfo{};
+        SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        SemaphoreCreateInfo.pNext = nullptr;
+        SemaphoreCreateInfo.flags = 0;
+
+        if (vkCreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &RenderingFinishedSemaphores[i]) != VK_SUCCESS) {
+            return RENDERER_RESULT_SYNC_STATE_BAD_INIT;
+        }
+
         VkFenceCreateInfo QueueFenceCreateInfo{};
         QueueFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         QueueFenceCreateInfo.pNext = nullptr;
@@ -1063,6 +1074,7 @@ RendererResult BVulkanRenderBackend::Init(BRenderBackendInitInfo InitInfo)
     pImpl->SwapchainImages = SwapchainImages;
     pImpl->SwapchainImageViews = SwapchainImageViews;
     pImpl->SwapImageReadySempahores = SwapImageReadySemaphores;
+    pImpl->RenderingFinishedSemaphores = RenderingFinishedSemaphores;
     pImpl->GraphicsQueueFences = GraphicsQueueFences;
     pImpl->ComputeQueueFences = ComputeQueueFences;
     pImpl->TransferQueueFences = TransferQueueFences;
@@ -1083,6 +1095,7 @@ void BVulkanRenderBackend::Shutdown()
         vkDestroyFence(pImpl->Device, pImpl->TransferQueueFences[i], nullptr);
         vkDestroyFence(pImpl->Device, pImpl->ComputeQueueFences[i], nullptr);
         vkDestroyFence(pImpl->Device, pImpl->GraphicsQueueFences[i], nullptr);
+        vkDestroySemaphore(pImpl->Device, pImpl->RenderingFinishedSemaphores[i], nullptr);
     }
 
     for (auto const& Semaphore : pImpl->SwapImageReadySempahores) {
