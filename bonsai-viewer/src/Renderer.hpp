@@ -2,7 +2,9 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include "RenderBackend.hpp"
+#include <cstdint>
+
+class IRenderBackend;
 
 class BRenderer
 {

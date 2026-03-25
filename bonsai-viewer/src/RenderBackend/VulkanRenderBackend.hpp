@@ -9,10 +9,6 @@
 #include <vk_mem_alloc.h>
 #include "RenderBackend.hpp"
 
-/// @brief Command list implementation.
-struct BVulkanCommandListImpl;
-
-/// @brief Renderer backend implementation.
 struct BVulkanRenderBackendImpl;
 
 /// @brief Vulkan GPU buffer implementation.
@@ -42,30 +38,6 @@ public:
     std::vector<VkDescriptorSetLayout> DescriptorSetLayouts;
 };
 
-/// @brief Vulkan implementation of a GPU command list.
-class BVulkanCommandList : public IGPUCommandList
-{
-public:
-    BVulkanCommandList(BVulkanRenderBackendImpl const* RendererImpl);
-    ~BVulkanCommandList() override;
-
-    bool Reset() override;
-
-    bool Close() override;
-
-    void SetPipelineState(BGPUPipelineStateHandle PipelineState) override;
-
-    void Dispatch(uint32_t X, uint32_t Y, uint32_t Z) override;
-
-    /// @brief Get the underlying implementation pointer. Command lists are available as full types in the API,
-    /// so this function may be used by the render backend to query backend-specific data.
-    /// @return 
-    BVulkanCommandListImpl* GetImpl() { return pImpl.get(); }
-
-private:
-    std::unique_ptr<BVulkanCommandListImpl> pImpl;
-};
-
 /// @brief Vulkan implementation of a renderer backend.
 class BVulkanRenderBackend : public IRenderBackend
 {
@@ -77,17 +49,7 @@ public:
 
     void Shutdown() override;
 
-    void NewFrame() override;
-
-    void Present() override;
-
     uint64_t GetFrameIndex() override;
-
-    void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists) override;
-
-    IGPUCommandList* CreateCommandList() override;
-
-    void DestroyCommandList(IGPUCommandList* CommandList) override;
 
     BGPUBufferHandle CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc) override;
     

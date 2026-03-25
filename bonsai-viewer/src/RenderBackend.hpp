@@ -242,39 +242,6 @@ struct BRenderBackendInitInfo
     uint32_t NumFramesInFlight; //> Number of frames that might overlap during command recording.
 };
 
-/// @brief A GPUCommandList can be used to record rendering commands for a given renderer backend.
-/// Command list creation and submission is queue-specific.
-class IGPUCommandList
-{
-public:
-    IGPUCommandList() = default;
-    virtual ~IGPUCommandList() = default;
-
-    IGPUCommandList(IGPUCommandList const&) = delete;
-    IGPUCommandList& operator=(IGPUCommandList const&) = delete;
-
-    IGPUCommandList(IGPUCommandList&&) = default;
-    IGPUCommandList& operator=(IGPUCommandList&&) = default;
-
-    /// @brief Reset the command list.
-    /// @return 
-    virtual bool Reset() = 0;
-
-    /// @brief Close the command list.
-    /// @return 
-    virtual bool Close() = 0;
-
-    /// @brief Set the active PSO.
-    /// @param PipelineState 
-    virtual void SetPipelineState(BGPUPipelineStateHandle PipelineState) = 0;
-
-    /// @brief Dispatch a bound pipeline state as compute workload.
-    /// @param X 
-    /// @param Y 
-    /// @param Z 
-    virtual void Dispatch(uint32_t X, uint32_t Y, uint32_t Z) = 0;
-};
-
 /// @brief A RenderBackend implements a graphics backend that handles the implementation of a low level rendering API.
 class IRenderBackend
 {
@@ -296,29 +263,9 @@ public:
     /// @brief Shut down the renderer.
     virtual void Shutdown() = 0;
 
-    /// @brief Start a new frame in the renderer.
-    virtual void NewFrame() = 0;
-
-    /// @brief Present the active renderer frame.
-    virtual void Present() = 0;
-
     /// @brief Get the current frame index.
     /// @return 
     virtual uint64_t GetFrameIndex() = 0;
-
-    /// @brief Execute command lists on a given queue. Queues are internally synchronized.
-    /// @param CommandQueue 
-    /// @param CommandListCount 
-    /// @param CommandLists 
-    virtual void Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists) = 0;
-
-    /// @brief Create a new GPU command list.
-    /// @return 
-    virtual IGPUCommandList* CreateCommandList() = 0;
-
-    /// @brief Destroy a GPU command list.
-    /// @param CommandList 
-    virtual void DestroyCommandList(IGPUCommandList* CommandList) = 0;
 
     /// @brief Create a new GPU buffer.
     /// @param BufferDesc 

@@ -174,14 +174,6 @@ struct CompiledShader
     IDxcBlob* Bytecode;
 };
 
-/// @brief Vulkan command list implementation.
-struct BVulkanCommandListImpl
-{
-    BVulkanRenderBackendImpl const* RenderBackend; //> Needed for resource pool access.
-    VkCommandPool CommandPool;
-    VkCommandBuffer CommandBuffer;
-};
-
 /// @brief Vulkan render backend implementation.
 struct BVulkanRenderBackendImpl
 {
@@ -815,65 +807,6 @@ static bool ReflectPipelineLayout(
 }
 
 /*
- * VulkanCommandList Implementation
- */
-
-BVulkanCommandList::BVulkanCommandList(BVulkanRenderBackendImpl const* RenderBackendImpl)
-    :
-    pImpl(std::make_unique<BVulkanCommandListImpl>())
-{
-    pImpl->RenderBackend = RenderBackendImpl;
-    pImpl->CommandPool = VK_NULL_HANDLE;
-    pImpl->CommandBuffer = VK_NULL_HANDLE;
-}
-
-BVulkanCommandList::~BVulkanCommandList()
-{
-    vkFreeCommandBuffers(pImpl->RenderBackend->Device, pImpl->CommandPool, 1, &pImpl->CommandBuffer);
-}
-
-bool BVulkanCommandList::Reset()
-{
-    if (vkResetCommandBuffer(pImpl->CommandBuffer, 0) != VK_SUCCESS) {
-        return false;
-    }
-
-    VkCommandBufferBeginInfo BeginInfo{};
-    BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    BeginInfo.pNext = nullptr;
-    BeginInfo.flags = 0;
-    BeginInfo.pInheritanceInfo = nullptr;
-
-    if (vkBeginCommandBuffer(pImpl->CommandBuffer, &BeginInfo) != VK_SUCCESS) {
-        return false;
-    }
-
-    return true;
-}
-
-bool BVulkanCommandList::Close()
-{
-    return VK_SUCCESS == vkEndCommandBuffer(pImpl->CommandBuffer);
-}
-
-void BVulkanCommandList::SetPipelineState(BGPUPipelineStateHandle PipelineState)
-{
-    BGPUPipelineState PSOResource{};
-    if (!pImpl->RenderBackend->PSOPool.GetResource(PipelineState, PSOResource))
-    {
-        BONSAI_LOG(LogVerbosity::Warning, "Skipping command: attempted to set unknown PSO (PSO handle %d:%d)", PipelineState.ResourceId, PipelineState.ResourceVersion);
-        return;
-    }
-
-    vkCmdBindPipeline(pImpl->CommandBuffer, PSOResource.BindPoint, PSOResource.Pipeline);
-}
-
-void BVulkanCommandList::Dispatch(uint32_t X, uint32_t Y, uint32_t Z)
-{
-    vkCmdDispatch(pImpl->CommandBuffer, X, Y, Z);
-}
-
-/*
  * VulkanRenderBackend Implementation
  */
 
@@ -1176,120 +1109,9 @@ void BVulkanRenderBackend::Shutdown()
     volkFinalize();
 }
 
-void BVulkanRenderBackend::NewFrame()
-{
-    // Wait for graphics queue to be idle
-    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->NumFramesInFlight;
-    vkWaitForFences(pImpl->Device, 1, &pImpl->GraphicsQueueFences[FrameInFlight], VK_TRUE, UINT64_MAX);
-    vkResetFences(pImpl->Device, 1, &pImpl->GraphicsQueueFences[FrameInFlight]);
-
-    // Acquire next swap image
-    // This is synchronized using fences as if it was graphics work
-    vkAcquireNextImageKHR(pImpl->Device, pImpl->Swapchain, UINT64_MAX, VK_NULL_HANDLE, pImpl->GraphicsQueueFences[FrameInFlight], &pImpl->SwapImageIdx);
-}
-
-void BVulkanRenderBackend::Present()
-{
-    VkPresentInfoKHR PresentInfo{};
-    PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    PresentInfo.pNext = nullptr;
-    PresentInfo.waitSemaphoreCount = 1;
-    PresentInfo.pWaitSemaphores = &pImpl->SwapImageReadySempahores[pImpl->SwapImageIdx];
-    PresentInfo.swapchainCount = 1;
-    PresentInfo.pSwapchains = &pImpl->Swapchain;
-    PresentInfo.pImageIndices = &pImpl->SwapImageIdx;
-    PresentInfo.pResults = nullptr;
-
-    pImpl->FrameIndex++;
-    vkQueuePresentKHR(pImpl->GraphicsQueue, &PresentInfo); // TODO(nemjit001): Handle present failure
-}
-
 uint64_t BVulkanRenderBackend::GetFrameIndex()
 {
     return pImpl->FrameIndex;
-}
-
-void BVulkanRenderBackend::Execute(GPUCommandQueue CommandQueue, uint32_t CommandListCount, IGPUCommandList** CommandLists)
-{
-    // Get command buffer handles for submission
-    std::vector<VkCommandBufferSubmitInfo> CommandBufferInfos;
-    CommandBufferInfos.reserve(CommandListCount);
-    for (uint32_t i = 0; i < CommandListCount; i++)
-    {
-        if (CommandLists[i] == nullptr) {
-            continue;
-        }
-
-        // This down cast can be asumed safe since only a single renderer should be active at a given time.
-        BVulkanCommandList* VulkanCommandList = static_cast<BVulkanCommandList*>(CommandLists[i]);
-        BVulkanCommandListImpl const* CommandListImpl = VulkanCommandList->GetImpl();
-
-        VkCommandBufferSubmitInfo CommandBufferInfo{};
-        CommandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        CommandBufferInfo.pNext = nullptr;
-        CommandBufferInfo.commandBuffer = CommandListImpl->CommandBuffer;
-        CommandBufferInfo.deviceMask = 0;
-
-        CommandBufferInfos.push_back(CommandBufferInfo);
-    }
-
-    // Select correct queue & sync state for submission based on frame index and queue type
-    uint32_t const FrameInFlight = pImpl->FrameIndex % pImpl->NumFramesInFlight;
-    VkQueue TargetQueue = VK_NULL_HANDLE;
-    VkFence TargetQueueFence = VK_NULL_HANDLE;
-    std::vector<VkSemaphoreSubmitInfo> SignalSemaphoreInfos{};
-    if (CommandQueue == GPUCommandQueue_Direct)
-    {
-        TargetQueue = pImpl->GraphicsQueue;
-        TargetQueueFence = pImpl->GraphicsQueueFences[FrameInFlight];
-
-        VkSemaphoreSubmitInfo SignalSemaphoreInfo{};
-        SignalSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-        SignalSemaphoreInfo.pNext = nullptr;
-        SignalSemaphoreInfo.semaphore = pImpl->SwapImageReadySempahores[pImpl->SwapImageIdx];
-        SignalSemaphoreInfo.stageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        SignalSemaphoreInfo.deviceIndex = 0;
-
-        SignalSemaphoreInfos.push_back(SignalSemaphoreInfo);
-    }
-    else if (CommandQueue == GPUCommandQueue_Compute)
-    {
-        TargetQueue = pImpl->ComputeQueue;
-        TargetQueueFence = pImpl->ComputeQueueFences[FrameInFlight];
-    }
-    else if (CommandQueue == GPUCommandQueue_Transfer)
-    {
-        TargetQueue = pImpl->TransferQueue;
-        TargetQueueFence = pImpl->TransferQueueFences[FrameInFlight];
-    }
-
-    // Wait on previous submission
-    // FIXME(nemjit001): This is suboptimal synchronization, but for the general case it should work fine
-    vkWaitForFences(pImpl->Device, 1, &TargetQueueFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(pImpl->Device, 1, &TargetQueueFence);
-
-    // Submit commands :)
-    VkSubmitInfo2 SubmitInfo{};
-    SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    SubmitInfo.pNext = nullptr;
-    SubmitInfo.waitSemaphoreInfoCount = 0;
-    SubmitInfo.pWaitSemaphoreInfos = nullptr;
-    SubmitInfo.commandBufferInfoCount = static_cast<uint32_t>(CommandBufferInfos.size());
-    SubmitInfo.pCommandBufferInfos = CommandBufferInfos.data();
-    SubmitInfo.signalSemaphoreInfoCount = static_cast<uint32_t>(SignalSemaphoreInfos.size());
-    SubmitInfo.pSignalSemaphoreInfos = SignalSemaphoreInfos.data();
-
-    vkQueueSubmit2(TargetQueue, 1, &SubmitInfo, TargetQueueFence);
-}
-
-IGPUCommandList* BVulkanRenderBackend::CreateCommandList()
-{
-    return new BVulkanCommandList(pImpl.get());
-}
-
-void BVulkanRenderBackend::DestroyCommandList(IGPUCommandList* CommandList)
-{
-    delete CommandList;
 }
 
 BGPUBufferHandle BVulkanRenderBackend::CreateBuffer(GPUHeapType HeapType, BGPUBufferDesc BufferDesc)
