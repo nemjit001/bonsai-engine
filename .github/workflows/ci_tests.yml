@@ -43,9 +43,6 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - name: Do VCPKG Setup
-      uses: lukka/run-vcpkg@v11.5
-
     - name: Install Linux Packages
       if: matrix.os == 'ubuntu-latest'
       run: >
