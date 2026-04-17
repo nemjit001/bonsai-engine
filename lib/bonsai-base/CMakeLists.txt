@@ -1,6 +1,8 @@
 project("BonsaiBase"
     VERSION 0.0.0
     LANGUAGES CXX
+    DESCRIPTION
+    "The Bonsai Base library defines basic types and exposes low level interfaces for constructing applications."
 )
 
 add_library(BonsaiBase STATIC)
