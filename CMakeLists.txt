@@ -10,3 +10,4 @@ include(cmake/utils.cmake)
 
 # add sub projects
 add_subdirectory(lib)
+add_subdirectory(bin)
