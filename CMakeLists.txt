@@ -7,3 +7,6 @@ option(BUILD_TESTS "Enable unit tests" ON)
 
 # Add CMake utils
 include(cmake/utils.cmake)
+
+# add sub projects
+add_subdirectory(lib)
