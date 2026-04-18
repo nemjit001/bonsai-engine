@@ -10,13 +10,16 @@ add_library(Bonsai::Base ALIAS BonsaiBase)
 target_compile_features(BonsaiBase PRIVATE cxx_std_17)
 target_sources(BonsaiBase
     PRIVATE
-        src/PlatformTypes.cpp
-        src/PlatformTypes.hpp
+        src/Base/Application.cpp
+        src/Base/Application.hpp
+        src/Base/PlatformTypes.cpp
+        src/Base/PlatformTypes.hpp
 )
 target_sources(BonsaiBase
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
-        src/PlatformTypes.hpp
+        src/Base/Application.hpp
+        src/Base/PlatformTypes.hpp
 )
