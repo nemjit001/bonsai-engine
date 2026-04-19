@@ -8,6 +8,7 @@ project("BonsaiRuntime"
 add_library(BonsaiRuntime STATIC)
 add_library(Bonsai::Runtime ALIAS BonsaiRuntime)
 target_compile_features(BonsaiRuntime PRIVATE cxx_std_17)
+target_enable_extended_warnings(BonsaiRuntime)
 target_sources(BonsaiRuntime
     PRIVATE
         src/Engine.cpp

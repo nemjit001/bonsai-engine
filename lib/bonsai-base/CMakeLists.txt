@@ -8,6 +8,7 @@ project("BonsaiBase"
 add_library(BonsaiBase STATIC)
 add_library(Bonsai::Base ALIAS BonsaiBase)
 target_compile_features(BonsaiBase PRIVATE cxx_std_17)
+target_enable_extended_warnings(BonsaiBase)
 target_sources(BonsaiBase
     PRIVATE
         src/Base/PlatformTypes.cpp

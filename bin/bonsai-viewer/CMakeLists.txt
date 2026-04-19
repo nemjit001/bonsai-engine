@@ -6,6 +6,7 @@ project("BonsaiViewer"
 add_executable(BonsaiViewer)
 add_executable(Bonsai::Viewer ALIAS BonsaiViewer)
 target_compile_features(BonsaiViewer PRIVATE cxx_std_17)
+target_enable_extended_warnings(BonsaiViewer)
 target_sources(BonsaiViewer
     PRIVATE
         src/BonsaiViewer.cpp
