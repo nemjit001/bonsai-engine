@@ -2,9 +2,7 @@
 #ifndef BONSAI_VIEWER_HPP
 #define BONSAI_VIEWER_HPP
 
-#include "Base/Application.hpp"
-
-class BonsaiViewer : public IApplication
+class BonsaiViewer
 {
     //
 };

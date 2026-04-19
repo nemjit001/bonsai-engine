@@ -1,3 +1,4 @@
+#include "Engine.hpp"
 
 /// @brief Default entrypoint for bonsai applications.
 /// @param argc 
@@ -5,5 +6,5 @@
 /// @return 
 int main(int argc, char* argv[])
 {
-    return 0;
+    return bonsai::Engine().Run();
 }

@@ -10,6 +10,8 @@ add_library(Bonsai::Runtime ALIAS BonsaiRuntime)
 target_compile_features(BonsaiRuntime PRIVATE cxx_std_17)
 target_sources(BonsaiRuntime
     PRIVATE
+        src/Engine.cpp
+        src/Engine.hpp
         src/Entrypoint.cpp
 )
 target_link_libraries(BonsaiRuntime
