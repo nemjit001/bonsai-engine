@@ -11,6 +11,7 @@ target_compile_features(BonsaiBase PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiBase)
 target_sources(BonsaiBase
     PRIVATE
+        src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.cpp
         src/Base/PlatformTypes.hpp
 )
@@ -19,5 +20,6 @@ target_sources(BonsaiBase
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
+        src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
 )

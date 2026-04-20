@@ -12,7 +12,7 @@ namespace bonsai
         // Enter main loop
         while (_isRunning)
         {
-            Tick();
+            Tick(0.0);
         }
 
         Shutdown();
@@ -30,7 +30,7 @@ namespace bonsai
         _isRunning = false;
     }
 
-    void Engine::Tick()
+    void Engine::Tick([[maybe_unused]] double deltaTime)
     {
         //
     }
