@@ -9,7 +9,8 @@ namespace bonsai
     /// @brief Return codes for engine initialization and run state.
     enum EngineResult : Int32
     {
-        EngineResult_Ok = 0,
+        EngineResult_Ok         = 0,
+        EngineResult_BadInit    = 1,
     };
 
     /// @brief The Engine class handles subsystem updates and the application loop.
@@ -20,10 +21,9 @@ namespace bonsai
         /// @return 
         EngineResult Run();
 
-    private:
         /// @brief Initialize the engine.
         /// @return 
-        EngineResult Init();
+        bool Init();
 
         /// @brief Shut down the engine.
         void Shutdown();

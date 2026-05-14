@@ -3,10 +3,9 @@
 namespace bonsai
 {
     EngineResult Engine::Run()
-    {
-        EngineResult const initResult = Init();
-        if (initResult != EngineResult_Ok) {
-            return initResult;
+    { 
+        if (!Init()) {
+            return EngineResult_BadInit;
         }
 
         // Enter main loop
@@ -19,10 +18,10 @@ namespace bonsai
         return EngineResult_Ok;
     }
 
-    EngineResult Engine::Init()
+    bool Engine::Init()
     {
         _isRunning = true;
-        return EngineResult_Ok;
+        return true;
     }
 
     void Engine::Shutdown()
