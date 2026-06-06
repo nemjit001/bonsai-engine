@@ -1,6 +1,5 @@
 project("BonsaiEngine"
     VERSION 0.0.1
-    SPDX_LICENSE MIT
     LANGUAGES CXX
 )
 
