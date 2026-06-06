@@ -30,7 +30,7 @@ TEST(MemoryTests, TestSimpleReallocate)
     void* block = Memory::Malloc(1024, DEFAULT_TEST_ALIGNMENT);
     ASSERT_NE(block, nullptr);
 
-    void* newBlock = Memory::Realloc(block, 2048, 32);
+    void* newBlock = Memory::Realloc(block, 2048, DEFAULT_TEST_ALIGNMENT);
     ASSERT_NE(newBlock, nullptr);
 
     uintptr blockAddr = reinterpret_cast<uintptr>(newBlock);

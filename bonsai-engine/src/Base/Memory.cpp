@@ -5,6 +5,10 @@
 #include "Assert.hpp"
 #include "PlatformDefines.hpp"
 
+#if BONSAI_PLATFORM_LINUX
+    #include <malloc.h>
+#endif
+
 namespace Memory
 {
     void* Malloc(usize size, usize alignment)
@@ -62,7 +66,7 @@ namespace Memory
     #if     BONSAI_PLATFORM_WINDOWS
         return _msize(block);
     #elif   BONSAI_PLATFORM_LINUX
-        return std::malloc_usable_size(block);
+        return malloc_usable_size(block);
     #else
         return 0;
     #endif
