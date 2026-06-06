@@ -39,11 +39,15 @@ jobs:
             configure_preset: msvc-x64
 
     steps:
-    - uses: actions/checkout@v5
+    - name: Checkout
+      uses: actions/checkout@v5
       with:
         submodules: 'recursive'
 
-    - name: Install Linux Packages
+    - name: VCPKG Setup
+      uses: lukka/run-vcpkg@v11
+
+    - name: Install Dependencies
       if: matrix.os == 'ubuntu-latest'
       run: >
         sudo apt-get install -y \
