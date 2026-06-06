@@ -11,32 +11,15 @@
       "hidden": true,
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceDir}/build/${presetName}",
-      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-    },
-    {
-      "name": "gcc-x64",
-      "inherits": "base",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "architecture": {
         "strategy": "external",
         "value": "x64"
-      },
-      "environment": {
-        "CC": "gcc",
-        "CXX": "g++"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "Linux",
-        "rhs": "${hostSystemName}"
       }
     },
     {
       "name": "clang-x64",
       "inherits": "base",
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
       "environment": {
         "CC": "clang",
         "CXX": "clang++"
@@ -48,13 +31,21 @@
       }
     },
     {
+      "name": "gcc-x64",
+      "inherits": "base",
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "Linux",
+        "rhs": "${hostSystemName}"
+      }
+    },
+    {
       "name": "msvc-x64",
       "inherits": "base",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "strategy": "external",
-        "value": "x64"
-      },
       "environment": {
         "CC": "cl",
         "CXX": "cl"
@@ -68,16 +59,6 @@
   ],
   "buildPresets": [
     {
-      "name": "gcc-x64-debug",
-      "configurePreset": "gcc-x64",
-      "configuration": "Debug"
-    },
-    {
-      "name": "gcc-x64-release",
-      "inherits": "gcc-x64-debug",
-      "configuration": "Release"
-    },
-    {
       "name": "clang-x64-debug",
       "configurePreset": "clang-x64",
       "configuration": "Debug"
@@ -85,6 +66,16 @@
     {
       "name": "clang-x64-release",
       "inherits": "clang-x64-debug",
+      "configuration": "Release"
+    },
+    {
+      "name": "gcc-x64-debug",
+      "configurePreset": "gcc-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "gcc-x64-release",
+      "inherits": "gcc-x64-debug",
       "configuration": "Release"
     },
     {
