@@ -1,7 +1,11 @@
 #include "BonsaiEngine.hpp"
 
 #include <SDL3/SDL.h>
-#include "BonsaiEngineConfig.hpp"
+#include "BonsaiEngineConfig.hpp" // auto-generated config file
+
+static constexpr char const* BONSAI_DEFAULT_WINDOW_TITLE    = "Bonsai Engine";
+static constexpr uint32 BONSAI_DEFAULT_WINDOW_WIDTH         = 1280u;
+static constexpr uint32 BONSAI_DEFAULT_WINDOW_HEIGHT        = 720u;
 
 static SDL_Window* gMainWindow = nullptr;
 
@@ -17,7 +21,8 @@ BonsaiEngine::~BonsaiEngine()
 
 bool BonsaiEngine::Init()
 {
-    PrintDebugString("Initializing Bonsai Engine... (v%s)", BONSAI_ENGINE_VERSION_STRING);
+    // Start engine initialization
+    PrintDebugString("Initializing Bonsai Engine (v%s)", BONSAI_ENGINE_VERSION_STRING);
 
     // Initialize SDL
     PrintDebugString("Initializing SDL");
@@ -29,7 +34,12 @@ bool BonsaiEngine::Init()
 
     // Create a default application window
     PrintDebugString("Creating application window");
-    gMainWindow = SDL_CreateWindow("Bonsai Engine", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+    gMainWindow = SDL_CreateWindow(
+        BONSAI_DEFAULT_WINDOW_TITLE,
+        BONSAI_DEFAULT_WINDOW_WIDTH,
+        BONSAI_DEFAULT_WINDOW_HEIGHT,
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
+    );
     if (gMainWindow == nullptr)
     {
         PrintDebugString("Failed to create application window");
