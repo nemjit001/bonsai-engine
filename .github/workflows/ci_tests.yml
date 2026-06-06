@@ -63,6 +63,7 @@ jobs:
     - name: Configure CMake
       run: >
         cmake -S ${{ github.workspace }}
+        -D SDL_UNIX_CONSOLE_BUILD=ON
         --preset ${{ matrix.configure_preset }}
 
     - name: Build
