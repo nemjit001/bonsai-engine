@@ -1,3 +1,4 @@
+#pragma once
 #ifndef PLATFORM_TYPES_HPP
 #define PLATFORM_TYPES_HPP
 

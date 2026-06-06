@@ -12,6 +12,8 @@ target_sources(BonsaiEngineLib
         src/BonsaiBase.hpp
         src/BonsaiEngine.cpp
         src/BonsaiEngine.hpp
+        src/Base/DebugOutput.cpp
+        src/Base/DebugOutput.hpp
         src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
     PUBLIC
