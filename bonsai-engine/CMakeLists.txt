@@ -14,8 +14,12 @@ target_sources(BonsaiEngineLib
         src/BonsaiBase.hpp
         src/BonsaiEngine.cpp
         src/BonsaiEngine.hpp
+        src/Base/Assert.cpp
+        src/Base/Assert.hpp
         src/Base/DebugOutput.cpp
         src/Base/DebugOutput.hpp
+        src/Base/Memory.cpp
+        src/Base/Memory.hpp
         src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
     PUBLIC
@@ -43,6 +47,9 @@ target_enable_extended_warnings(BonsaiEngine)
 target_link_libraries(BonsaiEngine
     PRIVATE
         BonsaiEngineLib
+)
+target_copy_dll_dependencies(BonsaiEngine
+    SDL3::SDL3
 )
 
 if (BUILD_TESTS)
