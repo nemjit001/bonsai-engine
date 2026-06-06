@@ -8,7 +8,12 @@ target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
 )
-target_link_libraries(BonsaiEngineTests PRIVATE GTest::gtest GTest::gmock GTest::gtest_main)
+target_link_libraries(BonsaiEngineTests PRIVATE
+    Bonsai::Engine::Lib
+    GTest::gtest
+    GTest::gmock
+    GTest::gtest_main
+)
 
 include(GoogleTest)
 gtest_discover_tests(BonsaiEngineTests)

@@ -1,11 +1,7 @@
-#include <SDL3/SDL.h>
+#include <BonsaiEngine.hpp>
 
 int main()
 {
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        return 1;
-    }
-
-    SDL_Quit();
-    return 0;
+    return BonsaiEngine()
+        .Run();
 }
