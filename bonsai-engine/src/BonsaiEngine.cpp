@@ -1,6 +1,7 @@
 #include "BonsaiEngine.hpp"
 
 #include <SDL3/SDL.h>
+#include "BonsaiEngineConfig.hpp"
 
 static SDL_Window* gMainWindow = nullptr;
 
@@ -16,6 +17,8 @@ BonsaiEngine::~BonsaiEngine()
 
 bool BonsaiEngine::Init()
 {
+    PrintDebugString("Initializing Bonsai Engine... (v%s)", BONSAI_ENGINE_VERSION_STRING);
+
     // Initialize SDL
     PrintDebugString("Initializing SDL");
     if (!SDL_Init(SDL_INIT_VIDEO))

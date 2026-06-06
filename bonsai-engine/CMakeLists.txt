@@ -5,6 +5,8 @@ project("BonsaiEngine"
 
 find_package(SDL3 CONFIG REQUIRED)
 
+configure_file(BonsaiEngineConfig.hpp.in BonsaiEngineConfig.hpp)
+
 add_library(BonsaiEngineLib)
 add_library(Bonsai::Engine::Lib ALIAS BonsaiEngineLib)
 target_sources(BonsaiEngineLib
@@ -23,6 +25,7 @@ target_sources(BonsaiEngineLib
         src/BonsaiBase.hpp
         src/BonsaiEngine.hpp
 )
+target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BonsaiEngineLib PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiEngineLib)
 target_link_libraries(BonsaiEngineLib
