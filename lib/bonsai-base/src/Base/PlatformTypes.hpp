@@ -15,11 +15,9 @@ typedef uint16_t    UInt16;
 typedef uint32_t    UInt32;
 typedef uint64_t    UInt64;
 
-typedef size_t      USizeT;
+typedef size_t      SizeType;
 typedef intptr_t    IntPtr;
 typedef uintptr_t   UIntPtr;
-
-typedef float       Float32;
-typedef double      Float64;
+typedef ptrdiff_t   PtrDiff;
 
 #endif //PLATFORM_TYPES_HPP
