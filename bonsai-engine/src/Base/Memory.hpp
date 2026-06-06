@@ -11,6 +11,7 @@ namespace Memory
     /// @param alignment Alignment in bytes for the memory block.
     /// @return A pointer to the memory block, or nullptr on failure.
     [[nodiscard]] void* Malloc(usize size, usize alignment);
+    [[nodiscard]] void* Malloc(usize size);
 
     /// @brief Allocate a contiguous block of zeroed memory.
     /// @param count Number of entries in the array.
@@ -18,6 +19,7 @@ namespace Memory
     /// @param alignment Alignment in bytes for the start of the memory block.
     /// @return A pointer to the memory blcok, or nullptr on failure.
     [[nodiscard]] void* Calloc(usize count, usize size, usize alignment);
+    [[nodiscard]] void* Calloc(usize count, usize size);
 
     /// @brief Reallocate a block of memory.
     /// @param block Original pointer to the memory block.
@@ -25,6 +27,7 @@ namespace Memory
     /// @param alignment Alignment in bytes for the memory block.
     /// @return A pointer to the resized memory block, or nullptr on failure.
     [[nodiscard]] void* Realloc(void* block, usize size, usize alignment);
+    [[nodiscard]] void* Realloc(void* block, usize size);
 
     /// @brief Free a block of memory.
     /// @param block Pointer to the memory block to free.

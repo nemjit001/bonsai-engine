@@ -24,6 +24,11 @@ namespace Memory
     #endif
     }
 
+    void* Malloc(usize size)
+    {
+        return std::malloc(size);
+    }
+
     void* Calloc(usize count, usize size, usize alignment)
     {
         usize const blockSize = count * size;
@@ -34,6 +39,11 @@ namespace Memory
 
         std::memset(block, 0, blockSize);
         return block;
+    }
+
+    void* Calloc(usize count, usize size)
+    {
+        return std::calloc(count, size);
     }
 
     void* Realloc(void* block, usize size, usize alignment)
@@ -50,6 +60,11 @@ namespace Memory
     #else
         return nullptr
     #endif
+    }
+
+    void* Realloc(void* block, usize size)
+    {
+        return std::realloc(block, size);
     }
 
     void Free(void* block)
