@@ -37,7 +37,7 @@ namespace Memory
             return nullptr;
         }
 
-        std::memset(block, 0, blockSize);
+        MemSet(block, 0, blockSize);
         return block;
     }
 
