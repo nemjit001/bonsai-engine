@@ -2,13 +2,14 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <malloc.h>
 #include <new>
 #include "Assert.hpp"
+#include "DebugOutput.hpp"
 #include "PlatformDefines.hpp"
 
-#if BONSAI_PLATFORM_LINUX
-    #include <malloc.h>
-#endif
+/// @brief Enable this macro to print memory allocation traces. This WILL bloat logging output, so use sparingly!
+#define BONSAI_TRACE_ALLOCATIONS    (0 && !BONSAI_BUILD_RELEASE)
 
 // --- Memory operator overrides ---
 
@@ -41,85 +42,118 @@ void operator delete(void* ptr, [[maybe_unused]] std::align_val_t alignment) noe
 
 namespace Memory
 {
-    /// @brief Align a memory address to a byte boundary.
-    /// @param address 
-    /// @param alignment 
+    /// @brief Get the minimum alignment for a given size in bytes.
+    /// @param size Size in bytes for query.
+    /// @return The minimum alignment for the size.
+    constexpr usize GetAlignment(usize size)
+    {
+        if (size <= sizeof(uint8)) {
+            return alignof(uint8);
+        }
+        else if (size <= sizeof(uint16)) {
+            return alignof(uint16);
+        }
+        else if (size <= sizeof(uint32)) {
+            return alignof(uint32);
+        }
+        else if (size <= sizeof(uint64)) {
+            return alignof(uint64);
+        }
+
+        return alignof(std::max_align_t);
+    }
+
+    /// @brief Align a size or memory address to a byte boundary.
+    /// @param value Value to align.
+    /// @param alignment Alignment, must be a multiple of 2 and non-zero.
     /// @return 
-    constexpr usize AlignAddress(uintptr address, usize alignment)
+    constexpr usize AlignUp(usize value, usize alignment)
     {
         BONSAI_ASSERT(alignment > 0 && alignment % 2 == 0 && "Alignment should be non-zero and a multiple of 2!");
-        return (address + alignment - 1) & ~(alignment - 1);
+        return (value + alignment - 1) & ~(alignment - 1);
     }
 
     void* Malloc(usize size, usize alignment)
     {
-        BONSAI_ASSERT(size > 0 && "Malloc size must be non-zero");
-
     #if     BONSAI_PLATFORM_WINDOWS
-        return _aligned_malloc(size, alignment);
+        void* block = _aligned_malloc(size, alignment);
     #elif BONSAI_PLATFORM_LINUX
-        return std::aligned_alloc(alignment, size);
+        size = AlignUp(size, alignment);
+        void* block = std::aligned_alloc(alignment, size);
     #else
-        return nullptr;
+        void* block = nullptr;
     #endif
+
+#if     BONSAI_TRACE_ALLOCATIONS
+        PrintDebugString("Malloc: block %p is %zu bytes (alignment: %zu)", block, size, alignment);
+#endif  //BONSAI_TRACE_ALLOCATIONS
+        return block;
     }
 
     void* Malloc(usize size)
     {
-        usize const alignment = alignof(std::max_align_t);
-        usize const alignedSize = AlignAddress(size, alignment);
-        return Malloc(alignedSize, alignment);
+        return Malloc(size, GetAlignment(size));
     }
 
     void* Calloc(usize count, usize size, usize alignment)
     {
         usize const blockSize = count * size;
-        usize const alignedSize = AlignAddress(blockSize, alignment);
-        void* block = Malloc(alignedSize, alignment);
+        void* block = Malloc(blockSize, alignment);
         if (block == nullptr) {
             return nullptr;
         }
 
-        MemSet(block, 0, alignedSize);
+        MemSet(block, 0, blockSize);
+#if     BONSAI_TRACE_ALLOCATIONS
+        PrintDebugString("Calloc: block %p of %zu bytes with size %zu and count %zu (alignment: %zu)", block, blockSize, size, count, alignment);
+#endif  //BONSAI_TRACE_ALLOCATIONS
         return block;
     }
 
     void* Calloc(usize count, usize size)
     {
-        return Calloc(count, size, alignof(std::max_align_t));
+        return Calloc(count, size, GetAlignment(count * size));
     }
 
     void* Realloc(void* block, usize size, usize alignment)
     {
     #if     BONSAI_PLATFORM_WINDOWS
-        return _aligned_realloc(block, size, alignment);
+        void* newBlock = _aligned_realloc(block, size, alignment);
     #elif   BONSAI_PLATFORM_LINUX
         // XXX(nemjit001): This is a simple pessimistic implementation of an aligned realloc since Linux does not provide this function in its standard lib.
         usize const oldSize = MallocSize(block);
         uintptr const address = reinterpret_cast<uintptr>(block);
-        if (oldSize > size && AlignAddress(address, alignment) == address) {
-            return block; // Reuse memory block if it is a shrinking resize and alignment matches
-        }
 
-        usize const copySize = oldSize < size ? oldSize : size; // Copy only available memory region
-        void* newBlock = Malloc(size, alignment);
-        MemCopy(newBlock, block, copySize);
-        Free(block);
-        return newBlock;
+        // Reallocate memory block if resizing to a larger size or alignment does not match
+        void* newBlock = block;
+        if (size > oldSize || AlignUp(address, alignment) != address)
+        {
+            newBlock = Malloc(size, alignment);
+
+            MemCopy(newBlock, block, oldSize);
+            Free(block);
+        }
     #else
-        return nullptr
+        void* newBlock = nullptr;
     #endif
+
+#if     BONSAI_TRACE_ALLOCATIONS
+        PrintDebugString("Realloc: block %p was %p and is %zu bytes (alignment: %zu)", newBlock, block, size, alignment);
+#endif  //BONSAI_TRACE_ALLOCATIONS
+        return newBlock;
     }
 
     void* Realloc(void* block, usize size)
     {
-        usize const alignment = alignof(std::max_align_t);
-        usize const alignedSize = AlignAddress(size, alignment);
-        return Realloc(block, alignedSize, alignment);
+        return Realloc(block, size, GetAlignment(size));
     }
 
     void Free(void* block)
     {
+#if     BONSAI_TRACE_ALLOCATIONS
+        PrintDebugString("Free: block %p", block);
+#endif  //BONSAI_TRACE_ALLOCATIONS
+
     #if     BONSAI_PLATFORM_WINDOWS
         _aligned_free(block);
     #elif   BONSAI_PLATFORM_LINUX
