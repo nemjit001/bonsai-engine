@@ -147,5 +147,10 @@ namespace Memory
     {
         std::memcpy(dest, src, size);
     }
+
+    void MemMove(void* dest, void* src, usize size)
+    {
+        std::memmove(dest, src, size);
+    }
 } // namespace Memory
 

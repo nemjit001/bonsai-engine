@@ -49,6 +49,12 @@ namespace Memory
     /// @param src Source block.
     /// @param size Size in bytes to copy.
     void MemCopy(void* dest, void* src, usize size);
+
+    /// @brief Move a memory region from one block to another. Overlapping regions are handled correctly.
+    /// @param dest Destination block.
+    /// @param src Source block.
+    /// @param size Size in bytes to copy.
+    void MemMove(void* dest, void* src, usize size);
 }; // namespace Memory
 
 #endif //MEMORY_HPP
