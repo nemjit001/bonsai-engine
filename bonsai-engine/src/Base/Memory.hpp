@@ -6,6 +6,8 @@
 
 namespace Memory
 {
+    static constexpr usize DEFAULT_NEW_ALIGNMENT = __STDCPP_DEFAULT_NEW_ALIGNMENT__;
+
     /// @brief Allocate a block of memory.
     /// @param size Size of the memory block.
     /// @param alignment Alignment in bytes for the memory block.

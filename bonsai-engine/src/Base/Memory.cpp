@@ -9,60 +9,44 @@
 #include "PlatformDefines.hpp"
 
 /// @brief Enable this macro to print memory allocation traces. This WILL bloat logging output, so use sparingly!
-#define BONSAI_TRACE_ALLOCATIONS    (0 && !BONSAI_BUILD_RELEASE)
+#define BONSAI_TRACE_ALLOCATIONS        0
+
+/// @brief Enable this macro to override new and delete operators
+#define BONSAI_OVERRIDE_NEW_AND_DELETE  0
 
 // --- Memory operator overrides ---
 
+#if     BONSAI_OVERRIDE_NEW_AND_DELETE //FIXME(nemjit001): For some reason gtest crashes when discovering tests on win32 with custom new/delete operators that use _aligned_malloc :(
 void* operator new (std::size_t size)
 {
-    void* block = Memory::Malloc(size);
-    if (block == nullptr) {
+    void* ptr = Memory::Malloc(size);
+    if (ptr == nullptr) {
         throw std::bad_alloc();
     }
 
-    return block;
+    return ptr;
 }
 
 void* operator new (std::size_t size, std::align_val_t alignment)
 {
-    void* block = Memory::Malloc(size, static_cast<usize>(alignment));
-    if (block == nullptr) {
+    void* ptr = Memory::Malloc(size, static_cast<usize>(alignment));
+    if (ptr == nullptr) {
         throw std::bad_alloc();
     }
 
-    return block;
+    return ptr;
 }
 
 void operator delete(void* ptr, [[maybe_unused]] std::align_val_t alignment) noexcept
 {
     Memory::Free(ptr);
 }
+#endif  //BONSAI_OVERRIDE_NEW_AND_DELETE
 
 // --- End memory operator overrides ---
 
 namespace Memory
 {
-    /// @brief Get the minimum alignment for a given size in bytes.
-    /// @param size Size in bytes for query.
-    /// @return The minimum alignment for the size.
-    constexpr usize GetAlignment(usize size)
-    {
-        if (size <= sizeof(uint8)) {
-            return alignof(uint8);
-        }
-        else if (size <= sizeof(uint16)) {
-            return alignof(uint16);
-        }
-        else if (size <= sizeof(uint32)) {
-            return alignof(uint32);
-        }
-        else if (size <= sizeof(uint64)) {
-            return alignof(uint64);
-        }
-
-        return alignof(std::max_align_t);
-    }
-
     /// @brief Align a size or memory address to a byte boundary.
     /// @param value Value to align.
     /// @param alignment Alignment, must be a multiple of 2 and non-zero.
@@ -77,22 +61,22 @@ namespace Memory
     {
     #if     BONSAI_PLATFORM_WINDOWS
         void* block = _aligned_malloc(size, alignment);
-    #elif BONSAI_PLATFORM_LINUX
-        size = AlignUp(size, alignment);
-        void* block = std::aligned_alloc(alignment, size);
+    #elif   BONSAI_PLATFORM_LINUX
+        usize const alignedSize = AlignUp(size, alignment);
+        void* block = std::aligned_alloc(alignment, alignedSize);
     #else
         void* block = nullptr;
     #endif
 
-#if     BONSAI_TRACE_ALLOCATIONS
+    #if     BONSAI_TRACE_ALLOCATIONS
         PrintDebugString("Malloc: block %p is %zu bytes (alignment: %zu)", block, size, alignment);
-#endif  //BONSAI_TRACE_ALLOCATIONS
+    #endif  //BONSAI_TRACE_ALLOCATIONS
         return block;
     }
 
     void* Malloc(usize size)
     {
-        return Malloc(size, GetAlignment(size));
+        return Malloc(size, DEFAULT_NEW_ALIGNMENT);
     }
 
     void* Calloc(usize count, usize size, usize alignment)
@@ -104,15 +88,15 @@ namespace Memory
         }
 
         MemSet(block, 0, blockSize);
-#if     BONSAI_TRACE_ALLOCATIONS
-        PrintDebugString("Calloc: block %p of %zu bytes with size %zu and count %zu (alignment: %zu)", block, blockSize, size, count, alignment);
-#endif  //BONSAI_TRACE_ALLOCATIONS
+    #if     BONSAI_TRACE_ALLOCATIONS
+        PrintDebugString("Calloc: block %p of %zu bytes (alignment: %zu)", block, blockSize, alignment);
+    #endif  //BONSAI_TRACE_ALLOCATIONS
         return block;
     }
 
     void* Calloc(usize count, usize size)
     {
-        return Calloc(count, size, GetAlignment(count * size));
+        return Calloc(count, size, DEFAULT_NEW_ALIGNMENT);
     }
 
     void* Realloc(void* block, usize size, usize alignment)
@@ -137,22 +121,22 @@ namespace Memory
         void* newBlock = nullptr;
     #endif
 
-#if     BONSAI_TRACE_ALLOCATIONS
+    #if     BONSAI_TRACE_ALLOCATIONS
         PrintDebugString("Realloc: block %p was %p and is %zu bytes (alignment: %zu)", newBlock, block, size, alignment);
-#endif  //BONSAI_TRACE_ALLOCATIONS
+    #endif  //BONSAI_TRACE_ALLOCATIONS
         return newBlock;
     }
 
     void* Realloc(void* block, usize size)
     {
-        return Realloc(block, size, GetAlignment(size));
+        return Realloc(block, size, DEFAULT_NEW_ALIGNMENT);
     }
 
     void Free(void* block)
     {
-#if     BONSAI_TRACE_ALLOCATIONS
+    #if     BONSAI_TRACE_ALLOCATIONS
         PrintDebugString("Free: block %p", block);
-#endif  //BONSAI_TRACE_ALLOCATIONS
+    #endif  //BONSAI_TRACE_ALLOCATIONS
 
     #if     BONSAI_PLATFORM_WINDOWS
         _aligned_free(block);

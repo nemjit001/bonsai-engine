@@ -18,4 +18,7 @@
     #define BONSAI_COMPILER_CLANG   1
 #endif
 
+#define BONSAI_BUILD_TYPE_DEBUG     (!defined(NDEBUG))
+#define BONSAI_BUILD_TYPE_RELEASE   (defined(NDEBUG))
+
 #endif //PLATFORM_DEFINES_HPP
