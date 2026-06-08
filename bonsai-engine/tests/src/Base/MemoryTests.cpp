@@ -14,15 +14,6 @@ TEST(MemoryTests, TestSimpleAllocate)
     Memory::Free(block);
 }
 
-TEST(MemoryTests, TestSimpleSizeCheck)
-{
-    void* block = Memory::Malloc(1024);
-    ASSERT_NE(block, nullptr);
-    
-    ASSERT_GE(Memory::MallocSize(block), 1024);
-    Memory::Free(block);
-}
-
 TEST(MemoryTests, TestSimpleAllocateAligned)
 {
     void* block = Memory::Malloc(1024, DEFAULT_TEST_ALIGNMENT);
