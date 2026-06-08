@@ -35,7 +35,7 @@ namespace Memory
     /// @param block Pointer to the memory block to free.
     void Free(void* block);
 
-    /// @brief Get the size of an allocated memory block.
+    /// @brief Get the usable size of an allocated memory block. This is the size passed to the allocation function.
     /// @param block Pointer to the memory block to query.
     /// @return The size of the memory block.
     usize MallocSize(void* block);

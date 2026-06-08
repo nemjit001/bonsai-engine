@@ -45,6 +45,14 @@ TEST(MemoryTests, TestAllocateNotMultipleOfAlignment)
     Memory::Free(block);
 }
 
+TEST(MemoryTests, TestAllocateZeroSize)
+{
+    void* block = Memory::Malloc(0);
+    ASSERT_EQ(block, nullptr);
+
+    Memory::Free(block);
+}
+
 TEST(MemoryTests, TestSimpleArrayAllocate)
 {
     void* block = Memory::Calloc(5, 1024);
