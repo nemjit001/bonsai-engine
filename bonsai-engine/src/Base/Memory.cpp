@@ -16,7 +16,7 @@
 
 // --- Memory operator overrides ---
 
-#if     BONSAI_OVERRIDE_NEW_AND_DELETE //FIXME(nemjit001): For some reason gtest crashes when discovering tests on win32 with custom new/delete operators that use _aligned_malloc :(
+#if     BONSAI_OVERRIDE_NEW_AND_DELETE
 
 void* operator new (std::size_t size)
 {
