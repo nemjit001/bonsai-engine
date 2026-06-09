@@ -54,6 +54,7 @@ private:
     bool do_is_equal(std::pmr::memory_resource const& other) const noexcept override { return this == &other; }
 };
 
+/// @brief The DefaultAllocator provides default allocation behaviour using the platform aligned memory allocation functions.
 class DefaultAllocator : public IAllocator
 {
 public:
