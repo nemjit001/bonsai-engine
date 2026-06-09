@@ -24,6 +24,9 @@ target_sources(BonsaiEngineLib
         src/Base/Memory.hpp
         src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
+        src/Containers/DynamicArray.hpp
+        src/Containers/HashMap.hpp
+        src/Containers/StaticArray.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
