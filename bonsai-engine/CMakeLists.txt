@@ -42,7 +42,7 @@ target_link_libraries(BonsaiEngineLib
         SDL3::SDL3
 )
 
-add_executable(BonsaiEngine)
+add_executable(BonsaiEngine WIN32)
 target_sources(BonsaiEngine
     PRIVATE
         src/main.cpp
