@@ -71,4 +71,4 @@ jobs:
 
     - name: Test
       # run: cmake --build --preset ${{ matrix.build_preset }} --target test
-      run: ctest --build-config ${{ matrix.build_type }} --test-dir .\build\${{ matrix.configure_preset }}
+      run: ctest --build-config ${{ matrix.build_type }} --test-dir ${{ steps.strings.outputs.build-output-dir }}/${{ matrix.configure_preset }}
