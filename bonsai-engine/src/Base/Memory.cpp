@@ -63,12 +63,23 @@ void operator delete (void* ptr) noexcept
     Memory::Free(ptr);
 }
 
+void operator delete (void* ptr, [[maybe_unused]] std::size_t) noexcept
+{
+    Memory::Free(ptr);
+}
+
+
 void operator delete (void* ptr, [[maybe_unused]] std::align_val_t alignment) noexcept
 {
     Memory::Free(ptr);
 }
 
 void operator delete[] (void* ptr) noexcept
+{
+    Memory::Free(ptr);
+}
+
+void operator delete[] (void* ptr, [[maybe_unused]] std::size_t) noexcept
 {
     Memory::Free(ptr);
 }
