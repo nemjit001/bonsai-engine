@@ -17,7 +17,8 @@ TEST(CLIArgParserTests, TestFlagIsSet)
     };
     constexpr int argc = std::size(argv);
 
-    CLIArgParser args(argc, argv);
+    DefaultAllocator allocator{};
+    CLIArgParser args(allocator, argc, argv);
     EXPECT_TRUE(args.IsSet("-foo-flag"));
 }
 
@@ -30,7 +31,8 @@ TEST(CLIArgParserTests, TestOptionValueIsSet)
     };
     constexpr int argc = std::size(argv);
 
-    CLIArgParser args(argc, argv);
+    DefaultAllocator allocator{};
+    CLIArgParser args(allocator, argc, argv);
     EXPECT_EQ(args.GetValue("--foo-option"), "42");
 }
 
@@ -44,6 +46,7 @@ TEST(CLIArgParserTests, TestGetLastArg)
     };
     constexpr int argc = std::size(argv);
 
-    CLIArgParser args(argc, argv);
+    DefaultAllocator allocator{};
+    CLIArgParser args(allocator, argc, argv);
     EXPECT_EQ(args.GetLastArg(), "the_last_arg");
 }

@@ -3,6 +3,7 @@
 #define CLI_ARG_PARSER_HPP
 
 #include <optional>
+#include <BonsaiBase.hpp>
 #include <Containers/DynamicArray.hpp>
 #include <Containers/String.hpp>
 
@@ -11,7 +12,7 @@ class CLIArgParser
 {
 public:
     CLIArgParser() = default;
-    CLIArgParser(int argc, char const* const* argv);
+    CLIArgParser(IAllocator& allocator, int argc, char const* const* argv);
 
     /// @brief Check if a flag was set in the argument list.
     /// @param option Opion name.

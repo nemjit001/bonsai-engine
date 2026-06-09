@@ -19,10 +19,14 @@ BonsaiEngine::~BonsaiEngine()
     PrintDebugString("Goodbye!");
 }
 
-bool BonsaiEngine::Init()
+bool BonsaiEngine::Init(int argc, char* argv[])
 {
     // Start engine initialization
     PrintDebugString("Initializing Bonsai Engine (v%s)", BONSAI_ENGINE_VERSION_STRING);
+
+    // Initialize CLI arg parser
+    DefaultAllocator defaultAllocator{};
+    CLIArgParser const cliArgs(defaultAllocator, argc, argv);
 
     // Initialize SDL
     PrintDebugString("Initializing SDL");
@@ -48,7 +52,7 @@ bool BonsaiEngine::Init()
     }
 
     // TODO(nemjit001):
-    // - [ ] Parse CLI args (before window init)
+    // - [X] Parse CLI args (before window init)
     // - [ ] Parse engine and project config files (before window init)
     // - [ ] Initialize renderer (after window init)
     // - [ ] Load game world (after renderer, load from path in config or cli args?)
@@ -77,9 +81,9 @@ void BonsaiEngine::Tick()
     }
 }
 
-int32 BonsaiEngine::Run()
+int32 BonsaiEngine::Run(int argc, char* argv[])
 {
-    if (!Init()) {
+    if (!Init(argc, argv)) {
         return BonsaiEngineResult_BadInit;
     }
 

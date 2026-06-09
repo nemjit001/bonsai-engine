@@ -2,11 +2,16 @@
 
 #include <algorithm>
 
-CLIArgParser::CLIArgParser(int argc, char const* const* argv)
+CLIArgParser::CLIArgParser(IAllocator& allocator, int argc, char const* const* argv)
+    :
+    _cliArgs(&allocator)
 {
     _cliArgs.reserve(argc);
-    for (int i = 0; i < argc; i++) {
-        _cliArgs.emplace_back<String>(argv[i]);
+    PrintDebugString("CLIArgParser: Got %zu cli argument(s)", argc);
+    for (int i = 0; i < argc; i++)
+    {
+        PrintDebugString("  [%d] %s", i, argv[i]);
+        _cliArgs.push_back(String(argv[i], &allocator));
     }
 }
 

@@ -8,10 +8,10 @@
 /// @param argc 
 /// @param argv 
 /// @return 
-static int BonsaiEntrypoint([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
+static int BonsaiEntrypoint(int argc, char* argv[])
 {
     return BonsaiEngine()
-        .Run();
+        .Run(argc, argv);
 }
 
 #if     BONSAI_PLATFORM_WINDOWS

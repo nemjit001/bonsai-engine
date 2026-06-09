@@ -3,6 +3,7 @@
 #define BONSAI_ENGINE_HPP
 
 #include <BonsaiBase.hpp>
+#include <BonsaiCore.hpp>
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32
@@ -23,16 +24,20 @@ public:
 
 private:
     /// @brief Initialize the engine subsystems.
-    /// @return 
-    bool Init();
+    /// @param argc Number of passed CLI arguments.
+    /// @param argv Array of CLI arguments passed to the application.
+    /// @return A boolean indicating successful initialization.
+    bool Init(int argc, char* argv[]);
 
     /// @brief Tick the engine state.
     void Tick();
 
 public:
     /// @brief Run the engine application.
+    /// @param argc Number of passed CLI arguments.
+    /// @param argv Array of CLI arguments passed to the application.
     /// @return A BonsaiEngineResult return code.
-    int32 Run();
+    int32 Run(int argc, char* argv[]);
 
 private:
     bool _isRunning = false;
