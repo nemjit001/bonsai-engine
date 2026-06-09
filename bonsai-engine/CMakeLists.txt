@@ -12,6 +12,7 @@ add_library(Bonsai::Engine::Lib ALIAS BonsaiEngineLib)
 target_sources(BonsaiEngineLib
     PRIVATE
         src/BonsaiBase.hpp
+        src/BonsaiCore.hpp
         src/BonsaiEngine.cpp
         src/BonsaiEngine.hpp
         src/Base/Allocator.cpp
@@ -27,11 +28,14 @@ target_sources(BonsaiEngineLib
         src/Containers/DynamicArray.hpp
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp
+        src/Core/CLIArgParser.cpp
+        src/Core/CLIArgParser.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
     FILES
         src/BonsaiBase.hpp
+        src/BonsaiCore.hpp
         src/BonsaiEngine.hpp
 )
 target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

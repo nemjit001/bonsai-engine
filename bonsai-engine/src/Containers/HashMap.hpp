@@ -3,6 +3,7 @@
 #define HASH_MAP_HPP
 
 #include <unordered_map>
+#include <BonsaiBase.hpp>
 
 template<typename Key, typename Value>
 using HashMap = std::pmr::unordered_map<Key, Value>;

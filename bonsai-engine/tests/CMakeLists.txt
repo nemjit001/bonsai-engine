@@ -11,6 +11,7 @@ target_sources(BonsaiEngineTests
         src/SanityTests.cpp
         src/Base/AllocatorTests.cpp
         src/Base/MemoryTests.cpp
+        src/Core/CLIArgParserTests.cpp
 )
 target_compile_features(BonsaiEngineTests PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiEngineTests)
