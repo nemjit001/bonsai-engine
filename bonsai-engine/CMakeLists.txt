@@ -14,6 +14,8 @@ target_sources(BonsaiEngineLib
         src/BonsaiBase.hpp
         src/BonsaiEngine.cpp
         src/BonsaiEngine.hpp
+        src/Base/Allocator.cpp
+        src/Base/Allocator.hpp
         src/Base/Assert.cpp
         src/Base/Assert.hpp
         src/Base/DebugOutput.cpp
