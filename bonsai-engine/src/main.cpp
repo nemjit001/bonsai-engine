@@ -24,7 +24,7 @@ int WINAPI WinMain(
     return BonsaiEntrypoint(__argc, __argv);
 }
 #else
-int main(int argc, char* argv) {
+int main(int argc, char* argv[]) {
     return BonsaiEntrypoint(argc, argv);
 }
 #endif
