@@ -26,7 +26,7 @@ bool BonsaiEngine::Init(int argc, char* argv[])
 
     // Initialize CLI arg parser
     DefaultAllocator defaultAllocator{};
-    CLIArgParser const cliArgs(defaultAllocator, argc, argv);
+    CLIArgParser const cliArgs(argc, argv, defaultAllocator);
 
     // Initialize SDL
     PrintDebugString("Initializing SDL");

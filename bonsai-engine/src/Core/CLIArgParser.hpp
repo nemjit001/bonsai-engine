@@ -12,7 +12,12 @@ class CLIArgParser
 {
 public:
     CLIArgParser() = default;
-    CLIArgParser(IAllocator& allocator, int argc, char const* const* argv);
+
+    /// @brief Create a new CLIArgParser.
+    /// @param argc Number of CLI arguments.
+    /// @param argv Argument array.
+    /// @param allocator Allocator to use for internal allocations.
+    CLIArgParser(int argc, char const* const* argv, IAllocator& allocator);
 
     /// @brief Check if a flag was set in the argument list.
     /// @param option Opion name.

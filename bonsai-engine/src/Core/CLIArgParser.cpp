@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-CLIArgParser::CLIArgParser(IAllocator& allocator, int argc, char const* const* argv)
+CLIArgParser::CLIArgParser(int argc, char const* const* argv, IAllocator& allocator)
     :
     _cliArgs(&allocator)
 {
