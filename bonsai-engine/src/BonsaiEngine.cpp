@@ -47,6 +47,12 @@ bool BonsaiEngine::Init()
         return false;
     }
 
+    // TODO(nemjit001):
+    // - [ ] Parse CLI args (before window init)
+    // - [ ] Parse engine and project config files (before window init)
+    // - [ ] Initialize renderer (after window init)
+    // - [ ] Load game world (after renderer, load from path in config or cli args?)
+
     PrintDebugString("Initialized Bonsai Engine!");
     _isRunning = true;
     return true;
