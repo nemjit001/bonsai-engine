@@ -30,10 +30,18 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // Initialize CLI arg parser
     CLIArgParser cliArgs(&defaultAllocator);
     cliArgs.AddFlag('h', "help");
+
     if (!cliArgs.Parse(argc, argv))
     {
         PrintDebugString("Failed to parse CLI arguments");
         return false;
+    }
+
+    if (cliArgs.IsSet('h'))
+    {
+        // TODO(nemjit001): Dump help to logfile / primary console output
+        PrintDebugString("Help requested!");
+        return true;
     }
 
     // Initialize SDL
