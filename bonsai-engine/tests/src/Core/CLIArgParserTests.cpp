@@ -3,23 +3,47 @@
 
 TEST(CLIArgParserTests, TestEmptyArgs)
 {
-    CLIArgParser args{};
-    EXPECT_FALSE(args.IsSet("-foo"));
-    EXPECT_FALSE(args.GetValue("--foo").has_value());
-    EXPECT_FALSE(args.GetLastArg().has_value());
+    CLIArgParser args;
+    args.AddFlag('f')
+        .AddOption("bar");
+
+    EXPECT_TRUE(args.Parse(0, nullptr));
+    EXPECT_FALSE(args.IsSet('f'));
+    EXPECT_FALSE(args.GetValue("bar").has_value());
 }
 
-TEST(CLIArgParserTests, TestFlagIsSet)
+TEST(CLIArgParserTests, TestShortFlagIsSet)
 {
     constexpr char const* argv[] = {
         "dummy_executable_program",
-        "-foo-flag",
+        "-fb",
     };
     constexpr int argc = std::size(argv);
 
     DefaultAllocator allocator{};
-    CLIArgParser args(argc, argv, allocator);
-    EXPECT_TRUE(args.IsSet("-foo-flag"));
+    CLIArgParser args(&allocator);
+    args.AddFlag('f', "foo-flag")
+        .AddFlag('b', "bar-flag");
+    
+    EXPECT_TRUE(args.Parse(argc, argv));
+    EXPECT_TRUE(args.IsSet('f'));
+    EXPECT_TRUE(args.IsSet('b'));
+}
+
+TEST(CLIArgParserTests, TestLongFlagIsSet)
+{
+    constexpr char const* argv[] = {
+        "dummy_executable_program",
+        "--foo-flag",
+    };
+    constexpr int argc = std::size(argv);
+
+    DefaultAllocator allocator{};
+    CLIArgParser args(&allocator);
+    args.AddFlag('f', "foo-flag");
+    
+    EXPECT_TRUE(args.Parse(argc, argv));
+    EXPECT_TRUE(args.IsSet('f'));
 }
 
 TEST(CLIArgParserTests, TestOptionValueIsSet)
@@ -32,21 +56,48 @@ TEST(CLIArgParserTests, TestOptionValueIsSet)
     constexpr int argc = std::size(argv);
 
     DefaultAllocator allocator{};
-    CLIArgParser args(argc, argv, allocator);
-    EXPECT_EQ(args.GetValue("--foo-option"), "42");
+    CLIArgParser args(&allocator);
+    args.AddOption("foo-option");
+
+    EXPECT_TRUE(args.Parse(argc, argv));
+    EXPECT_EQ(args.GetValue("foo-option"), "42");
 }
 
-TEST(CLIArgParserTests, TestGetLastArg)
+TEST(CLIArgParserTests, TestExtraArgs)
 {
     constexpr char const* argv[] = {
         "dummy_executable_program",
         "--foo-option",
         "42",
-        "the_last_arg",
+        "--",
+        "--extra",
+        "--arg",
     };
     constexpr int argc = std::size(argv);
 
     DefaultAllocator allocator{};
-    CLIArgParser args(argc, argv, allocator);
-    EXPECT_EQ(args.GetLastArg(), "the_last_arg");
+    CLIArgParser args(&allocator);
+    args.AddOption("foo-option")
+        .AddFlag('e', "extra")
+        .AddFlag('a', "arg");
+
+    EXPECT_TRUE(args.Parse(argc, argv));
+    EXPECT_EQ(args.GetValue("foo-option"), "42");
+    EXPECT_FALSE(args.IsSet('e'));
+    EXPECT_FALSE(args.IsSet('a'));
+}
+
+TEST(CLIArgParserTests, TestInvalidArgs)
+{
+    constexpr char const* argv[] = {
+        "dummy_executable_program",
+        "--invalid",
+    };
+    constexpr int argc = std::size(argv);
+
+    DefaultAllocator allocator{};
+    CLIArgParser args(&allocator);
+    args.AddFlag('v', "valid");
+
+    EXPECT_FALSE(args.Parse(argc, argv));
 }

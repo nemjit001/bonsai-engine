@@ -1,43 +1,128 @@
 #include "CLIArgParser.hpp"
 
-#include <algorithm>
-
-CLIArgParser::CLIArgParser(int argc, char const* const* argv, IAllocator& allocator)
-    :
-    _cliArgs(&allocator)
+CLIArgParser::CLIArgParser(IAllocator* allocator)
 {
-    _cliArgs.reserve(argc);
-    PrintDebugString("CLIArgParser: Got %zu cli argument(s)", argc);
+    //
+}
+
+CLIArgParser& CLIArgParser::AddFlag(char name, char const* longName)
+{
+    CLIArgFlag flag{};
+    flag.name = name;
+    flag.longName = longName ? String(longName) : String();
+    flag.isSet = false;
+
+    _flags.push_back(flag);
+    return *this;
+}
+
+CLIArgParser& CLIArgParser::AddOption(char const* name)
+{
+    CLIArgOption option{};
+    option.name = name ? String(name) : String();
+    option.value = {};
+
+    _options.push_back(option);
+    return *this;
+}
+
+bool CLIArgParser::Parse(int argc, char const* const* argv)
+{
     for (int i = 0; i < argc; i++)
     {
-        PrintDebugString("  [%d] %s", i, argv[i]);
-        _cliArgs.push_back(String(argv[i], &allocator));
-    }
-}
+        char const* arg = argv[i];
 
-bool CLIArgParser::IsSet(String const& option) const
-{
-    auto const iter = std::find(_cliArgs.begin(), _cliArgs.end(), option);
-    return iter != _cliArgs.end();
-}
+        // TODO(nemjit001): Handle end of args
+        if (std::strcmp(arg, "--") == 0) {
+            break;
+        }
 
-std::optional<String> CLIArgParser::GetValue(String const& option) const
-{
-    for (usize i = 0; i < _cliArgs.size(); i++)
-    {
-        auto const& value = _cliArgs[i];
-        if (value == option && (i + 1) < _cliArgs.size()) {
-            return _cliArgs[i + 1];
+        // Parse args
+        if (std::strstr(arg, "-") == arg)
+        {
+            if (std::strstr(arg, "--") == arg)
+            {
+                char const* argName = &arg[2]; // Skip first 2 dashes to get start of name
+
+                // Try to parse as long flag
+                bool found = false;
+                for (auto& flag : _flags)
+                {
+                    if (flag.longName == argName)
+                    {
+                        found = true;
+                        flag.isSet = true;
+                    }
+                }
+                
+                // Try to parse as option
+                for (auto& option : _options)
+                {
+                    if (option.name == argName)
+                    {
+                        found = true;
+                        if (i + 1 < argc) {
+                            option.value = argv[i + 1];
+                        }
+                    }
+                }
+
+                if (!found) {
+                    return false;
+                }
+            }
+            else
+            {
+                // Parse as short flag char sequence
+                char const* flagArg = &arg[1]; // Skip first dash to get start of short flags
+                for (; *flagArg != '\0'; flagArg++)
+                {
+                    bool found = false;
+                    for (auto& flag : _flags)
+                    {
+                        if (flag.name == *flagArg)
+                        {
+                            found = true;
+                            flag.isSet = true;
+                        }
+                    }
+
+                    if (!found) {
+                        return false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Skip non-option, non-flag arg
+            continue;
         }
     }
 
-    return {};
+    return true;
 }
 
-std::optional<String> CLIArgParser::GetLastArg() const
+bool CLIArgParser::IsSet(char name) const
 {
-    if (!_cliArgs.empty()) {
-        return _cliArgs.back();
+    for (auto const& flag : _flags)
+    {
+        if (flag.name == name) {
+            return flag.isSet;
+        }
+    }
+
+    return false;
+}
+
+std::optional<String> CLIArgParser::GetValue(char const* name) const
+{
+    for (auto const& option : _options)
+    {
+        if (option.name == name && !option.value.empty())
+        {
+            return option.value;
+        }
     }
 
     return {};

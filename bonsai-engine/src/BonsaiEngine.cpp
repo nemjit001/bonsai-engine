@@ -24,9 +24,17 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // Start engine initialization
     PrintDebugString("Initializing Bonsai Engine (v%s)", BONSAI_ENGINE_VERSION_STRING);
 
-    // Initialize CLI arg parser
+    // Set up default allocator
     DefaultAllocator defaultAllocator{};
-    CLIArgParser const cliArgs(argc, argv, defaultAllocator);
+
+    // Initialize CLI arg parser
+    CLIArgParser cliArgs(&defaultAllocator);
+    cliArgs.AddFlag('h', "help");
+    if (!cliArgs.Parse(argc, argv))
+    {
+        PrintDebugString("Failed to parse CLI arguments");
+        return false;
+    }
 
     // Initialize SDL
     PrintDebugString("Initializing SDL");

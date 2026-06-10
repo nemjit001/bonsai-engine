@@ -7,34 +7,59 @@
 #include <Containers/DynamicArray.hpp>
 #include <Containers/String.hpp>
 
+/// @brief CLI argument flag with support for short and long names.
+struct CLIArgFlag
+{
+    char name;
+    String longName;
+    bool isSet;
+};
+
+/// @brief CLI argument option key/value pair.
+struct CLIArgOption
+{
+    String name;
+    String value;
+};
+
 /// @brief The CLIArgParser provides a basic interface for testing CLI argument availability.
 class CLIArgParser
 {
 public:
-    CLIArgParser() = default;
-
     /// @brief Create a new CLIArgParser.
-    /// @param argc Number of CLI arguments.
-    /// @param argv Argument array.
-    /// @param allocator Allocator to use for internal allocations.
-    CLIArgParser(int argc, char const* const* argv, IAllocator& allocator);
+    /// @param allocator Optional allocator to use for internal allocations.
+    CLIArgParser(IAllocator* allocator = nullptr);
+
+    /// @brief Add a flag to the CLI arguments.
+    /// @param name Name for the flag.
+    /// @param longName Optional longer name for the flag.
+    /// @return 
+    CLIArgParser& AddFlag(char name, char const* longName = nullptr);
+
+    /// @brief Add an option to the CLI arguments.
+    /// @param name Name for the option.
+    /// @return 
+    CLIArgParser& AddOption(char const* name);
+
+    /// @brief Parse the CLI arguments vector.
+    /// @param argc Number of CLI arguments in the vector.
+    /// @param argv Arguments vector.
+    /// @return A boolean indicating successful parsing.
+    [[nodiscard]] bool Parse(int argc, char const* const* argv);
 
     /// @brief Check if a flag was set in the argument list.
-    /// @param option Opion name.
+    /// @param name Flag name.
     /// @return A boolean indicating flag availability.
-    bool IsSet(String const& option) const;
+    [[nodiscard]] bool IsSet(char name) const;
 
     /// @brief Try to get a set option value from the argument list.
-    /// @param option Option name.
+    /// @param name Option name.
     /// @return An optional string value.
-    std::optional<String> GetValue(String const& option) const;
-
-    /// @brief Try to get the last argument in the argument list.
-    /// @return An optional string value.
-    std::optional<String> GetLastArg() const;
+    [[nodiscard]] std::optional<String> GetValue(char const* name) const;
 
 private:
-    DynamicArray<String> _cliArgs;
+    DynamicArray<CLIArgFlag> _flags;
+    DynamicArray<CLIArgOption> _options;
 };
 
 #endif //CLI_ARG_PARSER_HPP
