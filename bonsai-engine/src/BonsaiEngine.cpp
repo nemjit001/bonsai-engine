@@ -40,7 +40,11 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     if (cliArgs.IsSet('h'))
     {
         // TODO(nemjit001): Dump help to logfile / primary console output
-        PrintDebugString("Help requested!");
+        PrintDebugString("Displaying Bonsai Engine help dialog");
+        PrintDebugString("Usage:\tBonsaiEngine [options]");
+        PrintDebugString("");
+        PrintDebugString("Flags:");
+        PrintDebugString("\t-h, --help\tShow this help dialog");
         return true;
     }
 
