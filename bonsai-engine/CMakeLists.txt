@@ -35,6 +35,9 @@ target_sources(BonsaiEngineLib
     BASE_DIRS src/
     FILES
         src/BonsaiBase.hpp
+        src/Containers/DynamicArray.hpp
+        src/Containers/HashMap.hpp
+        src/Containers/StaticArray.hpp
         src/BonsaiCore.hpp
         src/BonsaiEngine.hpp
 )
