@@ -11,7 +11,7 @@
 struct CLIArgFlag
 {
     char name;
-    String longName;
+    std::optional<String> longName;
     bool isSet;
 };
 
@@ -19,7 +19,7 @@ struct CLIArgFlag
 struct CLIArgOption
 {
     String name;
-    String value;
+    std::optional<String> value;
 };
 
 /// @brief The CLIArgParser provides a basic interface for testing CLI argument availability.
@@ -58,6 +58,12 @@ public:
     [[nodiscard]] std::optional<String> GetValue(char const* name) const;
 
 private:
+    /// @brief Resolve the allocator for internal use.
+    /// @return 
+    static std::pmr::memory_resource* ResolveAllocator(IAllocator* allocator);
+
+private:
+    IAllocator* _allocator = nullptr;
     DynamicArray<CLIArgFlag> _flags;
     DynamicArray<CLIArgOption> _options;
 };

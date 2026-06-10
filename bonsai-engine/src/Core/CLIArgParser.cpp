@@ -1,6 +1,10 @@
 #include "CLIArgParser.hpp"
 
 CLIArgParser::CLIArgParser(IAllocator* allocator)
+    :
+    _allocator(allocator),
+    _flags(ResolveAllocator(_allocator)),
+    _options(ResolveAllocator(_allocator))
 {
     //
 }
@@ -9,8 +13,12 @@ CLIArgParser& CLIArgParser::AddFlag(char name, char const* longName)
 {
     CLIArgFlag flag{};
     flag.name = name;
-    flag.longName = longName ? String(longName) : String();
+    flag.longName = {};
     flag.isSet = false;
+
+    if (longName != nullptr) {
+        flag.longName = String(longName, ResolveAllocator(_allocator));
+    }
 
     _flags.push_back(flag);
     return *this;
@@ -18,8 +26,10 @@ CLIArgParser& CLIArgParser::AddFlag(char name, char const* longName)
 
 CLIArgParser& CLIArgParser::AddOption(char const* name)
 {
+    BONSAI_ASSERT(name != nullptr && "Option name must not be null!");
+
     CLIArgOption option{};
-    option.name = name ? String(name) : String();
+    option.name = String(name, ResolveAllocator(_allocator));
     option.value = {};
 
     _options.push_back(option);
@@ -62,7 +72,7 @@ bool CLIArgParser::Parse(int argc, char const* const* argv)
                     {
                         found = true;
                         if (i + 1 < argc) {
-                            option.value = argv[i + 1];
+                            option.value = String(argv[i + 1], ResolveAllocator(_allocator));
                         }
                     }
                 }
@@ -119,11 +129,15 @@ std::optional<String> CLIArgParser::GetValue(char const* name) const
 {
     for (auto const& option : _options)
     {
-        if (option.name == name && !option.value.empty())
-        {
+        if (option.name == name) {
             return option.value;
         }
     }
 
     return {};
+}
+
+std::pmr::memory_resource* CLIArgParser::ResolveAllocator(IAllocator* allocator)
+{
+    return allocator == nullptr ? std::pmr::get_default_resource() : allocator;
 }
