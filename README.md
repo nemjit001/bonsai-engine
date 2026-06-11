@@ -1,4 +1,5 @@
-# Bonsai Renderer
+# Bonsai Engine
+
 [![CI Tests](https://github.com/nemjit001/bonsai-engine/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/nemjit001/bonsai-engine/actions/workflows/ci_tests.yml)
 
 ## License
