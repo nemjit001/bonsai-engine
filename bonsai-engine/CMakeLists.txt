@@ -31,6 +31,8 @@ target_sources(BonsaiEngineLib
         src/Containers/DynamicArray.hpp
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp
+        src/Graphics/GraphicsDevice.cpp
+        src/Graphics/GraphicsDevice.hpp
         src/Core/CLIArgParser.cpp
         src/Core/CLIArgParser.hpp
     PUBLIC
@@ -51,6 +53,7 @@ target_enable_extended_warnings(BonsaiEngineLib)
 target_link_libraries(BonsaiEngineLib
     PRIVATE
         SDL3::SDL3
+    PUBLIC
         sdl3webgpu
         webgpu
 )

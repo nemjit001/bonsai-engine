@@ -3,6 +3,7 @@
 #define BONSAI_ENGINE_HPP
 
 #include <BonsaiBase.hpp>
+#include <BonsaiGraphics.hpp>
 #include <BonsaiCore.hpp>
 
 /// @brief Enumeration of engine return codes.

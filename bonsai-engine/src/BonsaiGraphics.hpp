@@ -2,7 +2,6 @@
 #ifndef BONSAI_GRAPHICS_HPP
 #define BONSAI_GRAPHICS_HPP
 
-#include <webgpu.h>
-#include <sdl3webgpu.h>
+#include "Graphics/GraphicsDevice.hpp"
 
 #endif //BONSAI_GRAPHICS_HPP

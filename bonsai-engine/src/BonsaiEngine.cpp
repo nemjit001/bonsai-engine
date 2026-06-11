@@ -7,12 +7,15 @@ static constexpr char const* BONSAI_DEFAULT_WINDOW_TITLE    = "Bonsai Engine";
 static constexpr uint32 BONSAI_DEFAULT_WINDOW_WIDTH         = 1280u;
 static constexpr uint32 BONSAI_DEFAULT_WINDOW_HEIGHT        = 720u;
 
+static GraphicsDevice* gGraphicsDevice = nullptr;
 static SDL_Window* gMainWindow = nullptr;
 
 BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
+    delete gGraphicsDevice;
+
     SDL_DestroyWindow(gMainWindow);
     SDL_Quit();
     
@@ -54,6 +57,15 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         PrintDebugString("Failed to initialize SDL");
+        return false;
+    }
+
+    // Initialize GraphicsDevice
+    PrintDebugString("Initializing GraphicsDevice");
+    gGraphicsDevice = GraphicsDevice::Create();
+    if (gGraphicsDevice == nullptr)
+    {
+        PrintDebugString("Failed to create GraphicsDevice");
         return false;
     }
 
