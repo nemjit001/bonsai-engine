@@ -22,6 +22,7 @@ target_link_libraries(BonsaiEngineTests
 )
 target_copy_dll_dependencies(BonsaiEngineTests
     SDL3::SDL3
+    webgpu
 )
 
 gtest_discover_tests(BonsaiEngineTests)
