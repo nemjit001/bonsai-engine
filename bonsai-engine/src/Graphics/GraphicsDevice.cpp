@@ -1,6 +1,7 @@
 #include "GraphicsDevice.hpp"
 
 #include <BonsaiBase.hpp>
+#include <sdl3webgpu.h>
 
 void RequestAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* userData1, [[maybe_unused]] void* userData2)
 {
@@ -102,6 +103,11 @@ GraphicsDevice* GraphicsDevice::Create()
     }
 
     return new GraphicsDevice(instance, adapter, device);
+}
+
+WGPUSurface GraphicsDevice::CreateSurface(SDL_Window* window)
+{
+    return SDL_GetWGPUSurface(_instance, window);
 }
 
 WGPUTexture GraphicsDevice::AcquireNextImage(WGPUSurface surface)

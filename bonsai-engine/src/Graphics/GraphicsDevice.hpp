@@ -2,9 +2,10 @@
 #ifndef GRAPHICS_DEVICE_HPP
 #define GRAPHICS_DEVICE_HPP
 
+#include <SDL3/SDL.h>
 #include <webgpu/webgpu.h>
-#include <sdl3webgpu.h>
 
+/// @brief A GraphicsDevice is a thin wrapper around WebGPU instance and device structures.
 class GraphicsDevice
 {
 private:
@@ -19,6 +20,11 @@ public:
     /// @brief Create a new GraphicsDevice.
     /// @return A new graphics device, or nullptr on failure.
     static GraphicsDevice* Create();
+
+    /// @brief Create a surface from an SDL window.
+    /// @param window Window to use for surface creation.
+    /// @return The newly created surface, or nullptr on failure.
+    WGPUSurface CreateSurface(SDL_Window* window);
 
     /// @brief Acquire a new image for a surface.
     /// @param surface Surface to acquire image from.
