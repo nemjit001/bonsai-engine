@@ -39,6 +39,14 @@ public:
     /// @return 
     WGPULimits GetDeviceLimits() const;
 
+    /// @brief Retrieve the WGPU instance.
+    /// @return 
+    WGPUInstance GetInstance() const { return _instance; }
+
+    /// @brief Retrieve the underlying WGPU adapter.
+    /// @return 
+    WGPUAdapter GetAdapter() const { return _adapter; }
+
     /// @brief Retrieve the underlying WGPU device.
     /// @return 
     WGPUDevice GetDevice() const { return _device; }

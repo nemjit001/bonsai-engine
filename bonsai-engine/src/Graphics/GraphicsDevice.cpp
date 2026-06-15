@@ -3,7 +3,24 @@
 #include <BonsaiBase.hpp>
 #include <sdl3webgpu.h>
 
-void RequestAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* userData1, [[maybe_unused]] void* userData2)
+static void UncapturedErrorCallback(
+    [[maybe_unused]] WGPUDevice const* device,
+    [[maybe_unused]] WGPUErrorType error,
+    WGPUStringView message,
+    [[maybe_unused]] void* userData1,
+    [[maybe_unused]] void* userData2
+)
+{
+    PrintDebugString("GraphicsDevice: WGPU Error: %*.s", message.length, message.data);
+}
+
+static void RequestAdapterCallback(
+    WGPURequestAdapterStatus status,
+    WGPUAdapter adapter,
+    WGPUStringView message,
+    void* userData1,
+    [[maybe_unused]] void* userData2
+)
 {
     WGPUAdapter& outAdapter = *static_cast<WGPUAdapter*>(userData1);
     if (status == WGPURequestAdapterStatus_Success) {
@@ -14,7 +31,13 @@ void RequestAdapterCallback(WGPURequestAdapterStatus status, WGPUAdapter adapter
     }
 }
 
-void RequestDeviceCallback(WGPURequestDeviceStatus status, WGPUDevice device, [[maybe_unused]] WGPUStringView message, void* userData1, [[maybe_unused]] void* userData2)
+static void RequestDeviceCallback(
+    WGPURequestDeviceStatus status,
+    WGPUDevice device,
+    WGPUStringView message,
+    void* userData1,
+    [[maybe_unused]] void* userData2
+)
 {
     WGPUDevice& outDevice = *static_cast<WGPUDevice*>(userData1);
     if (status == WGPURequestDeviceStatus_Success) {
@@ -86,7 +109,10 @@ GraphicsDevice* GraphicsDevice::Create()
     deviceDesc.requiredLimits = nullptr;
     deviceDesc.defaultQueue.label = WGPUStringView{ "Default Queue", WGPU_STRLEN };
     deviceDesc.deviceLostCallbackInfo = {};
-    deviceDesc.uncapturedErrorCallbackInfo = {};
+    deviceDesc.uncapturedErrorCallbackInfo.nextInChain = nullptr;
+    deviceDesc.uncapturedErrorCallbackInfo.callback = UncapturedErrorCallback;
+    deviceDesc.uncapturedErrorCallbackInfo.userdata1 = nullptr;
+    deviceDesc.uncapturedErrorCallbackInfo.userdata2 = nullptr;
 
     WGPUDevice device = nullptr;
     WGPURequestDeviceCallbackInfo deviceCallbackInfo{};

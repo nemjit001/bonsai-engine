@@ -7,16 +7,11 @@ static constexpr char const* BONSAI_DEFAULT_WINDOW_TITLE    = "Bonsai Engine";
 static constexpr uint32 BONSAI_DEFAULT_WINDOW_WIDTH         = 1280u;
 static constexpr uint32 BONSAI_DEFAULT_WINDOW_HEIGHT        = 720u;
 
-static GraphicsDevice* gGraphicsDevice = nullptr;
-static SDL_Window* gMainWindow = nullptr;
-
 BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
-    delete gGraphicsDevice;
-
-    SDL_DestroyWindow(gMainWindow);
+    _renderer.Shutdown();
     SDL_Quit();
     
     PrintDebugString("Goodbye!");
@@ -60,34 +55,19 @@ bool BonsaiEngine::Init(int argc, char* argv[])
         return false;
     }
 
-    // Initialize GraphicsDevice
-    PrintDebugString("Initializing GraphicsDevice");
-    gGraphicsDevice = GraphicsDevice::Create();
-    if (gGraphicsDevice == nullptr)
-    {
-        PrintDebugString("Failed to create GraphicsDevice");
-        return false;
-    }
-
-    // Create a default application window
-    PrintDebugString("Creating application window");
-    gMainWindow = SDL_CreateWindow(
-        BONSAI_DEFAULT_WINDOW_TITLE,
-        BONSAI_DEFAULT_WINDOW_WIDTH,
-        BONSAI_DEFAULT_WINDOW_HEIGHT,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
-    );
-    if (gMainWindow == nullptr)
-    {
-        PrintDebugString("Failed to create application window");
-        return false;
-    }
-
     // TODO(nemjit001):
     // - [X] Parse CLI args (before window init)
     // - [ ] Parse engine and project config files (before window init)
     // - [ ] Initialize renderer (after window init)
     // - [ ] Load game world (after renderer, load from path in config or cli args?)
+
+    // Initialize Renderer
+    PrintDebugString("Initializing Renderer");
+    if (!_renderer.Init())
+    {
+        PrintDebugString("Failed to initialize Renderer");
+        return false;
+    }
 
     PrintDebugString("Initialized Bonsai Engine!");
     _isRunning = true;
@@ -104,13 +84,11 @@ void BonsaiEngine::Tick()
             if (event.type == SDL_EVENT_QUIT) {
                 _isRunning = false;
             }
-
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED
-                && event.window.windowID == SDL_GetWindowID(gMainWindow)) {
-                _isRunning = false;
-            }
         }
     }
+
+    // Render frame
+    _renderer.Frame();
 }
 
 int32 BonsaiEngine::Run(int argc, char* argv[])
