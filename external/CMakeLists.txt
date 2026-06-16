@@ -3,6 +3,15 @@ message(STATUS "Setting up external dependencies")
 # Set up dependencies
 include(FetchContent)
 
+FetchContent_Declare(glm
+        GIT_REPOSITORY  "https://github.com/g-truc/glm.git"
+        GIT_TAG         "1.0.3"
+        GIT_SHALLOW     TRUE
+        GIT_PROGRESS    TRUE
+        OVERRIDE_FIND_PACKAGE
+        EXCLUDE_FROM_ALL
+)
+
 FetchContent_Declare(GTest
         GIT_REPOSITORY  "https://github.com/google/googletest.git"
         GIT_TAG         "v1.17.0"
@@ -23,14 +32,14 @@ FetchContent_Declare(SDL3
 
 FetchContent_Declare(WebGPU
         GIT_REPOSITORY  "https://github.com/eliemichel/WebGPU-distribution.git"
-        GIT_TAG         "main"
+        GIT_TAG         "v0.3.0-gamma"
         GIT_SHALLOW     TRUE
         GIT_PROGRESS    TRUE
         OVERRIDE_FIND_PACKAGE
         EXCLUDE_FROM_ALL
 )
 
-FetchContent_Declare(SDL3WebGPU
+FetchContent_Declare(sdl3webgpu
         GIT_REPOSITORY  "https://github.com/eliemichel/sdl3webgpu"
         GIT_TAG         "main"
         GIT_SHALLOW     TRUE

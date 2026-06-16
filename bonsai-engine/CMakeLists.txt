@@ -3,8 +3,9 @@ project("BonsaiEngine"
     LANGUAGES CXX
 )
 
+find_package(glm CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
-find_package(SDL3WebGPU CONFIG REQUIRED)
+find_package(sdl3webgpu CONFIG REQUIRED)
 find_package(WebGPU CONFIG REQUIRED)
 
 configure_file(BonsaiEngineConfig.hpp.in BonsaiEngineConfig.hpp)
@@ -51,9 +52,9 @@ target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BonsaiEngineLib PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiEngineLib)
 target_link_libraries(BonsaiEngineLib
-    PRIVATE
-        SDL3::SDL3
     PUBLIC
+        glm::glm
+        SDL3::SDL3
         sdl3webgpu
         webgpu
 )

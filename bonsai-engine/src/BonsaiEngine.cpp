@@ -3,10 +3,6 @@
 #include <SDL3/SDL.h>
 #include "BonsaiEngineConfig.hpp" // auto-generated config file
 
-static constexpr char const* BONSAI_DEFAULT_WINDOW_TITLE    = "Bonsai Engine";
-static constexpr uint32 BONSAI_DEFAULT_WINDOW_WIDTH         = 1280u;
-static constexpr uint32 BONSAI_DEFAULT_WINDOW_HEIGHT        = 720u;
-
 BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
