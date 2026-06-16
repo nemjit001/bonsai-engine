@@ -21,40 +21,6 @@ public:
     /// @return A new graphics device, or nullptr on failure.
     static GraphicsDevice* Create();
 
-    /// @brief Create a surface from an SDL window.
-    /// @param window Window to use for surface creation.
-    /// @return The newly created surface, or nullptr on failure.
-    WGPUSurface CreateSurface(SDL_Window* window);
-
-    /// @brief Acquire a new image for a surface.
-    /// @param surface Surface to acquire image from.
-    /// @return The next surface texture, or nullptr on failure.
-    WGPUTexture AcquireNextImage(WGPUSurface surface);
-
-    /// @brief Present to a surface.
-    /// @param surface Surface to present to.
-    void Present(WGPUSurface surface);
-
-    /// @brief Get the device limits.
-    /// @return 
-    WGPULimits GetDeviceLimits() const;
-
-    /// @brief Retrieve the WGPU instance.
-    /// @return 
-    WGPUInstance GetInstance() const { return _instance; }
-
-    /// @brief Retrieve the underlying WGPU adapter.
-    /// @return 
-    WGPUAdapter GetAdapter() const { return _adapter; }
-
-    /// @brief Retrieve the underlying WGPU device.
-    /// @return 
-    WGPUDevice GetDevice() const { return _device; }
-
-    /// @brief Retrieve the underlying WGPU queue.
-    /// @return 
-    WGPUQueue GetQueue() const { return _queue; }
-
 private:
     WGPUInstance _instance = nullptr;
     WGPUAdapter _adapter = nullptr;

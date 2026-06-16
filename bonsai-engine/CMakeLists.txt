@@ -16,8 +16,6 @@ target_sources(BonsaiEngineLib
         src/BonsaiBase.hpp
         src/BonsaiGraphics.hpp
         src/BonsaiCore.hpp
-        src/Renderer.cpp
-        src/Renderer.hpp
         src/BonsaiEngine.cpp
         src/BonsaiEngine.hpp
         src/Base/Allocator.cpp
@@ -45,7 +43,6 @@ target_sources(BonsaiEngineLib
         src/BonsaiCore.hpp
         src/BonsaiEngine.hpp
         src/BonsaiGraphics.hpp
-        src/Renderer.hpp
         src/Containers/DynamicArray.hpp
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp

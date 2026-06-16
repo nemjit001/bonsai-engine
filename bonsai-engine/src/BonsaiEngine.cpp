@@ -11,7 +11,6 @@ BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
-    _renderer.Shutdown();
     SDL_Quit();
     
     PrintDebugString("Goodbye!");
@@ -61,14 +60,6 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // - [ ] Initialize renderer (after window init)
     // - [ ] Load game world (after renderer, load from path in config or cli args?)
 
-    // Initialize Renderer
-    PrintDebugString("Initializing Renderer");
-    if (!_renderer.Init())
-    {
-        PrintDebugString("Failed to initialize Renderer");
-        return false;
-    }
-
     PrintDebugString("Initialized Bonsai Engine!");
     _isRunning = true;
     return true;
@@ -86,9 +77,6 @@ void BonsaiEngine::Tick()
             }
         }
     }
-
-    // Render frame
-    _renderer.Frame();
 }
 
 int32 BonsaiEngine::Run(int argc, char* argv[])

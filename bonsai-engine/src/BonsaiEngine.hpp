@@ -5,7 +5,6 @@
 #include <BonsaiBase.hpp>
 #include <BonsaiGraphics.hpp>
 #include <BonsaiCore.hpp>
-#include <Renderer.hpp>
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32
@@ -43,7 +42,6 @@ public:
 
 private:
     bool _isRunning = false;
-    Renderer _renderer;
 };
 
 #endif //BONSAI_ENGINE_HPP
