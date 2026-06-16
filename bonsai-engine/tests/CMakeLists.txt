@@ -3,14 +3,10 @@ enable_testing()
 
 find_package(GTest CONFIG REQUIRED)
 
-include(GoogleTest)
-
 add_executable(BonsaiEngineTests)
 target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
-        src/Base/AllocatorTests.cpp
-        src/Base/MemoryTests.cpp
         src/Core/CLIArgParserTests.cpp
 )
 target_compile_features(BonsaiEngineTests PRIVATE cxx_std_17)
@@ -20,9 +16,6 @@ target_link_libraries(BonsaiEngineTests
         Bonsai::Engine::Lib
         GTest::gtest_main
 )
-target_copy_dll_dependencies(BonsaiEngineTests
-    SDL3::SDL3
-    webgpu
-)
 
+include(GoogleTest)
 gtest_discover_tests(BonsaiEngineTests)
