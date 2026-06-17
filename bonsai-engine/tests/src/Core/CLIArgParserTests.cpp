@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <BonsaiCore.hpp>
+#include <Core.hpp>
 
 TEST(CLIArgParserTests, TestEmptyArgs)
 {
