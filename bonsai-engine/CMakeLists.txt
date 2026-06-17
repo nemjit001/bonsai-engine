@@ -19,7 +19,7 @@ target_sources(BonsaiEngineLib
         src/Core/CLIArgParser.cpp
         src/Core/CLIArgParser.hpp
         src/Math/MathTypes.hpp
-        src/Assets/MeshAsset.hpp
+        src/Assets/Mesh.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef MESH_ASSET_HPP
-#define MESH_ASSET_HPP
+#ifndef MESH_HPP
+#define MESH_HPP
 
 #include <optional>
 #include <BonsaiBase.hpp>
@@ -24,11 +24,11 @@ public:
     std::optional<DynamicArray<uint32>> indices;
 };
 
-/// @brief A MeshAsset is a collection of submeshes that build a single mesh object.
-class MeshAsset
+/// @brief A Mesh is a collection of submeshes that build a single mesh object.
+class Mesh
 {
 public:
     DynamicArray<SubMesh> meshes;
 };
 
-#endif //MESH_ASSET_HPP
+#endif //MESH_HPP
