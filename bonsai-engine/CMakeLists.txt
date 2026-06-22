@@ -3,6 +3,7 @@ project("BonsaiEngine"
     LANGUAGES CXX
 )
 
+find_package(EnTT CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
 configure_file(BonsaiEngineConfig.hpp.in BonsaiEngineConfig.hpp)
@@ -18,7 +19,10 @@ target_sources(BonsaiEngineLib
         src/Assets.hpp
         src/Core/CLIArgParser.cpp
         src/Core/CLIArgParser.hpp
+        src/Math/AABB.cpp
+        src/Math/AABB.hpp
         src/Math/MathTypes.hpp
+        src/Assets/Mesh.cpp
         src/Assets/Mesh.hpp
     PUBLIC
     FILE_SET HEADERS
@@ -35,6 +39,7 @@ target_enable_extended_warnings(BonsaiEngineLib)
 target_link_libraries(BonsaiEngineLib
     PUBLIC
         Bonsai::Base
+        EnTT::EnTT
         glm::glm
 )
 

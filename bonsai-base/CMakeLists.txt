@@ -29,7 +29,7 @@ target_sources(BonsaiBase
         src/Containers/String.hpp
     PUBLIC
     FILE_SET HEADERS
-    BASE_DIRS src
+    BASE_DIRS src/
     FILES
         src/BonsaiBase.hpp
         src/Containers/DynamicArray.hpp

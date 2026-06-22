@@ -16,18 +16,28 @@ struct Vertex
     glm::vec2 texCoord;
 };
 
+/// @brief Vertex skinning weights.
+struct VertexWeights
+{
+    glm::ivec4 boneIds;
+    glm::vec4 boneWeights;
+};
+
 /// @brief A SubMesh is a part of a mesh with its own material and vertex/index arrays.
 class SubMesh
 {
 public:
+    AABB bounds;
     DynamicArray<Vertex> vertices;
-    std::optional<DynamicArray<uint32>> indices;
+    DynamicArray<VertexWeights> weights;
+    DynamicArray<uint32> indices;
 };
 
 /// @brief A Mesh is a collection of submeshes that build a single mesh object.
 class Mesh
 {
 public:
+    AABB bounds;
     DynamicArray<SubMesh> meshes;
 };
 
