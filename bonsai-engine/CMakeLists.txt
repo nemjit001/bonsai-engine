@@ -24,6 +24,8 @@ target_sources(BonsaiEngineLib
         src/Math/MathTypes.hpp
         src/Assets/Mesh.cpp
         src/Assets/Mesh.hpp
+        src/Assets/World.cpp
+        src/Assets/World.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
