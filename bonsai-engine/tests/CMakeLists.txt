@@ -15,6 +15,8 @@ target_enable_extended_warnings(BonsaiEngineTests)
 target_link_libraries(BonsaiEngineTests
     PRIVATE
         Bonsai::Engine::Lib
+        GTest::gtest
+        GTest::gmock
         GTest::gtest_main
 )
 

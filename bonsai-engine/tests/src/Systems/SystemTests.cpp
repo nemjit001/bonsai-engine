@@ -1,11 +1,16 @@
 #include <gtest/gtest.h>
-#include <Systems.hpp>
+#include <gmock/gmock.h>
+#include <Systems/System.hpp>
 
-class FooSystem : public System {};
-
-TEST(SystemTests, TestRegisterSystem)
+class MockSystem : public ISystem
 {
-    SystemRegistry registry{};
-    registry.Register<FooSystem>();
-}
+public:
+    MOCK_METHOD(void, Run, (World&, float), (override));
+};
 
+TEST(SystemTests, TestRegisterAndRunSystem)
+{
+    MockSystem system{};
+    EXPECT_CALL(system, Run(testing::_, testing::_))
+        .Times(1);
+}

@@ -13,23 +13,11 @@ add_library(Bonsai::Engine::Lib ALIAS BonsaiEngineLib)
 target_sources(BonsaiEngineLib
     PRIVATE
         src/BonsaiEngine.cpp
-        src/BonsaiEngine.hpp
-        src/Core.hpp
-        src/Math.hpp
-        src/Assets.hpp
-        src/World.hpp
         src/Core/CLIArgParser.cpp
-        src/Core/CLIArgParser.hpp
         src/Math/AABB.cpp
-        src/Math/AABB.hpp
-        src/Math/MathTypes.hpp
-        src/Assets/AssetType.hpp
         src/Assets/Level.cpp
-        src/Assets/Level.hpp
         src/Assets/Mesh.cpp
-        src/Assets/Mesh.hpp
         src/Systems/System.cpp
-        src/Systems/System.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
@@ -38,8 +26,14 @@ target_sources(BonsaiEngineLib
         src/BonsaiEngine.hpp
         src/Core.hpp
         src/Math.hpp
-        src/Systems.hpp
         src/World.hpp
+        src/Core/CLIArgParser.hpp
+        src/Math/AABB.hpp
+        src/Math/MathTypes.hpp
+        src/Assets/AssetType.hpp
+        src/Assets/Level.hpp
+        src/Assets/Mesh.hpp
+        src/Systems/System.hpp
 )
 target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BonsaiEngineLib PRIVATE cxx_std_17)

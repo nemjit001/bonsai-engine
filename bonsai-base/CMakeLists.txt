@@ -12,26 +12,21 @@ add_library(BonsaiBase)
 add_library(Bonsai::Base ALIAS BonsaiBase)
 target_sources(BonsaiBase
     PRIVATE
-        src/BonsaiBase.hpp
         src/Base/Allocator.cpp
-        src/Base/Allocator.hpp
         src/Base/Assert.cpp
-        src/Base/Assert.hpp
         src/Base/DebugOutput.cpp
-        src/Base/DebugOutput.hpp
         src/Base/Memory.cpp
-        src/Base/Memory.hpp
-        src/Base/PlatformDefines.hpp
-        src/Base/PlatformTypes.hpp
-        src/Containers/DynamicArray.hpp
-        src/Containers/HashMap.hpp
-        src/Containers/StaticArray.hpp
-        src/Containers/String.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
     FILES
         src/BonsaiBase.hpp
+        src/Base/Allocator.hpp
+        src/Base/Assert.hpp
+        src/Base/DebugOutput.hpp
+        src/Base/Memory.hpp
+        src/Base/PlatformDefines.hpp
+        src/Base/PlatformTypes.hpp
         src/Containers/DynamicArray.hpp
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp
