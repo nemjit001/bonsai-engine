@@ -28,6 +28,8 @@ target_sources(BonsaiEngineLib
         src/Assets/Level.hpp
         src/Assets/Mesh.cpp
         src/Assets/Mesh.hpp
+        src/Systems/System.cpp
+        src/Systems/System.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
@@ -36,6 +38,7 @@ target_sources(BonsaiEngineLib
         src/BonsaiEngine.hpp
         src/Core.hpp
         src/Math.hpp
+        src/Systems.hpp
         src/World.hpp
 )
 target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

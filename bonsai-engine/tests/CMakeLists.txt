@@ -8,6 +8,7 @@ target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
         src/Core/CLIArgParserTests.cpp
+        src/Systems/SystemTests.cpp
 )
 target_compile_features(BonsaiEngineTests PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiEngineTests)
