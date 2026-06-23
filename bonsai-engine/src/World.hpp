@@ -4,7 +4,7 @@
 
 #include <entt/entt.hpp>
 
-/// @brief A World contains an ECS registry with all runtime entities.
+/// @brief A World contains an ECS registry with a runtime representation of entities.
 class World
 {
 public:

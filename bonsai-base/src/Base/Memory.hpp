@@ -2,6 +2,7 @@
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
+#include <memory>
 #include "PlatformTypes.hpp"
 
 namespace Memory

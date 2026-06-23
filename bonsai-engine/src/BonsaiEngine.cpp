@@ -2,12 +2,14 @@
 
 #include <SDL3/SDL.h>
 #include "Core.hpp"
+#include "World.hpp"
 #include "BonsaiEngineConfig.hpp" // auto-generated config file
 
 BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
+    _world.reset();
     SDL_Quit();
     
     PrintDebugString("Goodbye!");
@@ -51,11 +53,16 @@ bool BonsaiEngine::Init(int argc, char* argv[])
         return false;
     }
 
+    // Initialize game world
+    PrintDebugString("Initializing World");
+    _world = std::make_unique<World>();
+    // TODO(nemjit001): Load default level asset (read from config or cli args override)
+
     // TODO(nemjit001):
     // - [X] Parse CLI args (before window init)
     // - [ ] Parse engine and project config files (before window init)
     // - [ ] Initialize renderer (after window init)
-    // - [ ] Load game world (after renderer, load from path in config or cli args?)
+    // - [X] Initialize game world (after renderer, load from path in config or cli args?)
 
     PrintDebugString("Initialized Bonsai Engine!");
     _isRunning = true;
