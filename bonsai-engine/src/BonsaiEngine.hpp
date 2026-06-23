@@ -4,7 +4,7 @@
 
 #include <BonsaiBase.hpp>
 
-class World;
+#include "World.hpp"
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32

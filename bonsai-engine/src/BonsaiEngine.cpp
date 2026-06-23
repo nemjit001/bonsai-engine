@@ -2,7 +2,6 @@
 
 #include <SDL3/SDL.h>
 #include "Core.hpp"
-#include "World.hpp"
 #include "BonsaiEngineConfig.hpp" // auto-generated config file
 
 BonsaiEngine::BonsaiEngine() = default;
