@@ -6,6 +6,7 @@
 #include <BonsaiBase.hpp>
 #include <Containers/DynamicArray.hpp>
 #include <Math.hpp>
+#include "AssetType.hpp"
 
 /// @brief Static mesh vertex data.
 struct Vertex
@@ -33,8 +34,8 @@ public:
     DynamicArray<uint32> indices;
 };
 
-/// @brief A Mesh is a collection of submeshes that build a single mesh object.
-class Mesh
+/// @brief A Mesh asset is a collection of submeshes that build a single mesh object.
+class Mesh : public IAssetType
 {
 public:
     AABB bounds;

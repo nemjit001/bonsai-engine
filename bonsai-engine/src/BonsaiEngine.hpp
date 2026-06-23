@@ -3,7 +3,6 @@
 #define BONSAI_ENGINE_HPP
 
 #include <BonsaiBase.hpp>
-#include <Core.hpp>
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32
