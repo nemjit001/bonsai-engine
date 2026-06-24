@@ -18,6 +18,8 @@ enum SystemPriority : int32
 class SystemScheduler
 {
 public:
+    /// @brief Create a new SystemScheduler.
+    /// @param allocator Optional allocator to use for internal allocations.
     SystemScheduler(IAllocator* allocator = nullptr);
 
     /// @brief Register a system to the scheduler.

@@ -16,6 +16,6 @@ void AssertHandler(char const* expr, char const* file, int line);
     #define BONSAI_DEBUG_BREAK()
 #endif
 
-#define BONSAI_ASSERT(expr)             (!!(expr) || (AssertHandler(#expr, __FILE__, __LINE__), BONSAI_DEBUG_BREAK(), 0))
+#define BONSAI_ASSERT(expr) (!!(expr) || (AssertHandler(#expr, __FILE__, __LINE__), BONSAI_DEBUG_BREAK(), 0))
 
 #endif //ASSERT_HPP

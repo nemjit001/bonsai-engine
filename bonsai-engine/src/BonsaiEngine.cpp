@@ -9,6 +9,7 @@ BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
     _world.reset();
+    _scheduler.reset();
     SDL_Quit();
     
     PrintDebugString("Goodbye!");
@@ -87,6 +88,8 @@ void BonsaiEngine::Tick()
     }
 
     // Tick systems
+    BONSAI_ASSERT(_scheduler && "SystemScheduler is nullptr!");
+    BONSAI_ASSERT(_world && "World is nullptr!");
     _scheduler->RunSystems(*_world, 0.0F);
 }
 
