@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <Systems/System.hpp>
-#include <Systems/SystemScheduler.hpp>
+#include <Core.hpp>
 #include <World.hpp>
 
 class MockSystem : public ISystem
@@ -10,7 +9,7 @@ public:
     MOCK_METHOD(void, Run, (World&, float), (override));
 };
 
-TEST(SystemTests, TestRegisterAndRunSystem)
+TEST(SystemSchedulerTests, TestRegisterAndRunSystem)
 {
     auto system = std::make_unique<MockSystem>();
     EXPECT_CALL(*system, Run(testing::_, testing::_))

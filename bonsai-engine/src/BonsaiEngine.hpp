@@ -4,8 +4,8 @@
 
 #include <BonsaiBase.hpp>
 
+#include "Core.hpp"
 #include "World.hpp"
-#include "Systems/SystemScheduler.hpp"
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32
