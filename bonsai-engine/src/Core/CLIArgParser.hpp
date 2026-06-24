@@ -58,11 +58,6 @@ public:
     [[nodiscard]] std::optional<String> GetValue(char const* name) const;
 
 private:
-    /// @brief Resolve the allocator for internal use.
-    /// @return 
-    static std::pmr::memory_resource* ResolveAllocator(IAllocator* allocator);
-
-private:
     IAllocator* _allocator = nullptr;
     DynamicArray<CLIArgFlag> _flags;
     DynamicArray<CLIArgOption> _options;

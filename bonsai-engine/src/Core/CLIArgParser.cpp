@@ -136,8 +136,3 @@ std::optional<String> CLIArgParser::GetValue(char const* name) const
 
     return {};
 }
-
-std::pmr::memory_resource* CLIArgParser::ResolveAllocator(IAllocator* allocator)
-{
-    return allocator == nullptr ? std::pmr::get_default_resource() : allocator;
-}

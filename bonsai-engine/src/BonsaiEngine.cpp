@@ -52,6 +52,10 @@ bool BonsaiEngine::Init(int argc, char* argv[])
         return false;
     }
 
+    // Initialize system scheduler
+    PrintDebugString("Initializing SystemScheduler");
+    _scheduler = std::make_unique<SystemScheduler>(&defaultAllocator);
+
     // Initialize game world
     PrintDebugString("Initializing World");
     _world = std::make_unique<World>();
@@ -60,6 +64,7 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // TODO(nemjit001):
     // - [X] Parse CLI args (before window init)
     // - [ ] Parse engine and project config files (before window init)
+    // - [X] Initialize ECS system scheduler
     // - [ ] Initialize renderer (after window init)
     // - [X] Initialize game world (after renderer, load from path in config or cli args?)
 
@@ -80,6 +85,9 @@ void BonsaiEngine::Tick()
             }
         }
     }
+
+    // Tick systems
+    _scheduler->RunSystems(*_world, 0.0F);
 }
 
 int32 BonsaiEngine::Run(int argc, char* argv[])

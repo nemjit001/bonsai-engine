@@ -2,6 +2,13 @@
 
 #include <algorithm>
 
+SystemScheduler::SystemScheduler(IAllocator* allocator)
+    :
+    _systems(ResolveAllocator(allocator))
+{
+    //
+}
+
 void SystemScheduler::Register(SystemPriority priority, std::unique_ptr<ISystem>&& system)
 {
     _systems.push_back(SystemInfo{ priority, std::move(system) });

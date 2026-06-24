@@ -5,32 +5,6 @@
 #include <memory_resource>
 #include "PlatformTypes.hpp"
 
-template<typename Type, typename ...Args>
-constexpr Type* Construct(void* ptr, Args&&... args)
-{
-    return new (ptr) Type(std::forward<Args>(args)...);
-}
-
-template<typename Type>
-constexpr Type* ConstructArray(void* ptr, usize count)
-{
-    return new (ptr) Type[count]{};
-}
-
-template<typename Type>
-constexpr void Destruct(Type* ptr)
-{
-    ptr->~Type();
-}
-
-template<typename Type>
-constexpr void DestructArray(Type* ptr, usize count)
-{
-    for (usize i = 0; i < count; i++) {
-        Destruct(&ptr[i]);
-    }
-}
-
 /// @brief The Allocator interface provides a unified way of allocating memory.
 /// NOTE(nemjit001): By inheriting std::pmr::memory_resource this allocator interface also works with std::pmr::* types.
 class IAllocator : public std::pmr::memory_resource
@@ -62,5 +36,57 @@ public:
 
     void Deallocate(void* ptr) override;
 };
+
+/// @brief Construct a pointer type.
+/// @tparam Type 
+/// @tparam ...Args 
+/// @param ptr 
+/// @param ...args 
+/// @return 
+template<typename Type, typename ...Args>
+constexpr Type* Construct(void* ptr, Args&&... args)
+{
+    return new (ptr) Type(std::forward<Args>(args)...);
+}
+
+/// @brief Construct an array type.
+/// @tparam Type 
+/// @param ptr 
+/// @param count 
+/// @return 
+template<typename Type>
+constexpr Type* ConstructArray(void* ptr, usize count)
+{
+    return new (ptr) Type[count]{};
+}
+
+/// @brief Destruct a pointer type.
+/// @tparam Type 
+/// @param ptr 
+template<typename Type>
+constexpr void Destruct(Type* ptr)
+{
+    ptr->~Type();
+}
+
+/// @brief Destruct an array type.
+/// @tparam Type 
+/// @param ptr 
+/// @param count 
+template<typename Type>
+constexpr void DestructArray(Type* ptr, usize count)
+{
+    for (usize i = 0; i < count; i++) {
+        Destruct(&ptr[i]);
+    }
+}
+
+/// @brief Resolve an optional allocator pointer, this is a convenience function that returns the default pmr allocator if passed a nullptr.
+/// @param allocator 
+/// @return 
+constexpr std::pmr::memory_resource* ResolveAllocator(IAllocator* allocator)
+{
+    return allocator == nullptr ? std::pmr::get_default_resource() : allocator;
+}
 
 #endif //ALLOCATOR_HPP

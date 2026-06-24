@@ -5,6 +5,7 @@
 #include <BonsaiBase.hpp>
 
 #include "World.hpp"
+#include "Systems/SystemScheduler.hpp"
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32
@@ -42,6 +43,7 @@ public:
 
 private:
     bool _isRunning = false;
+    std::unique_ptr<SystemScheduler> _scheduler = nullptr;
     std::unique_ptr<World> _world = nullptr;
 };
 

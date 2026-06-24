@@ -18,6 +18,8 @@ enum SystemPriority : int32
 class SystemScheduler
 {
 public:
+    SystemScheduler(IAllocator* allocator = nullptr);
+
     /// @brief Register a system to the scheduler.
     /// @param priority 
     /// @param system 
