@@ -64,9 +64,10 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // TODO(nemjit001):
     // - [X] Parse CLI args (before window init)
     // - [ ] Parse engine and project config files (before window init)
-    // - [X] Initialize ECS system scheduler
+    // - [ ] Initialize main application window
     // - [ ] Initialize renderer (after window init)
-    // - [X] Initialize game world (after renderer, load from path in config or cli args?)
+    // - [X] Initialize ECS system scheduler
+    // - [X] Initialize game world (after renderer and system scheduler, load from path in config or cli args?)
 
     PrintDebugString("Initialized Bonsai Engine!");
     _isRunning = true;
