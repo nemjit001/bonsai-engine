@@ -17,7 +17,7 @@ target_sources(BonsaiEngineLib
         src/Math/AABB.cpp
         src/Assets/Level.cpp
         src/Assets/Mesh.cpp
-        src/Systems/System.cpp
+        src/Systems/SystemScheduler.cpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
@@ -34,6 +34,7 @@ target_sources(BonsaiEngineLib
         src/Assets/Level.hpp
         src/Assets/Mesh.hpp
         src/Systems/System.hpp
+        src/Systems/SystemScheduler.hpp
 )
 target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BonsaiEngineLib PRIVATE cxx_std_17)
