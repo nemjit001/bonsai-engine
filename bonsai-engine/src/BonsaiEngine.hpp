@@ -5,7 +5,6 @@
 #include <BonsaiBase.hpp>
 
 #include "Core.hpp"
-#include "World.hpp"
 
 /// @brief Enumeration of engine return codes.
 enum BonsaiEngineResult : int32

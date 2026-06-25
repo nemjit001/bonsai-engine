@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <Core.hpp>
-#include <World.hpp>
 
 class MockSystem : public ISystem
 {

@@ -5,5 +5,6 @@
 #include "Core/CLIArgParser.hpp"
 #include "Core/System.hpp"
 #include "Core/SystemScheduler.hpp"
+#include "Core/World.hpp"
 
 #endif //CORE_HPP
