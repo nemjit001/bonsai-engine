@@ -16,6 +16,7 @@ target_sources(BonsaiBase
         src/Base/Assert.cpp
         src/Base/DebugOutput.cpp
         src/Base/Memory.cpp
+        src/Base/Timer.cpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
@@ -27,6 +28,7 @@ target_sources(BonsaiBase
         src/Base/Memory.hpp
         src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
+        src/Base/Timer.hpp
         src/Containers/DynamicArray.hpp
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp

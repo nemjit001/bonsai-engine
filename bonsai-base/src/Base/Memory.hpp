@@ -58,6 +58,6 @@ namespace Memory
     /// @param src Source block.
     /// @param size Size in bytes to copy.
     void MemMove(void* dest, void* src, usize size);
-}; // namespace Memory
+} // namespace Memory
 
 #endif //MEMORY_HPP

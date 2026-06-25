@@ -8,5 +8,6 @@
 #include "Base/Memory.hpp"
 #include "Base/PlatformDefines.hpp"
 #include "Base/PlatformTypes.hpp"
+#include "Base/Timer.hpp"
 
 #endif //BONSAI_BASE_HPP

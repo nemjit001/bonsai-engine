@@ -233,4 +233,3 @@ namespace Memory
         std::memmove(dest, src, size);
     }
 } // namespace Memory
-

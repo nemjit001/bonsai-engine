@@ -3,6 +3,13 @@
 #include <SDL3/SDL.h>
 #include "BonsaiEngineConfig.hpp" // auto-generated config file
 
+/// @brief Number of ticks per second to process.
+static constexpr float BONSAI_TICKS_PER_SECOND = 120.0F;
+/// @brief Time delta between ticks in milliseconds.
+static constexpr float BONSAI_TICK_TIMESTEP_MILLIS = 1'000.0F / BONSAI_TICKS_PER_SECOND;
+/// @brief Time delta between ticks in seconds.
+static constexpr float BONSAI_TICK_TIMESTEP_SECONDS = BONSAI_TICK_TIMESTEP_MILLIS * 1e-3;
+
 BonsaiEngine::BonsaiEngine() = default;
 BonsaiEngine::~BonsaiEngine()
 {
@@ -78,23 +85,39 @@ bool BonsaiEngine::Init(int argc, char* argv[])
 
 void BonsaiEngine::Tick()
 {
-    // Handle SDL platform events
-    {
-        SDL_Event event{};
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_EVENT_QUIT) {
-                _isRunning = false;
-            }
-        }
-    }
+    // Update frame time
+    static double prevTime = Timer::GetTime();
+    static double currTime = Timer::GetTime();
+    static double frametimeAccumulator = 0.0; // Accumulator for unprocessed tick time.
+    prevTime = currTime;
+    currTime = Timer::GetTime();
 
-    // Tick systems
+    // Calculate frame time delta
+    double const deltaTime = std::clamp(currTime - prevTime, 0.0, 250.0); // above 250 ms we asume a hang occured and continue as normal.
+    frametimeAccumulator += deltaTime;
+
+    // Tick systems on fixed time step
     BONSAI_ASSERT(_scheduler && "SystemScheduler is nullptr!");
     BONSAI_ASSERT(_world && "World is nullptr!");
-    
-    // TODO(nemjit001): Tick systems on fixed timestep, render frame after all ticks have processed
-    _scheduler->RunSystems(*_world, 0.0F);
+    while (frametimeAccumulator > BONSAI_TICK_TIMESTEP_MILLIS)
+    {
+        // Handle SDL platform events
+        {
+            SDL_Event event{};
+            while (SDL_PollEvent(&event))
+            {
+                if (event.type == SDL_EVENT_QUIT) {
+                    _isRunning = false;
+                }
+            }
+        }
+
+        // Tick ECS systems
+        _scheduler->RunSystems(*_world, BONSAI_TICK_TIMESTEP_SECONDS); // uses timestep in seconds
+        frametimeAccumulator -= BONSAI_TICK_TIMESTEP_MILLIS;
+    }
+
+    // TODO(nemjit001): render current world state
 }
 
 int32 BonsaiEngine::Run(int argc, char* argv[])
