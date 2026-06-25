@@ -67,6 +67,8 @@ bool BonsaiEngine::Init(int argc, char* argv[])
     // - [ ] Initialize main application window
     // - [ ] Initialize renderer (after window init)
     // - [X] Initialize ECS system scheduler
+    // - [ ] Initialize default systems (rendering, asset loading, etc.)
+    // - [ ] Initialize application (registers app systems)
     // - [X] Initialize game world (after renderer and system scheduler, load from path in config or cli args?)
 
     PrintDebugString("Initialized Bonsai Engine!");
@@ -90,6 +92,8 @@ void BonsaiEngine::Tick()
     // Tick systems
     BONSAI_ASSERT(_scheduler && "SystemScheduler is nullptr!");
     BONSAI_ASSERT(_world && "World is nullptr!");
+    
+    // TODO(nemjit001): Tick systems on fixed timestep, render frame after all ticks have processed
     _scheduler->RunSystems(*_world, 0.0F);
 }
 
