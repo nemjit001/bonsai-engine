@@ -3,7 +3,6 @@
 #define BONSAI_ENGINE_HPP
 
 #include <BonsaiBase.hpp>
-
 #include "Core.hpp"
 
 /// @brief Enumeration of engine return codes.
@@ -17,21 +16,16 @@ enum BonsaiEngineResult : int32
 class BonsaiEngine
 {
 public:
-    BonsaiEngine();
-    ~BonsaiEngine();
+    BonsaiEngine() = default;
+    ~BonsaiEngine() = default;
 
     BonsaiEngine(BonsaiEngine const&) = delete;
     BonsaiEngine& operator=(BonsaiEngine const&) = delete;
 
 private:
-    /// @brief Initialize the engine subsystems.
-    /// @param argc Number of passed CLI arguments.
-    /// @param argv Array of CLI arguments passed to the application.
+    /// @brief Initialize the engine.
     /// @return A boolean indicating successful initialization.
-    bool Init(int argc, char* argv[]);
-
-    /// @brief Tick the engine state.
-    void Tick();
+    bool Init();
 
 public:
     /// @brief Run the engine application.
@@ -39,11 +33,6 @@ public:
     /// @param argv Array of CLI arguments passed to the application.
     /// @return A BonsaiEngineResult return code.
     int32 Run(int argc, char* argv[]);
-
-private:
-    bool _isRunning = false;
-    std::unique_ptr<SystemScheduler> _scheduler = nullptr;
-    std::unique_ptr<World> _world = nullptr;
 };
 
 #endif //BONSAI_ENGINE_HPP
