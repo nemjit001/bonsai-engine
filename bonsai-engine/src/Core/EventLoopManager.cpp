@@ -15,7 +15,7 @@ void EventLoopManager::Shutdown()
 void EventLoopManager::PumpMessages()
 {
     SDL_Event event{};
-    while (SDL_PollEvent(&event))
+    while (_isRunning && SDL_PollEvent(&event))
     {
         for (auto const& listener : _listeners)
         {
