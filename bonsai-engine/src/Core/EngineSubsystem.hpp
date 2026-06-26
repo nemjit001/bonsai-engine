@@ -9,6 +9,10 @@ class IEngineSubsystem
 {
 public:
     virtual ~IEngineSubsystem() = default;
+
+    /// @brief Process a system event in the subsystem.
+    /// @param event Event to process.
+    virtual void ProcessEvent([[maybe_unused]] SDL_Event const& event) {};
 };
 
 #endif //ENGINE_SUBSYSTEM_HPP

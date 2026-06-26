@@ -17,7 +17,7 @@ class BonsaiEngine
 {
 public:
     BonsaiEngine() = default;
-    ~BonsaiEngine() = default;
+    ~BonsaiEngine();
 
     BonsaiEngine(BonsaiEngine const&) = delete;
     BonsaiEngine& operator=(BonsaiEngine const&) = delete;
