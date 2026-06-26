@@ -4,10 +4,6 @@ project("BonsaiBase"
     LANGUAGES CXX
 )
 
-find_package(SDL3 CONFIG REQUIRED)
-find_package(sdl3webgpu CONFIG REQUIRED)
-find_package(WebGPU CONFIG REQUIRED)
-
 add_library(BonsaiBase)
 add_library(Bonsai::Base ALIAS BonsaiBase)
 target_sources(BonsaiBase
@@ -36,12 +32,6 @@ target_sources(BonsaiBase
 )
 target_compile_features(BonsaiBase PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiBase)
-target_link_libraries(BonsaiBase
-    PUBLIC
-        SDL3::SDL3
-        sdl3webgpu
-        webgpu
-)
 
 if (BUILD_TESTS)
     add_subdirectory(tests)

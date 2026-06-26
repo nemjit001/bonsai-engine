@@ -3,8 +3,6 @@
 #define CORE_HPP
 
 #include "Core/CLIArgParser.hpp"
-#include "Core/System.hpp"
-#include "Core/SystemScheduler.hpp"
-#include "Core/World.hpp"
+#include "Core/EngineSubsystem.hpp"
 
 #endif //CORE_HPP
