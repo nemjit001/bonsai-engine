@@ -40,8 +40,13 @@ bool BonsaiEngine::Init()
 
     // Initialize render manager
     PrintDebugString("Initializing RenderManager");
+    RenderManagerInitInfo rmInitInfo{};
+    rmInitInfo.windowTitle = "Bonsai Engine";
+    rmInitInfo.windowWidth = 1280;
+    rmInitInfo.windowHeight = 720;
+
     gEventLoopManager.RegisterSubsystem(&gRenderManager);
-    if (!gRenderManager.Init())
+    if (!gRenderManager.Init(rmInitInfo))
     {
         PrintDebugString("Failed to initialize RenderManager");
         return false;
