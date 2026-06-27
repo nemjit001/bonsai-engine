@@ -6,6 +6,7 @@
 #include <Containers/DynamicArray.hpp>
 #include "EngineSubsystem.hpp"
 
+/// @brief The EventLoopManager handles the global application event loop and event processing for other subsystems.
 class EventLoopManager : public IEngineSubsystem
 {
 public:
@@ -28,7 +29,7 @@ public:
     /// @return 
     bool IsRunning() { return _isRunning; }
 
-    void ProcessEvent(SDL_Event const& event) override;
+    virtual void ProcessEvent(SDL_Event const& event) override;
 
 private:
     bool _isRunning = false;
