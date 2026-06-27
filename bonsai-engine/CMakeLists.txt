@@ -16,6 +16,7 @@ target_sources(BonsaiEngineLib
         src/BonsaiEngine.cpp
         src/Core/CLIArgParser.cpp
         src/Core/EventLoopManager.cpp
+        src/Core/RenderManager.cpp
         src/Math/AABB.cpp
         src/Assets/Level.cpp
         src/Assets/Mesh.cpp
@@ -28,6 +29,7 @@ target_sources(BonsaiEngineLib
         src/Core/CLIArgParser.hpp
         src/Core/EngineSubsystem.hpp
         src/Core/EventLoopManager.hpp
+        src/Core/RenderManager.hpp
         src/Math.hpp
         src/Math/AABB.hpp
         src/Math/MathTypes.hpp

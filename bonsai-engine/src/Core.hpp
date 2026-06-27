@@ -5,5 +5,6 @@
 #include "Core/CLIArgParser.hpp"
 #include "Core/EngineSubsystem.hpp"
 #include "Core/EventLoopManager.hpp"
+#include "Core/RenderManager.hpp"
 
 #endif //CORE_HPP
