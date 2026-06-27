@@ -29,6 +29,7 @@ target_sources(BonsaiBase
         src/Containers/HashMap.hpp
         src/Containers/StaticArray.hpp
         src/Containers/String.hpp
+        src/Containers/StringView.hpp
 )
 target_compile_features(BonsaiBase PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiBase)

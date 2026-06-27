@@ -2,7 +2,12 @@
 
 bool RenderManager::Init(RenderManagerInitInfo const& initInfo)
 {
-    _window = SDL_CreateWindow(initInfo.windowTitle, initInfo.windowWidth, initInfo.windowHeight, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+    _window = SDL_CreateWindow(
+        initInfo.windowTitle.data(),
+        initInfo.windowWidth,
+        initInfo.windowHeight,
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
+    );
     if (!_window) {
         return false;
     }
