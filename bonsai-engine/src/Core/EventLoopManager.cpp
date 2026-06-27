@@ -4,6 +4,7 @@ bool EventLoopManager::Init(IAllocator* allocator)
 {
     _isRunning = true;
     _listeners = DynamicArray<IEngineSubsystem*>(ResolveAllocator(allocator));
+    RegisterSubsystem(this); // Register ourselves to event processing
     return true;
 }
 

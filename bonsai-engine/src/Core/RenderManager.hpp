@@ -2,15 +2,25 @@
 #ifndef RENDER_MANAGER_HPP
 #define RENDER_MANAGER_HPP
 
+#include <SDL3/SDL.h>
+#include <BonsaiBase.hpp>
 #include "EngineSubsystem.hpp"
 
-/// @brief The RenderManager handles high level render tasks in the engine.
+/// @brief Initialization info for the render manager.
+struct RenderManagerInitInfo
+{
+    char const* windowTitle = "Bonsai Engine";
+    uint32 windowWidth      = 1280u;
+    uint32 windowHeight     = 720u;
+};
+
+/// @brief The RenderManager handles high level render tasks in the engine (e.g. window management, marking frame boundaries).
 class RenderManager : public IEngineSubsystem
 {
 public:
     /// @brief Initialize the render manager.
     /// @return 
-    [[nodiscard]] bool Init();
+    [[nodiscard]] bool Init(RenderManagerInitInfo const& initInfo);
 
     /// @brief Shut down the render manager.
     void Shutdown();
@@ -22,6 +32,9 @@ public:
     void EndFrame();
 
     virtual void ProcessEvent(SDL_Event const& event) override;
+
+private:
+    SDL_Window* _window = nullptr;
 };
 
 #endif //RENDER_MANAGER_HPP
