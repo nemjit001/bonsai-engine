@@ -41,7 +41,7 @@ bool BonsaiEngine::Init()
     // Initialize render manager
     PrintDebugString("Initializing RenderManager");
     RenderManagerInitInfo rmInitInfo{};
-    rmInitInfo.windowTitle = "Bonsai Engine";
+    rmInitInfo.windowTitle = "Bonsai Engine"sv;
     rmInitInfo.windowWidth = 1280;
     rmInitInfo.windowHeight = 720;
 

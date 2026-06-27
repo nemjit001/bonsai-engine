@@ -4,12 +4,13 @@
 
 #include <SDL3/SDL.h>
 #include <BonsaiBase.hpp>
+#include <Containers/StringView.hpp>
 #include "EngineSubsystem.hpp"
 
 /// @brief Initialization info for the render manager.
 struct RenderManagerInitInfo
 {
-    char const* windowTitle = "Bonsai Engine";
+    StringView windowTitle  = "Bonsai Engine"sv;
     uint32 windowWidth      = 1280u;
     uint32 windowHeight     = 720u;
 };
