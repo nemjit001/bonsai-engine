@@ -2,6 +2,12 @@
 #ifndef BONSAI_BASE_HPP
 #define BONSAI_BASE_HPP
 
+// stdlib includes
+#include <algorithm>
+#include <atomic>
+#include <memory>
+
+// library includes
 #include "Base/Allocator.hpp"
 #include "Base/Assert.hpp"
 #include "Base/DebugOutput.hpp"

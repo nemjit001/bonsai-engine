@@ -64,10 +64,23 @@ int32 BonsaiEngine::Run([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]
     }
 
     // Enter main loop
+    double prevTime = Timer::GetTime();
+    double currTime = prevTime;
     while (gEventLoopManager.IsRunning())
     {
+        // Tick frame timer
+        prevTime = currTime;
+        currTime = Timer::GetTime();
+
+        // Ensure frame time is always positive, above 100ms we assume a frame hang and just continue with this as time delta
+        [[maybe_unused]]
+        double const deltaTimeMillis = std::clamp(currTime - prevTime, 0.0, 100.0);
+
+        // Update engine subsystems
         gRenderManager.NewFrame();
         gEventLoopManager.PumpMessages();
+
+        // TODO(nemjit001): Tick world state (fixed timestep) and render (using interpolation of leftover frame time)
         gRenderManager.EndFrame();
     }
 
