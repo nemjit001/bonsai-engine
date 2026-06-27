@@ -1,9 +1,10 @@
 #include "EventLoopManager.hpp"
 
-void EventLoopManager::Init(IAllocator* allocator)
+bool EventLoopManager::Init(IAllocator* allocator)
 {
     _isRunning = true;
     _listeners = DynamicArray<IEngineSubsystem*>(ResolveAllocator(allocator));
+    return true;
 }
 
 void EventLoopManager::Shutdown()
