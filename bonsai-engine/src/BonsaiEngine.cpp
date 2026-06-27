@@ -21,6 +21,7 @@ bool BonsaiEngine::Init()
 
     // Initialize SDL
     PrintDebugString("Initializing SDL");
+    SDL_SetMemoryFunctions(Memory::Malloc, Memory::Calloc, Memory::Realloc, Memory::Free);
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         PrintDebugString("Failed to initialize SDL: %s", SDL_GetError());
@@ -29,7 +30,11 @@ bool BonsaiEngine::Init()
 
     // Initialize event loop manager
     PrintDebugString("Initializing EventLoopManager");
-    gEventLoopManager.Init(&gDefaultAllocator);
+    if (!gEventLoopManager.Init(&gDefaultAllocator))
+    {
+        PrintDebugString("Failed to initialize EventLoopManager");
+        return false;
+    }
 
     PrintDebugString("Initialized Bonsai Engine!");
     return true;

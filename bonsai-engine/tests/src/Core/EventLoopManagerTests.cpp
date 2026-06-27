@@ -13,8 +13,10 @@ TEST(EventLoopManagerTests, TestRunState)
 {
     EventLoopManager eventloop{};
     EXPECT_FALSE(eventloop.IsRunning());
-    eventloop.Init();
+
+    EXPECT_TRUE(eventloop.Init());
     EXPECT_TRUE(eventloop.IsRunning());
+
     eventloop.Shutdown();
     EXPECT_FALSE(eventloop.IsRunning());
 }
@@ -24,7 +26,7 @@ TEST(EventLoopManagerTests, TestRegisterSubsystem)
     ASSERT_TRUE(SDL_Init(SDL_INIT_EVENTS));
 
     EventLoopManager eventloop{};
-    eventloop.Init();
+    EXPECT_TRUE(eventloop.Init());
 
     MockSubsystem mock{};
     eventloop.RegisterSubsystem(&mock);

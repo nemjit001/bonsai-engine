@@ -11,7 +11,8 @@ class EventLoopManager : public IEngineSubsystem
 public:
     /// @brief Initialize the event loop manager.
     /// @param allocator Allocator to use for internal allocations.
-    void Init(IAllocator* allocator = nullptr);
+    /// @return A boolean indicating successful initialization.
+    [[nodiscard]] bool Init(IAllocator* allocator = nullptr);
 
     /// @brief Shut down the event loop manager.
     void Shutdown();
