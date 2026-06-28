@@ -38,21 +38,3 @@ FetchContent_Declare(SDL3
         OVERRIDE_FIND_PACKAGE
         EXCLUDE_FROM_ALL
 )
-
-FetchContent_Declare(WebGPU
-        GIT_REPOSITORY  "https://github.com/eliemichel/WebGPU-distribution.git"
-        GIT_TAG         "v0.3.0-gamma"
-        GIT_SHALLOW     TRUE
-        GIT_PROGRESS    TRUE
-        OVERRIDE_FIND_PACKAGE
-        EXCLUDE_FROM_ALL
-)
-
-FetchContent_Declare(sdl3webgpu
-        GIT_REPOSITORY  "https://github.com/eliemichel/sdl3webgpu"
-        GIT_TAG         "main"
-        GIT_SHALLOW     TRUE
-        GIT_PROGRESS    TRUE
-        OVERRIDE_FIND_PACKAGE
-        EXCLUDE_FROM_ALL
-)

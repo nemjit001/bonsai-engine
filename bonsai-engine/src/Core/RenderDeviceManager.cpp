@@ -1,7 +1,8 @@
-#include "RenderManager.hpp"
+#include "RenderDeviceManager.hpp"
 
-bool RenderManager::Init(RenderManagerInitInfo const& initInfo)
+bool RenderDeviceManager::Init(RenderDeviceManagerInitInfo const& initInfo)
 {
+    // Initialize default window
     _window = SDL_CreateWindow(
         initInfo.windowTitle.data(),
         initInfo.windowWidth,
@@ -15,22 +16,22 @@ bool RenderManager::Init(RenderManagerInitInfo const& initInfo)
     return true;
 }
 
-void RenderManager::Shutdown()
+void RenderDeviceManager::Shutdown()
 {
     SDL_DestroyWindow(_window);
 }
 
-void RenderManager::NewFrame()
+void RenderDeviceManager::NewFrame()
 {
     //
 }
 
-void RenderManager::EndFrame()
+void RenderDeviceManager::EndFrame()
 {
     //
 }
 
-void RenderManager::ProcessEvent([[maybe_unused]] SDL_Event const& event)
+void RenderDeviceManager::ProcessEvent([[maybe_unused]] SDL_Event const& event)
 {
     //
 }

@@ -3,14 +3,14 @@
 #include <SDL3/SDL.h>
 #include "BonsaiEngineConfig.hpp" // auto-generated config file
 
-static DefaultAllocator gDefaultAllocator   = DefaultAllocator(); // Default allocator for use by subsystems.
-static EventLoopManager gEventLoopManager   = EventLoopManager();
-static RenderManager    gRenderManager      = RenderManager();
+static DefaultAllocator     gDefaultAllocator       = DefaultAllocator(); // Default allocator for use by subsystems.
+static EventLoopManager     gEventLoopManager       = EventLoopManager();
+static RenderDeviceManager  gRenderDeviceManager    = RenderDeviceManager();
 
 BonsaiEngine::~BonsaiEngine()
 {
     PrintDebugString("Shutting down Bonsai Engine...");
-    gRenderManager.Shutdown();
+    gRenderDeviceManager.Shutdown();
     gEventLoopManager.Shutdown();
     SDL_Quit();
     PrintDebugString("Goodbye!");
@@ -40,13 +40,13 @@ bool BonsaiEngine::Init()
 
     // Initialize render manager
     PrintDebugString("Initializing RenderManager");
-    RenderManagerInitInfo rmInitInfo{};
-    rmInitInfo.windowTitle = "Bonsai Engine"sv;
-    rmInitInfo.windowWidth = 1280;
-    rmInitInfo.windowHeight = 720;
+    RenderDeviceManagerInitInfo rdmInitInfo{};
+    rdmInitInfo.windowTitle = "Bonsai Engine"sv;
+    rdmInitInfo.windowWidth = 1280;
+    rdmInitInfo.windowHeight = 720;
 
-    gEventLoopManager.RegisterSubsystem(&gRenderManager);
-    if (!gRenderManager.Init(rmInitInfo))
+    gEventLoopManager.RegisterSubsystem(&gRenderDeviceManager);
+    if (!gRenderDeviceManager.Init(rdmInitInfo))
     {
         PrintDebugString("Failed to initialize RenderManager");
         return false;
@@ -77,11 +77,11 @@ int32 BonsaiEngine::Run([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]
         double const deltaTimeMillis = std::clamp(currTime - prevTime, 0.0, 100.0);
 
         // Update engine subsystems
-        gRenderManager.NewFrame();
+        gRenderDeviceManager.NewFrame();
         gEventLoopManager.PumpMessages();
 
         // TODO(nemjit001): Tick world state (fixed timestep) and render (using interpolation of leftover frame time)
-        gRenderManager.EndFrame();
+        gRenderDeviceManager.EndFrame();
     }
 
     return BonsaiEngineResult_Ok;
