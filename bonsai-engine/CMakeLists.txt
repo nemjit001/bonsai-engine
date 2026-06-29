@@ -3,14 +3,17 @@ project("BonsaiEngine"
     LANGUAGES CXX
 )
 
+# Set up dependencies
 find_package(EnTT CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 
-configure_file(BonsaiEngineConfig.hpp.in BonsaiEngineConfig.hpp)
-
-add_library(BonsaiEngineLib)
+# Create library target
+add_library(BonsaiEngineLib STATIC)
 add_library(Bonsai::Engine::Lib ALIAS BonsaiEngineLib)
+
+# Configure library
+configure_file(BonsaiEngineConfig.hpp.in BonsaiEngineConfig.hpp)
 target_sources(BonsaiEngineLib
     PRIVATE
         src/BonsaiEngine.cpp
@@ -37,13 +40,19 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetType.hpp
         src/Assets/Level.hpp
         src/Assets/Mesh.hpp
+    PUBLIC
+    FILE_SET generated_headers
+    TYPE HEADERS
+    BASE_DIRS ${CMAKE_CURRENT_BINARY_DIR}
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/BonsaiEngineConfig.hpp
 )
-target_include_directories(BonsaiEngineLib PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(BonsaiEngineLib PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiEngineLib)
 target_link_libraries(BonsaiEngineLib
     PUBLIC
         Bonsai::Base
+        Bonsai::RHI
         EnTT::EnTT
         glm::glm
         SDL3::SDL3
@@ -64,3 +73,10 @@ target_link_libraries(BonsaiEngine
 if (BUILD_TESTS)
     add_subdirectory(tests)
 endif()
+
+# Add install target
+install(
+    TARGETS BonsaiEngineLib
+    FILE_SET HEADERS
+    FILE_SET generated_headers
+)

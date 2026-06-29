@@ -4,8 +4,11 @@ project("BonsaiBase"
     LANGUAGES CXX
 )
 
-add_library(BonsaiBase)
+# Create library target
+add_library(BonsaiBase STATIC)
 add_library(Bonsai::Base ALIAS BonsaiBase)
+
+# Configure library
 target_sources(BonsaiBase
     PRIVATE
         src/Base/Allocator.cpp
@@ -39,3 +42,10 @@ target_enable_extended_warnings(BonsaiBase)
 if (BUILD_TESTS)
     add_subdirectory(tests)
 endif()
+
+# Add install target
+install(
+    TARGETS BonsaiBase
+    FILE_SET HEADERS
+    FILE_SET generated_headers
+)
