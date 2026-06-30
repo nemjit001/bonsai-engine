@@ -7,6 +7,24 @@
 
 namespace rhi
 {
+    class GPUBuffer;    //< Opaque GPU buffer handle.
+    class GPUTexture;   //< Opaque GPU texture handle.
+    class GPUPipeline;  //< Opaque GPU pipeline handle.
+    class GPUQueue;     //< Opaque GPU queue handle.
+
+    /// @brief Enumeration of GraphicsDevice result codes.
+    enum GraphicsDeviceResult : uint32
+    {
+        GraphicsDeviceResult_Ok = 0,
+    };
+
+    /// @brief The GPUCommandBuffer interface implements command recording on top of low-level graphics command buffers.
+    class BONSAI_RHI_EXPORT IGPUCommandBuffer
+    {
+    public:
+        virtual ~IGPUCommandBuffer() = default;
+    };
+
     /// @brief The GraphicsDevice interface implements a common interface on top of low-level graphics APIs.
     class BONSAI_RHI_EXPORT IGraphicsDevice
     {

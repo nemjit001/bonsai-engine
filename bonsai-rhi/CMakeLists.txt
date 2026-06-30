@@ -4,6 +4,9 @@ project("BonsaiRHI"
     LANGUAGES CXX
 )
 
+# Set up dependencies
+find_package(SDL3 CONFIG REQUIRED)
+
 # Create library target
 add_library(BonsaiRHI SHARED)
 add_library(Bonsai::RHI ALIAS BonsaiRHI)
@@ -24,6 +27,7 @@ target_enable_extended_warnings(BonsaiRHI)
 target_link_libraries(BonsaiRHI
     PUBLIC
         Bonsai::Base
+        SDL3::SDL3
 )
 target_compile_definitions(BonsaiRHI
     PRIVATE
