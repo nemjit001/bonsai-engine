@@ -3,8 +3,9 @@
 
 TEST(BonsaiRHITests, CreateGraphicsDevice)
 {
-    rhi::IGraphicsDevice* gpu = rhi::CreateGraphicsDevice();
+    RHI::GraphicsDeviceDesc gpuDesc{};
+    RHI::IGraphicsDevice* gpu = RHI::CreateGraphicsDevice(&gpuDesc);
     EXPECT_NE(gpu, nullptr);
 
-    rhi::DestroyGraphicsDevice(gpu);
+    RHI::DestroyGraphicsDevice(gpu);
 }

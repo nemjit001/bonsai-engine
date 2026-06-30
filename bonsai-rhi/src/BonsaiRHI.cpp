@@ -1,8 +1,8 @@
 #include "BonsaiRHI.hpp"
 
-namespace rhi
+namespace RHI
 {
-    IGraphicsDevice* BONSAI_RHI_APICALL CreateGraphicsDevice()
+    IGraphicsDevice* BONSAI_RHI_APICALL CreateGraphicsDevice([[maybe_unused]] GraphicsDeviceDesc* graphicsDeviceDesc)
     {
         return nullptr;
     }
@@ -11,5 +11,5 @@ namespace rhi
     {
         delete graphicsDevice;
     }
-} // namespace rhi
+} // namespace RHI
 
