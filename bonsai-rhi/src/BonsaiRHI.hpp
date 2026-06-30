@@ -13,7 +13,9 @@ namespace RHI
     class GPUSampler;   //< Opaque GPU sampler handle.
     class GPUPipeline;  //< Opaque GPU pipeline handle.
 
-    static constexpr float LOD_CLAMP_NONE = 1'000.0F; //< Disable LOD clamp in GPUSamplers.
+    static constexpr uint32 ALL_REMAINING_MIPS      = (~0u);
+    static constexpr uint32 ALL_REMAINING_LAYERS    = (~0u);
+    static constexpr float  LOD_CLAMP_NONE          = 1'000.0F;
 
     /// @brief Enumeration of GraphicsDevice result codes.
     enum GraphicsDeviceResult : uint32
@@ -86,6 +88,14 @@ namespace RHI
         GPUSamplerAddressMode_ClampToBorder     = 3,
     };
 
+    /// @brief Enumeration of GPU cull modes.
+    enum GPUCullMode : uint32
+    {
+        GPUCullMode_None    = 0,
+        GPUCullMode_Front   = 1,
+        GPUCullMode_Back    = 2,
+    };
+
     /// @brief Enumeration of GPU comparison functions.
     enum GPUCompareOp : uint32
     {
@@ -109,16 +119,40 @@ namespace RHI
         GPUBlendOp_Max          = 4,
     };
 
+    /// @brief Enumeration of GPU blend factors.
+    enum GPUBlendFactor : uint32
+    {
+        GPUBlendFactor_Zero                 = 0,
+        GPUBlendFactor_One                  = 1,
+        GPUBlendFactor_SrcColor             = 2,
+        GPUBlendFactor_DestColor            = 3,
+        GPUBlendFactor_SrcAlpha             = 4,
+        GPUBlendFactor_DestAlpha            = 5,
+        GPUBlendFactor_ConstantColor        = 6,
+        GPUBlendFactor_ConstantAlpha        = 7,
+        GPUBlendFactor_SrcAlphaSaturate     = 8,
+        GPUBlendFactor_Src1Color            = 9,
+        GPUBlendFactor_Src1Alpha            = 10,
+        GPUBlendFactor_InvSrcColor          = 11,
+        GPUBlendFactor_InvDestColor         = 12,
+        GPUBlendFactor_InvSrcAlpha          = 13,
+        GPUBlendFactor_InvDestAlpha         = 14,
+        GPUBlendFactor_InvConstantColor     = 15,
+        GPUBlendFactor_InvConstantAlpha     = 16,
+        GPUBlendFactor_InvSrc1Color         = 17,
+        GPUBlendFactor_InvSrc1Alpha         = 18,
+    };
+
     /// @brief Bitflags for GPU buffer usage.
     enum GPUBufferUsageFlagBits : uint32
     {
         GPUBufferUsage_TransferSrc      = 0x00000001,
         GPUBufferUsage_TransferDst      = 0x00000002,
-        GPUBufferUsage_UniformBuffer    = 0x00000010,
-        GPUBufferUsage_StorageBuffer    = 0x00000020,
-        GPUBufferUsage_IndexBuffer      = 0x00000040,
-        GPUBufferUsage_VertexBuffer     = 0x00000080,
-        GPUBufferUsage_IndirectBuffer   = 0x00000100,
+        GPUBufferUsage_UniformBuffer    = 0x00000004,
+        GPUBufferUsage_StorageBuffer    = 0x00000008,
+        GPUBufferUsage_IndexBuffer      = 0x00000010,
+        GPUBufferUsage_VertexBuffer     = 0x00000020,
+        GPUBufferUsage_IndirectBuffer   = 0x00000040,
     };
     typedef uint32 GPUBufferUsageFlags;
 
@@ -133,6 +167,15 @@ namespace RHI
         GPUTextureUsage_DepthStencilTarget  = 0x00000020,
     };
     typedef uint32 GPUTextureUsageFlags;
+    
+    /// @brief Bitflags for GPU shader stages.
+    enum GPUShaderStageFlagsBits : uint32
+    {
+        GPUShaderStage_Vertex   = 0x00000001,
+        GPUShaderStage_Fragment = 0x00000002,
+        GPUShaderStage_Compute  = 0x00000004,
+    };
+    typedef uint32 GPUShaderStageFlags;
 
     /// @brief 2D resource offset.
     struct Offset2D
@@ -167,20 +210,32 @@ namespace RHI
     /// @brief A GPUBufferDesc is used to create GPUBuffers.
     struct GPUBufferDesc
     {
-        GPUHeapType heapType;
-        uint32 size;
+        GPUHeapType heapType = GPUHeapType_Default;
+        uint32 size = 0;
     };
 
     /// @brief A GPUTextureDesc is used to create GPUTextures.
     struct GPUTextureDesc
     {
-        GPUTextureType textureType;
-        Extent3D dimensions;
+        GPUTextureType textureType = GPUTextureType_1D;
         GPUTextureFormat format = GPUTextureFormat_Unknown;
+        Extent3D dimensions = {};
         uint32 mipLevels = 1;
         uint32 arrayLayers = 1;
         uint32 sampleCount = 1;
         GPUTextureUsageFlags usage = 0;
+    };
+
+    /// @brief A GPUTextureViewDesc is used to create views into GPUTextures.
+    struct GPUTextureViewDesc
+    {
+        GPUTexture* texture = nullptr;
+        GPUTextureViewType viewType = GPUTextureViewType_1D;
+        GPUTextureFormat format = GPUTextureFormat_Unknown;
+        uint32 baseMipLevel = 0;
+        uint32 levelCount = ALL_REMAINING_MIPS;
+        uint32 baseArrayLayer = 0;
+        uint32 layerCount = ALL_REMAINING_LAYERS;
     };
 
     /// @brief A GPUSamplerDesc is used to create GPUSamplers.
@@ -243,6 +298,11 @@ namespace RHI
         /// @param textureDesc Texture description.
         /// @return A new GPUTexture, or nullptr on failure.
         [[nodiscard]] virtual GPUTexture* CreateTexture(GPUTextureDesc* textureDesc) = 0;
+
+        /// @brief Create a view into a GPU texture.
+        /// @param textureViewDesc Texture view description.
+        /// @return A new GPUTexture as view of another GPUTexture, or nullptr on failure.
+        virtual GPUTexture* CreateTextureView(GPUTextureViewDesc* textureViewDesc) = 0;
 
         /// @brief Destroy a GPUTexture.
         /// @param texture 
