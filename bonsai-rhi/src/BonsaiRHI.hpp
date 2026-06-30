@@ -96,6 +96,17 @@ namespace RHI
         GPUCullMode_Back    = 2,
     };
 
+    /// @brief Enumeration of GPU primitive topologies
+    enum GPUPrimitiveTopology : uint32
+    {
+        GPUPrimitiveTopology_Point          = 0,
+        GPUPrimitiveTopology_LineList       = 1,
+        GPUPrimitiveTopology_LineStrip      = 2,
+        GPUPrimitiveTopology_TriangleList   = 3,
+        GPUPrimitiveTopology_TriangleStrip  = 4,
+        GPUPrimitiveTopology_TriangleFan    = 5,
+    };
+
     /// @brief Enumeration of GPU comparison functions.
     enum GPUCompareOp : uint32
     {
