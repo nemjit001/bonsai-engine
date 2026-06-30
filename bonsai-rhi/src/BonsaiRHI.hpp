@@ -17,6 +17,8 @@ namespace RHI
     static constexpr uint32 ALL_REMAINING_LAYERS    = (~0u);
     static constexpr float  LOD_CLAMP_NONE          = 1'000.0F;
 
+    static constexpr uint32 MAX_RENDER_TARGETS      = 8u;
+
     /// @brief Enumeration of GraphicsDevice result codes.
     enum GraphicsDeviceResult : uint32
     {
@@ -39,154 +41,154 @@ namespace RHI
         GPUHeapType_Readback    = 2, //< The readback heap can be used for CPU readback commands.
     };
 
-    /// @brief Enumeration of GPU texture types.
-    enum GPUTextureType : uint32
+    /// @brief Enumeration of texture types.
+    enum TextureType : uint32
     {
-        GPUTextureType_1D   = 0,
-        GPUTextureType_2D   = 1,
-        GPUTextureType_3D   = 2,
+        TextureType_1D  = 0,
+        TextureType_2D  = 1,
+        TextureType_3D  = 2,
     };
 
-    /// @brief Enumeration of GPU texture view types.
-    enum GPUTextureViewType : uint32
+    /// @brief Enumeration of texture view types.
+    enum TextureViewType : uint32
     {
-        GPUTextureViewType_1D           = 0,
-        GPUTextureViewType_2D           = 1,
-        GPUTextureViewType_3D           = 2,
-        GPUTextureViewType_Cube         = 3,
-        GPUTextureViewType_1DArray      = 4,
-        GPUTextureViewType_2DArray      = 5,
-        GPUTextureViewType_CubeArray    = 6,
+        TextureViewType_1D          = 0,
+        TextureViewType_2D          = 1,
+        TextureViewType_3D          = 2,
+        TextureViewType_Cube        = 3,
+        TextureViewType_1DArray     = 4,
+        TextureViewType_2DArray     = 5,
+        TextureViewType_CubeArray   = 6,
     };
 
-    /// @brief Enumeration of GPU texture formats.
-    enum GPUTextureFormat : uint32
+    /// @brief Enumeration of texture formats.
+    enum TextureFormat : uint32
     {
-        GPUTextureFormat_Unknown    = 0,
+        TextureFormat_Unknown = 0,
     };
 
-    /// @brief Enumeration of GPU filter modes.
-    enum GPUFilter : uint32
+    /// @brief Enumeration of filter modes.
+    enum Filter : uint32
     {
-        GPUFilter_Nearest   = 0,
-        GPUFilter_Linear    = 1,
+        Filter_Nearest  = 0,
+        Filter_Linear   = 1,
     };
 
-    /// @brief Enumeration of GPU sampler mipmap modes.
-    enum GPUSamplerMipmapMode : uint32
+    /// @brief Enumeration of sampler mipmap modes.
+    enum SamplerMipmapMode : uint32
     {
-        GPUSamplerMipmapMode_Nearest    = 0,
-        GPUSamplerMipmapMode_Linear     = 1,
+        SamplerMipmapMode_Nearest   = 0,
+        SamplerMipmapMode_Linear    = 1,
     };
 
-    /// @brief Enumeration of GPU sampler address modes.
-    enum GPUSamplerAddressMode : uint32
+    /// @brief Enumeration of sampler address modes.
+    enum SamplerAddressMode : uint32
     {
-        GPUSamplerAddressMode_Repeat            = 0,
-        GPUSamplerAddressMode_MirroredRepeat    = 1,
-        GPUSamplerAddressMode_ClampToEdge       = 2,
-        GPUSamplerAddressMode_ClampToBorder     = 3,
+        SamplerAddressMode_Repeat           = 0,
+        SamplerAddressMode_MirroredRepeat   = 1,
+        SamplerAddressMode_ClampToEdge      = 2,
+        SamplerAddressMode_ClampToBorder    = 3,
     };
 
-    /// @brief Enumeration of GPU cull modes.
-    enum GPUCullMode : uint32
+    /// @brief Enumeration of cull modes.
+    enum CullMode : uint32
     {
-        GPUCullMode_None    = 0,
-        GPUCullMode_Front   = 1,
-        GPUCullMode_Back    = 2,
+        CullMode_None   = 0,
+        CullMode_Front  = 1,
+        CullMode_Back   = 2,
     };
 
-    /// @brief Enumeration of GPU primitive topologies
-    enum GPUPrimitiveTopology : uint32
+    /// @brief Enumeration of primitive topologies
+    enum PrimitiveTopology : uint32
     {
-        GPUPrimitiveTopology_Point          = 0,
-        GPUPrimitiveTopology_LineList       = 1,
-        GPUPrimitiveTopology_LineStrip      = 2,
-        GPUPrimitiveTopology_TriangleList   = 3,
-        GPUPrimitiveTopology_TriangleStrip  = 4,
-        GPUPrimitiveTopology_TriangleFan    = 5,
+        PrimitiveTopology_Point         = 0,
+        PrimitiveTopology_LineList      = 1,
+        PrimitiveTopology_LineStrip     = 2,
+        PrimitiveTopology_TriangleList  = 3,
+        PrimitiveTopology_TriangleStrip = 4,
+        PrimitiveTopology_TriangleFan   = 5,
     };
 
-    /// @brief Enumeration of GPU comparison functions.
-    enum GPUCompareOp : uint32
+    /// @brief Enumeration of comparison functions.
+    enum CompareOp : uint32
     {
-        GPUCompareOp_Never          = 0,
-        GPUCompareOp_Less           = 1,
-        GPUCompareOp_Equal          = 2,
-        GPUCompareOp_LessOrEqual    = 3,
-        GPUCompareOp_Greater        = 4,
-        GPUCompareOp_NotEqual       = 5,
-        GPUCompareOp_GreaterOrEqual = 6,
-        GPUCompareOp_Always         = 7,
+        CompareOp_Never             = 0,
+        CompareOp_Less              = 1,
+        CompareOp_Equal             = 2,
+        CompareOp_LessOrEqual       = 3,
+        CompareOp_Greater           = 4,
+        CompareOp_NotEqual          = 5,
+        CompareOp_GreaterOrEqual    = 6,
+        CompareOp_Always            = 7,
     };
 
-    /// @brief Enumeration of GPU blend operations.
-    enum GPUBlendOp : uint32
+    /// @brief Enumeration of blend operations.
+    enum BlendOp : uint32
     {
-        GPUBlendOp_Add          = 0,
-        GPUBlendOp_Subtract     = 1,
-        GPUBlendOp_RevSubtract  = 2,
-        GPUBlendOp_Min          = 3,
-        GPUBlendOp_Max          = 4,
+        BlendOp_Add         = 0,
+        BlendOp_Subtract    = 1,
+        BlendOp_RevSubtract = 2,
+        BlendOp_Min         = 3,
+        BlendOp_Max         = 4,
     };
 
-    /// @brief Enumeration of GPU blend factors.
-    enum GPUBlendFactor : uint32
+    /// @brief Enumeration of blend factors.
+    enum BlendFactor : uint32
     {
-        GPUBlendFactor_Zero                 = 0,
-        GPUBlendFactor_One                  = 1,
-        GPUBlendFactor_SrcColor             = 2,
-        GPUBlendFactor_DestColor            = 3,
-        GPUBlendFactor_SrcAlpha             = 4,
-        GPUBlendFactor_DestAlpha            = 5,
-        GPUBlendFactor_ConstantColor        = 6,
-        GPUBlendFactor_ConstantAlpha        = 7,
-        GPUBlendFactor_SrcAlphaSaturate     = 8,
-        GPUBlendFactor_Src1Color            = 9,
-        GPUBlendFactor_Src1Alpha            = 10,
-        GPUBlendFactor_InvSrcColor          = 11,
-        GPUBlendFactor_InvDestColor         = 12,
-        GPUBlendFactor_InvSrcAlpha          = 13,
-        GPUBlendFactor_InvDestAlpha         = 14,
-        GPUBlendFactor_InvConstantColor     = 15,
-        GPUBlendFactor_InvConstantAlpha     = 16,
-        GPUBlendFactor_InvSrc1Color         = 17,
-        GPUBlendFactor_InvSrc1Alpha         = 18,
+        BlendFactor_Zero                = 0,
+        BlendFactor_One                 = 1,
+        BlendFactor_SrcColor            = 2,
+        BlendFactor_DestColor           = 3,
+        BlendFactor_SrcAlpha            = 4,
+        BlendFactor_DestAlpha           = 5,
+        BlendFactor_ConstantColor       = 6,
+        BlendFactor_ConstantAlpha       = 7,
+        BlendFactor_SrcAlphaSaturate    = 8,
+        BlendFactor_Src1Color           = 9,
+        BlendFactor_Src1Alpha           = 10,
+        BlendFactor_InvSrcColor         = 11,
+        BlendFactor_InvDestColor        = 12,
+        BlendFactor_InvSrcAlpha         = 13,
+        BlendFactor_InvDestAlpha        = 14,
+        BlendFactor_InvConstantColor    = 15,
+        BlendFactor_InvConstantAlpha    = 16,
+        BlendFactor_InvSrc1Color        = 17,
+        BlendFactor_InvSrc1Alpha        = 18,
     };
 
-    /// @brief Bitflags for GPU buffer usage.
-    enum GPUBufferUsageFlagBits : uint32
+    /// @brief Bitflags for buffer usage.
+    enum BufferUsageFlagBits : uint32
     {
-        GPUBufferUsage_TransferSrc      = 0x00000001,
-        GPUBufferUsage_TransferDst      = 0x00000002,
-        GPUBufferUsage_UniformBuffer    = 0x00000004,
-        GPUBufferUsage_StorageBuffer    = 0x00000008,
-        GPUBufferUsage_IndexBuffer      = 0x00000010,
-        GPUBufferUsage_VertexBuffer     = 0x00000020,
-        GPUBufferUsage_IndirectBuffer   = 0x00000040,
+        BufferUsage_TransferSrc     = 0x00000001,
+        BufferUsage_TransferDst     = 0x00000002,
+        BufferUsage_UniformBuffer   = 0x00000004,
+        BufferUsage_StorageBuffer   = 0x00000008,
+        BufferUsage_IndexBuffer     = 0x00000010,
+        BufferUsage_VertexBuffer    = 0x00000020,
+        BufferUsage_IndirectBuffer  = 0x00000040,
     };
-    typedef uint32 GPUBufferUsageFlags;
+    typedef uint32 BufferUsageFlags;
 
-    /// @brief Bitflags for GPU texture usage.
-    enum GPUTextureUsageFlagBits : uint32
+    /// @brief Bitflags for texture usage.
+    enum TextureUsageFlagBits : uint32
     {
-        GPUTextureUsage_TransferSrc         = 0x00000001,
-        GPUTextureUsage_TransferDest        = 0x00000002,
-        GPUTextureUsage_Sampled             = 0x00000004,
-        GPUTextureUsage_Storage             = 0x00000008,
-        GPUTextureUsage_RenderTarget        = 0x00000010,
-        GPUTextureUsage_DepthStencilTarget  = 0x00000020,
+        TextureUsage_TransferSrc        = 0x00000001,
+        TextureUsage_TransferDest       = 0x00000002,
+        TextureUsage_Sampled            = 0x00000004,
+        TextureUsage_Storage            = 0x00000008,
+        TextureUsage_RenderTarget       = 0x00000010,
+        TextureUsage_DepthStencilTarget = 0x00000020,
     };
-    typedef uint32 GPUTextureUsageFlags;
+    typedef uint32 TextureUsageFlags;
     
-    /// @brief Bitflags for GPU shader stages.
-    enum GPUShaderStageFlagsBits : uint32
+    /// @brief Bitflags for marking shader stages.
+    enum ShaderStageFlagsBits : uint32
     {
-        GPUShaderStage_Vertex   = 0x00000001,
-        GPUShaderStage_Fragment = 0x00000002,
-        GPUShaderStage_Compute  = 0x00000004,
+        ShaderStage_Vertex      = 0x00000001,
+        ShaderStage_Pixel       = 0x00000002,
+        ShaderStage_Compute     = 0x00000004,
     };
-    typedef uint32 GPUShaderStageFlags;
+    typedef uint32 ShaderStageFlags;
 
     /// @brief 2D resource offset.
     struct Offset2D
@@ -218,31 +220,39 @@ namespace RHI
         uint32 depth;
     };
 
+    /// @brief A ShaderBlob contains compiled shader IR code.
+    struct ShaderBlob
+    {
+        void* code = nullptr;
+        uint32 size = 0;
+    };
+
     /// @brief A GPUBufferDesc is used to create GPUBuffers.
     struct GPUBufferDesc
     {
         GPUHeapType heapType = GPUHeapType_Default;
         uint32 size = 0;
+        BufferUsageFlags usage = 0;
     };
 
     /// @brief A GPUTextureDesc is used to create GPUTextures.
     struct GPUTextureDesc
     {
-        GPUTextureType textureType = GPUTextureType_1D;
-        GPUTextureFormat format = GPUTextureFormat_Unknown;
+        TextureType textureType = TextureType_1D;
+        TextureFormat format = TextureFormat_Unknown;
         Extent3D dimensions = {};
         uint32 mipLevels = 1;
         uint32 arrayLayers = 1;
         uint32 sampleCount = 1;
-        GPUTextureUsageFlags usage = 0;
+        TextureUsageFlags usage = 0;
     };
 
     /// @brief A GPUTextureViewDesc is used to create views into GPUTextures.
     struct GPUTextureViewDesc
     {
         GPUTexture* texture = nullptr;
-        GPUTextureViewType viewType = GPUTextureViewType_1D;
-        GPUTextureFormat format = GPUTextureFormat_Unknown;
+        TextureViewType viewType = TextureViewType_1D;
+        TextureFormat format = TextureFormat_Unknown;
         uint32 baseMipLevel = 0;
         uint32 levelCount = ALL_REMAINING_MIPS;
         uint32 baseArrayLayer = 0;
@@ -252,15 +262,15 @@ namespace RHI
     /// @brief A GPUSamplerDesc is used to create GPUSamplers.
     struct GPUSamplerDesc
     {
-        GPUFilter magFilter = GPUFilter_Nearest;
-        GPUFilter minFilter = GPUFilter_Nearest;
-        GPUSamplerMipmapMode mipmapMode = GPUSamplerMipmapMode_Nearest;
-        GPUSamplerAddressMode addressModeU = GPUSamplerAddressMode_Repeat;
-        GPUSamplerAddressMode addressModeV = GPUSamplerAddressMode_Repeat;
-        GPUSamplerAddressMode addressModeW = GPUSamplerAddressMode_Repeat;
+        Filter magFilter = Filter_Nearest;
+        Filter minFilter = Filter_Nearest;
+        SamplerMipmapMode mipmapMode = SamplerMipmapMode_Nearest;
+        SamplerAddressMode addressModeU = SamplerAddressMode_Repeat;
+        SamplerAddressMode addressModeV = SamplerAddressMode_Repeat;
+        SamplerAddressMode addressModeW = SamplerAddressMode_Repeat;
         float mipLODBias = 0.0F;
         uint32 maxAnisotropy = 0;
-        GPUCompareOp compareOp = GPUCompareOp_Never;
+        CompareOp compareOp = CompareOp_Never;
         float minLOD = 0.0F;
         float maxLOD = LOD_CLAMP_NONE;
     };
@@ -268,13 +278,17 @@ namespace RHI
     /// @brief A GPUComputePipelineDesc is used to create compute GPUPipelines.
     struct GPUComputePipelineDesc
     {
-        //
+        ShaderBlob computeShader = {};
     };
 
     /// @brief A GPUGraphicsPipelineDesc is used to create raster GPUPipelines.
     struct GPUGraphicsPipelineDesc
     {
-        //
+        ShaderBlob vertexShader = {};
+        ShaderBlob pixelShader = {};
+        TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
+        TextureFormat depthFormat = TextureFormat_Unknown;
+        TextureFormat stencilFormat = TextureFormat_Unknown;
     };
 
     /// @brief A GraphicsDeviceDesc is used to initialize a GraphicsDevice.
