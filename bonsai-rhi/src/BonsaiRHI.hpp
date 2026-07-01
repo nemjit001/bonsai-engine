@@ -90,6 +90,14 @@ namespace RHI
         SamplerAddressMode_ClampToBorder    = 3,
     };
 
+    /// @brief Enumeration of polygon raster modes.
+    enum PolygonMode : uint32
+    {
+        PolygonMode_Fill    = 0,
+        PolygonMode_Line    = 1,
+        PolygonMode_Point   = 2,
+    };
+
     /// @brief Enumeration of cull modes.
     enum CullMode : uint32
     {
@@ -130,6 +138,27 @@ namespace RHI
         BlendOp_RevSubtract = 2,
         BlendOp_Min         = 3,
         BlendOp_Max         = 4,
+    };
+
+    /// @brief Enumeration of logical operations.
+    enum LogicOp : uint32
+    {
+        LogicOp_Clear           = 0,
+        LogicOp_And             = 1,
+        LogicOp_AndReverse      = 2,
+        LogicOp_Copy            = 3,
+        LogicOp_AndInverted     = 4,
+        LogicOp_NoOp            = 5,
+        LogicOp_Xor             = 6,
+        LogicOp_Or              = 7,
+        LogicOp_Nor             = 8,
+        LogicOp_Equivalent      = 9,
+        LogicOp_Invert          = 10,
+        LogicOp_OrReverse       = 11,
+        LogicOp_CopyInverted    = 12,
+        LogicOp_OrInverted      = 13,
+        LogicOp_Nand            = 14,
+        LogicOp_Set             = 15,
     };
 
     /// @brief Enumeration of blend factors.
@@ -190,6 +219,17 @@ namespace RHI
     };
     typedef uint32 ShaderStageFlags;
 
+    /// @brief Bitflags for color components.
+    enum ColorComponentFlagBits : uint32
+    {
+        ColorComponent_Red      = 0x00000001,
+        ColorComponent_Green    = 0x00000002,
+        ColorComponent_Blue     = 0x00000004,
+        ColorComponent_Alpha    = 0x00000008,
+        ColorComponent_All      = ColorComponent_Red | ColorComponent_Green | ColorComponent_Blue | ColorComponent_Alpha,
+    };
+    typedef uint32 ColorComponentFlags;
+
     /// @brief 2D resource offset.
     struct Offset2D
     {
@@ -225,6 +265,49 @@ namespace RHI
     {
         void* code = nullptr;
         uint32 size = 0;
+    };
+
+    /// @brief The RasterState contains rasterization fixed function state.
+    struct RasterState
+    {
+        PolygonMode polygonMode = PolygonMode_Fill;
+        CullMode cullMode = CullMode_None;
+        bool frontFaceCounterClockwise = false;
+        uint32 sampleCount = 1;
+        bool alphaToCoverageEnable = false;
+        bool alphaToOneEnable = false;
+    };
+
+    /// @brief The DepthStencilState contains depth/stencil testing fixed function state.
+    struct DepthStencilState
+    {
+        bool depthTest = false;
+        bool depthWrite = false;
+        CompareOp depthCompareOp = CompareOp_Always;
+        float depthBias = 0.0F;
+        float depthBiasSlopeFactor = 0.0F;
+        float depthBiasClamp = 0.0F;
+    };
+
+    /// @brief The RenderTargetBlendState contains blend state per render target.
+    struct RenderTargetBlendState
+    {
+        bool blendEnable = false;
+        BlendFactor srcColorBlendFactor;
+        BlendFactor destColorBlendFactor;
+        BlendOp colorBlendOp;
+        BlendFactor srcAlphaBlendFactor;
+        BlendFactor destAlphaBlendFactor;
+        BlendOp alphaBlendOp;
+        ColorComponentFlags colorWriteMask = ColorComponent_All;
+    };
+
+    /// @brief The BlendState contains alpha blending fixed function state.
+    struct BlendState
+    {
+        RenderTargetBlendState blendTargets[MAX_RENDER_TARGETS] = {};
+        bool enableLogicOp = false;
+        LogicOp logicOp = LogicOp_Clear;
     };
 
     /// @brief A GPUBufferDesc is used to create GPUBuffers.
@@ -287,8 +370,12 @@ namespace RHI
         ShaderBlob vertexShader = {};
         ShaderBlob pixelShader = {};
         TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
+        uint32 renderTargetCount = 0;
         TextureFormat depthFormat = TextureFormat_Unknown;
         TextureFormat stencilFormat = TextureFormat_Unknown;
+        RasterState rasterState = {};
+        DepthStencilState depthStencilState = {};
+        BlendState blendState = {};
     };
 
     /// @brief A GraphicsDeviceDesc is used to initialize a GraphicsDevice.
