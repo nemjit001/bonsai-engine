@@ -161,6 +161,21 @@ namespace RHI
         LogicOp_Set             = 15,
     };
 
+    /// @brief Enumeration of load operations.
+    enum LoadOp : uint32
+    {
+        LoadOp_Load     = 0,
+        LoadOp_Clear    = 1,
+        LoadOp_DontCare = 2,
+    };
+
+    /// @brief Enumeration of store operations.
+    enum StoreOp : uint32
+    {
+        StoreOp_Store       = 0,
+        StoreOp_DontCare    = 1,
+    };
+
     /// @brief Enumeration of blend factors.
     enum BlendFactor : uint32
     {
@@ -260,6 +275,28 @@ namespace RHI
         uint32 depth;
     };
 
+    /// @brief Clear value for color targets.
+    struct ClearColorValue
+    {
+        float float32[4];
+        int32 int32[4];
+        uint32 uint32[4];
+    };
+
+    /// @brief Clear value for depth/stencil targets.
+    struct ClearDepthStencilValue
+    {
+        float depth;
+        uint32 stencil;
+    };
+
+    /// @brief A ClearValue is used to clear render targets.
+    union ClearValue
+    {
+        ClearColorValue color;
+        ClearDepthStencilValue depthStencil;
+    };
+
     /// @brief A ShaderBlob contains compiled shader IR code.
     struct ShaderBlob
     {
@@ -305,9 +342,9 @@ namespace RHI
     /// @brief The BlendState contains alpha blending fixed function state.
     struct BlendState
     {
-        RenderTargetBlendState blendTargets[MAX_RENDER_TARGETS] = {};
         bool enableLogicOp = false;
         LogicOp logicOp = LogicOp_Clear;
+        RenderTargetBlendState blendTargets[MAX_RENDER_TARGETS] = {};
     };
 
     /// @brief A GPUBufferDesc is used to create GPUBuffers.
@@ -367,15 +404,33 @@ namespace RHI
     /// @brief A GPUGraphicsPipelineDesc is used to create raster GPUPipelines.
     struct GPUGraphicsPipelineDesc
     {
-        ShaderBlob vertexShader = {};
-        ShaderBlob pixelShader = {};
-        TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
+        ShaderBlob* vertexShader = nullptr;
+        ShaderBlob* pixelShader = nullptr;
         uint32 renderTargetCount = 0;
+        TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
         TextureFormat depthFormat = TextureFormat_Unknown;
         TextureFormat stencilFormat = TextureFormat_Unknown;
         RasterState rasterState = {};
         DepthStencilState depthStencilState = {};
         BlendState blendState = {};
+    };
+
+    /// @brief The RenderPassTargetDesc contains render pass state per attached render target.
+    struct RenderPassTargetDesc
+    {
+        GPUTexture* texture = nullptr;
+        GPUTexture* resolveTarget = nullptr;
+        LoadOp loadOp = LoadOp_Load;
+        StoreOp storeOp = StoreOp_Store;
+        ClearValue clearValue = {};
+    };
+
+    /// @brief A RenderPassDesc is used to begin a render pass during command recording.
+    struct RenderPassDesc
+    {
+        uint32 colorTargetCount = 0;
+        RenderPassTargetDesc* colorTargets = nullptr;
+        RenderPassTargetDesc* depthStencilTarget = nullptr;
     };
 
     /// @brief A GraphicsDeviceDesc is used to initialize a GraphicsDevice.
@@ -389,6 +444,19 @@ namespace RHI
     {
     public:
         virtual ~IGPUCommandBuffer() = default;
+
+        virtual void CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset) = 0;
+
+        virtual void SetPipeline(GPUPipeline* pipeline) = 0;
+
+        virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) = 0;
+        virtual void EndRenderPass() = 0;
+
+        virtual void Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ) = 0;
+        virtual void DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset) = 0;
+
+        virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) = 0;
+        virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) = 0;
     };
 
     /// @brief The GraphicsDevice interface implements an abstraction layer on top of low-level graphics APIs.
