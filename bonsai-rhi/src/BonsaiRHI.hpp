@@ -25,6 +25,14 @@ namespace RHI
         GraphicsDeviceResult_Ok = 0,
     };
 
+    /// @brief Enumeration of potentially supported backend graphics APIs.
+    enum BackendAPI : uint32
+    {
+        BackendAPI_Default = 0,
+        BackendAPI_Vulkan = 1,
+        BackendAPI_WebGPU = 2,
+    };
+
     /// @brief Enumeration of GPU queue types.
     enum GPUQueueType : uint32
     {
@@ -433,10 +441,26 @@ namespace RHI
         RenderPassTargetDesc* depthStencilTarget = nullptr;
     };
 
+    /// @brief A SemVer is used to represent semantic versioning for a an app using a graphics device.
+    union SemVer
+    {
+        struct Version
+        {
+            uint8 major;
+            uint8 minor;
+            uint8 patch;
+            uint8 variant;
+        } version;
+        uint32 packed;
+    };
+
     /// @brief A GraphicsDeviceDesc is used to initialize a GraphicsDevice.
     struct GraphicsDeviceDesc
     {
+        char const* appName = nullptr;
+        SemVer appVersion = {};
         uint32 framesInFlight = 2; //< Number of frames to process simultaneously.
+        BackendAPI backendAPI = BackendAPI_Default; //< Backend API to use.
     };
 
     /// @brief The GPUCommandBuffer interface implements command recording on top of low-level graphics command buffers.
