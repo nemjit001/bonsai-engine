@@ -28,6 +28,7 @@ add_library(Bonsai::RHI ALIAS BonsaiRHI)
 target_sources(BonsaiRHI
     PRIVATE
         src/BonsaiRHI.cpp
+        src/BonsaiRHITypes.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
