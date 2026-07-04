@@ -4,8 +4,21 @@ project("BonsaiRHI"
     LANGUAGES CXX
 )
 
-# Set up dependencies
+# Set up shared dependencies
 find_package(SDL3 CONFIG REQUIRED)
+
+# Set up platform state
+set(BONSAI_RHI_TEST_VULKAN_SUPPORT OFF)
+set(BONSAI_RHI_TEST_D3D12_SUPPORT OFF)
+set(BONSAI_RHI_TEST_WEBGPU_SUPPORT OFF)
+if (WIN32)
+    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
+    set(BONSAI_RHI_TEST_D3D12_SUPPORT ON)
+    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
+elseif(LINUX)
+    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
+    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
+endif()
 
 # Create library target
 add_library(BonsaiRHI SHARED)
@@ -24,16 +37,70 @@ target_sources(BonsaiRHI
 )
 target_compile_features(BonsaiRHI PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiRHI)
+target_compile_definitions(BonsaiRHI
+    PRIVATE
+        BONSAI_RHI_EXPORT_SYMBOLS=1
+)
 target_link_libraries(BonsaiRHI
     PUBLIC
         Bonsai::Base
         SDL3::SDL3
 )
-target_compile_definitions(BonsaiRHI
-    PRIVATE
-        BONSAI_RHI_EXPORT_SYMBOLS=1
-)
 
+# Configure supported backend APIs
+if (BONSAI_RHI_TEST_VULKAN_SUPPORT)
+    message(STATUS "BonsaiRHI: Testing Vulkan support")
+    find_package(Volk CONFIG)
+
+    if (VOLK_FOUND)
+        message(STATUS "BonsaiRHI: Building with Vulkan support")
+        target_compile_definitions(BonsaiRHI
+            PRIVATE
+                BONSAI_RHI_VULKAN_SUPPORT=1
+        )
+        target_link_libraries(BonsaiRHI
+            PRIVATE
+                volk::volk_headers
+        )
+    endif()
+endif()
+
+if (BONSAI_RHI_TEST_D3D12_SUPPORT)
+    message(STATUS "BonsaiRHI: Testing D3D12 support")
+    if (WIN32)
+        message(STATUS "BonsaiRHI: Building with D3D12 support")
+        target_compile_definitions(BonsaiRHI
+            PRIVATE
+                BONSAI_RHI_D3D12_SUPPORT=1
+        )
+        target_link_libraries(BonsaiRHI
+            PRIVATE
+                d3d12
+                dxgi
+        )
+    endif()
+endif()
+
+if (BONSAI_RHI_TEST_WEBGPU_SUPPORT)
+    message(STATUS "BonsaiRHI: Testing WebGPU support")
+    find_package(WebGPU CONFIG)
+    find_package(sdl3webgpu CONFIG)
+
+    if (WebGPU_FOUND AND sdl3webgpu_FOUND)
+        message(STATUS "BonsaiRHI: Building with WebGPU support")
+        target_compile_definitions(BonsaiRHI
+            PRIVATE
+                BONSAI_RHI_WEBGPU_SUPPORT=1
+        )
+        target_link_libraries(BonsaiRHI
+            PRIVATE
+                webgpu
+                sdl3webgpu
+        )
+    endif()
+endif()
+
+# Configure unit tests
 if (BUILD_TESTS)
     add_subdirectory(tests)
 endif()

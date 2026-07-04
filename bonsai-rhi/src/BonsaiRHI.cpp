@@ -4,6 +4,10 @@
     // TODO(nemjit001): Include Vulkan backend
 #endif  // BONSAI_RHI_VULKAN_SUPPORT
 
+#if     BONSAI_RHI_D3D12_SUPPORT
+    // TODO(nemjit001): Include D3D12 backend
+#endif
+
 #if     BONSAI_RHI_WEBGPU_SUPPORT
     // TODO(nemjit001): Include WebGPU backend
 #endif  // BONSAI_RHI_WEBGPU_SUPPORT
@@ -26,6 +30,10 @@ namespace RHI
         case BackendAPI_Vulkan:
             return new VulkanGraphicsDevice::TryCreate(deviceDesc);
 #endif  // BONSAI_RHI_VULKAN_SUPPORT
+#if     BONSAI_RHI_D3D12_SUPPORT
+        case BackendAPI_D3D12:
+            return new D3D12GraphicsDevice::TryCreate(deviceDesc);
+#endif  // BONSAI_RHI_D3D12_SUPPORT
 #if     BONSAI_RHI_WEBGPU_SUPPORT
         case BackendAPI_WebGPU:
             return new WebGPUGraphicsDevice::TryCreate(deviceDesc);

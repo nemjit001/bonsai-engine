@@ -28,9 +28,10 @@ namespace RHI
     /// @brief Enumeration of potentially supported backend graphics APIs.
     enum BackendAPI : uint32
     {
-        BackendAPI_Default = 0,
-        BackendAPI_Vulkan = 1,
-        BackendAPI_WebGPU = 2,
+        BackendAPI_Default  = 0,
+        BackendAPI_Vulkan   = 1,
+        BackendAPI_D3D12    = 2,
+        BackendAPI_WebGPU   = 3,
     };
 
     /// @brief Enumeration of GPU queue types.
