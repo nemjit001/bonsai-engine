@@ -7,19 +7,6 @@ project("BonsaiRHI"
 # Set up shared dependencies
 find_package(SDL3 CONFIG REQUIRED)
 
-# Set up platform state
-set(BONSAI_RHI_TEST_VULKAN_SUPPORT OFF)
-set(BONSAI_RHI_TEST_D3D12_SUPPORT OFF)
-set(BONSAI_RHI_TEST_WEBGPU_SUPPORT OFF)
-if (WIN32)
-    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
-    set(BONSAI_RHI_TEST_D3D12_SUPPORT ON)
-    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
-elseif(LINUX)
-    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
-    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
-endif()
-
 # Create library target
 add_library(BonsaiRHI SHARED)
 add_library(Bonsai::RHI ALIAS BonsaiRHI)
@@ -49,16 +36,26 @@ target_link_libraries(BonsaiRHI
 )
 
 # Configure supported backend APIs
+set(BONSAI_RHI_VULKAN_SUPPORT OFF)
+set(BONSAI_RHI_D3D12_SUPPORT OFF)
+set(BONSAI_RHI_WEBGPU_SUPPORT OFF)
+if (WIN32)
+    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
+    set(BONSAI_RHI_TEST_D3D12_SUPPORT ON)
+    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
+elseif(LINUX)
+    set(BONSAI_RHI_TEST_VULKAN_SUPPORT ON)
+    set(BONSAI_RHI_TEST_WEBGPU_SUPPORT ON)
+endif()
+
 if (BONSAI_RHI_TEST_VULKAN_SUPPORT)
     message(STATUS "BonsaiRHI: Testing Vulkan support")
     find_package(Volk CONFIG)
 
-    if (VOLK_FOUND)
+    if (Volk_FOUND)
         message(STATUS "BonsaiRHI: Building with Vulkan support")
-        target_compile_definitions(BonsaiRHI
-            PRIVATE
-                BONSAI_RHI_VULKAN_SUPPORT=1
-        )
+        set(BONSAI_RHI_VULKAN_SUPPORT ON)
+
         target_link_libraries(BonsaiRHI
             PRIVATE
                 volk::volk_headers
@@ -70,10 +67,8 @@ if (BONSAI_RHI_TEST_D3D12_SUPPORT)
     message(STATUS "BonsaiRHI: Testing D3D12 support")
     if (WIN32)
         message(STATUS "BonsaiRHI: Building with D3D12 support")
-        target_compile_definitions(BonsaiRHI
-            PRIVATE
-                BONSAI_RHI_D3D12_SUPPORT=1
-        )
+        set(BONSAI_RHI_D3D12_SUPPORT ON)
+
         target_link_libraries(BonsaiRHI
             PRIVATE
                 d3d12
@@ -89,10 +84,8 @@ if (BONSAI_RHI_TEST_WEBGPU_SUPPORT)
 
     if (WebGPU_FOUND AND sdl3webgpu_FOUND)
         message(STATUS "BonsaiRHI: Building with WebGPU support")
-        target_compile_definitions(BonsaiRHI
-            PRIVATE
-                BONSAI_RHI_WEBGPU_SUPPORT=1
-        )
+        set(BONSAI_RHI_WEBGPU_SUPPORT ON)
+
         target_link_libraries(BonsaiRHI
             PRIVATE
                 webgpu
@@ -100,6 +93,18 @@ if (BONSAI_RHI_TEST_WEBGPU_SUPPORT)
         )
     endif()
 endif()
+
+message(STATUS "BonsaiRHI: Found API support:")
+message(STATUS "    BonsaiRHI Vulkan support:   ${BONSAI_RHI_VULKAN_SUPPORT}")
+message(STATUS "    BonsaiRHI D3D12 support:    ${BONSAI_RHI_D3D12_SUPPORT}")
+message(STATUS "    BonsaiRHI WebGPU support:   ${BONSAI_RHI_WEBGPU_SUPPORT}")
+
+target_compile_definitions(BonsaiRHI
+    PRIVATE
+        BONSAI_RHI_VULKAN_SUPPORT=$<BOOL:${BONSAI_RHI_VULKAN_SUPPORT}>
+        BONSAI_RHI_D3D12_SUPPORT=$<BOOL:${BONSAI_RHI_D3D12_SUPPORT}>
+        BONSAI_RHI_WEBGPU_SUPPORT=$<BOOL:${BONSAI_RHI_WEBGPU_SUPPORT}>
+)
 
 # Configure unit tests
 if (BUILD_TESTS)

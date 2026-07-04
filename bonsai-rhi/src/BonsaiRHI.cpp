@@ -1,4 +1,5 @@
 #include "BonsaiRHI.hpp"
+#include "BonsaiRHITypes.hpp"
 
 #if     BONSAI_RHI_VULKAN_SUPPORT
     // TODO(nemjit001): Include Vulkan backend
@@ -28,15 +29,15 @@ namespace RHI
         case BackendAPI_Default:    // Acts as fallthrough statement to first supported backend on platform
 #if     BONSAI_RHI_VULKAN_SUPPORT
         case BackendAPI_Vulkan:
-            return new VulkanGraphicsDevice::TryCreate(deviceDesc);
+            // return new VulkanGraphicsDevice::TryCreate(deviceDesc);
 #endif  // BONSAI_RHI_VULKAN_SUPPORT
 #if     BONSAI_RHI_D3D12_SUPPORT
         case BackendAPI_D3D12:
-            return new D3D12GraphicsDevice::TryCreate(deviceDesc);
+            // return new D3D12GraphicsDevice::TryCreate(deviceDesc);
 #endif  // BONSAI_RHI_D3D12_SUPPORT
 #if     BONSAI_RHI_WEBGPU_SUPPORT
         case BackendAPI_WebGPU:
-            return new WebGPUGraphicsDevice::TryCreate(deviceDesc);
+            // return new WebGPUGraphicsDevice::TryCreate(deviceDesc);
 #endif  // BONSAI_RHI_WEBGPU_SUPPORT
         default:
             break;
