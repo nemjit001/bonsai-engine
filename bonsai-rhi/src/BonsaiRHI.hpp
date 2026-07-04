@@ -253,6 +253,15 @@ namespace RHI
     };
     typedef uint32 ColorComponentFlags;
 
+    /// @brief Bitflags for texture aspects.
+    enum TextureAspectMaskBits : uint32
+    {
+        TextureAspect_Color     = 0x00000001,
+        TextureAspect_Depth     = 0x00000002,
+        TextureAspect_Stencil   = 0x00000004,
+    };
+    typedef uint32 TextureAspectMask;
+
     /// @brief 2D resource offset.
     struct Offset2D
     {
@@ -355,6 +364,23 @@ namespace RHI
         RenderTargetBlendState blendTargets[MAX_RENDER_TARGETS] = {};
     };
 
+    /// @brief A TextureSubresourceRange represents a range of texture subresources.
+    struct TextureSubresourceRange
+    {
+        TextureAspectMask aspectMask = 0;
+        uint32 baseMipLevel = 0;
+        uint32 levelCount = ALL_REMAINING_MIPS;
+        uint32 baseArrayLayer = 0;
+        uint32 layerCount = ALL_REMAINING_LAYERS;
+    };
+
+    /// @brief A TextureSubresource contains represents a specific texture subresource.
+    struct TextureSubresource
+    {
+        TextureAspectMask aspectMask = 0;
+        uint32 mipLevel = 0;
+    };
+
     /// @brief A GPUBufferDesc is used to create GPUBuffers.
     struct GPUBufferDesc
     {
@@ -381,10 +407,7 @@ namespace RHI
         GPUTexture* texture = nullptr;
         TextureViewType viewType = TextureViewType_1D;
         TextureFormat format = TextureFormat_Unknown;
-        uint32 baseMipLevel = 0;
-        uint32 levelCount = ALL_REMAINING_MIPS;
-        uint32 baseArrayLayer = 0;
-        uint32 layerCount = ALL_REMAINING_LAYERS;
+        TextureSubresourceRange subresourceRange = {};
     };
 
     /// @brief A GPUSamplerDesc is used to create GPUSamplers.
@@ -470,8 +493,16 @@ namespace RHI
         virtual ~IGPUCommandBuffer() = default;
 
         virtual void CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset) = 0;
+        virtual void CopyTextureToTexture(GPUTexture* src, GPUTexture* dest,
+                TextureSubresource srcSubresource, Offset3D srcOffset, TextureSubresource destSubresource, Offset3D destOffset, Extent3D extent) = 0;
+        virtual void CopyBufferToTexture(GPUBuffer* src, GPUTexture* dest,
+            int64 bufferOffset, uint64 rowPitch, uint64 rowCount, TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent) = 0;
+        virtual void CopyBufferToTexture(GPUTexture* src, GPUBuffer* dest,
+            int64 bufferOffset, uint64 rowPitch, uint64 rowCount, TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent) = 0;
 
         virtual void SetPipeline(GPUPipeline* pipeline) = 0;
+        virtual void SetDepthStencilState(DepthStencilState* depthStencilState) = 0;
+        virtual void SetBlendState(BlendState* blendState) = 0;
 
         virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) = 0;
         virtual void EndRenderPass() = 0;
