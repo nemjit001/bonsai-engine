@@ -581,6 +581,9 @@ namespace RHI
         /// @param commandBufferCount Number of command buffers in command buffer array.
         /// @return A GraphicsDeviceResult indicating submit status.
         [[nodiscard]] virtual GraphicsDeviceResult Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount) = 0;
+
+        /// @brief Wait for the graphics device to be idle (i.e. all submitted work has finished).
+        virtual void WaitIdle() = 0;
     };
 
     /// @brief Create an RHI graphics device.
