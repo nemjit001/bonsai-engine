@@ -494,12 +494,22 @@ namespace RHI
         virtual ~IGPUCommandBuffer() = default;
 
         virtual void CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset) = 0;
-        virtual void CopyTextureToTexture(GPUTexture* src, GPUTexture* dest,
-                TextureSubresource srcSubresource, Offset3D srcOffset, TextureSubresource destSubresource, Offset3D destOffset, Extent3D extent) = 0;
-        virtual void CopyBufferToTexture(GPUBuffer* src, GPUTexture* dest,
-            int64 bufferOffset, uint64 rowPitch, uint64 rowCount, TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent) = 0;
-        virtual void CopyBufferToTexture(GPUTexture* src, GPUBuffer* dest,
-            int64 bufferOffset, uint64 rowPitch, uint64 rowCount, TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent) = 0;
+        virtual void CopyTextureToTexture(
+            GPUTexture* src, GPUTexture* dest,
+            TextureSubresource srcSubresource, Offset3D srcOffset,
+            TextureSubresource destSubresource, Offset3D destOffset,
+            Extent3D extent
+        ) = 0;
+        virtual void CopyBufferToTexture(
+            GPUBuffer* src, GPUTexture* dest,
+            int64 bufferOffset, uint64 rowPitch, uint64 rowCount,
+            TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
+        ) = 0;
+        virtual void CopyTextureToBuffer(
+            GPUTexture* src, GPUBuffer* dest,
+            int64 bufferOffset, uint64 rowPitch, uint64 rowCount,
+            TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
+        ) = 0;
 
         virtual void SetPipeline(GPUPipeline* pipeline) = 0;
         virtual void SetDepthStencilState(DepthStencilState* depthStencilState) = 0;
