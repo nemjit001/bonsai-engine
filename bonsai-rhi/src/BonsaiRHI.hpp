@@ -226,7 +226,7 @@ namespace RHI
     enum TextureUsageFlagBits : uint32
     {
         TextureUsage_TransferSrc        = 0x00000001,
-        TextureUsage_TransferDest       = 0x00000002,
+        TextureUsage_TransferDst        = 0x00000002,
         TextureUsage_Sampled            = 0x00000004,
         TextureUsage_Storage            = 0x00000008,
         TextureUsage_RenderTarget       = 0x00000010,
@@ -422,6 +422,7 @@ namespace RHI
         SamplerAddressMode addressModeW = SamplerAddressMode_Repeat;
         float mipLODBias = 0.0F;
         uint32 maxAnisotropy = 0;
+        bool enableCompareOp = false;
         CompareOp compareOp = CompareOp_Never;
         float minLOD = 0.0F;
         float maxLOD = LOD_CLAMP_NONE;
