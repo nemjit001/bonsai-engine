@@ -232,8 +232,8 @@ namespace RHI
         WGPUBufferDescriptor wgpuBufferDesc{};
         wgpuBufferDesc.nextInChain = nullptr;
         wgpuBufferDesc.label = {};
-        wgpuBufferDesc.size = bufferDesc->size;
         wgpuBufferDesc.usage = usage;
+        wgpuBufferDesc.size = bufferDesc->size;
         wgpuBufferDesc.mappedAtCreation = false;
 
         WGPUBuffer buffer = wgpuDeviceCreateBuffer(_device, &wgpuBufferDesc);
@@ -251,12 +251,58 @@ namespace RHI
 
     GPUTexture* WebGPUGraphicsDevice::CreateTexture(GPUTextureDesc* textureDesc)
     {
+        if (!textureDesc) {
+            return nullptr;
+        }
+
+        WGPUTextureUsage usage = 0;
+        if (BitFlagIsSet(textureDesc->usage, TextureUsage_TransferSrc)) {
+            usage |= WGPUTextureUsage_CopySrc;
+        }
+        if (BitFlagIsSet(textureDesc->usage, TextureUsage_TransferDst)) {
+            usage |= WGPUTextureUsage_CopyDst;
+        }
+        if (BitFlagIsSet(textureDesc->usage, TextureUsage_Sampled)) {
+            usage |= WGPUTextureUsage_TextureBinding;
+        }
+        if (BitFlagIsSet(textureDesc->usage, TextureUsage_Storage)) {
+            usage |= WGPUTextureUsage_StorageBinding;
+        }
+        if (BitFlagIsSet(textureDesc->usage, TextureUsage_RenderTarget)
+            || BitFlagIsSet(textureDesc->usage, TextureUsage_DepthStencilTarget)) {
+            usage |= WGPUTextureUsage_RenderAttachment;
+        }
+
+        WGPUTextureDescriptor wgpuTextureDesc{};
+        wgpuTextureDesc.nextInChain = nullptr;
+        wgpuTextureDesc.label = {};
+        wgpuTextureDesc.usage = usage;
+        wgpuTextureDesc.dimension = WGPUTextureDimension_1D; // TODO(nemjit001): use LUT for dims
+        wgpuTextureDesc.size = {}; // TODO(nemjit001): Set up size desc
+        wgpuTextureDesc.format = WGPUTextureFormat_Undefined; // TODO(nemjit001): use LUT for format
+        wgpuTextureDesc.mipLevelCount = textureDesc->mipLevels;
+        wgpuTextureDesc.sampleCount = textureDesc->sampleCount;
+        wgpuTextureDesc.viewFormatCount = 0;
+        wgpuTextureDesc.viewFormats = nullptr;
+
+        WGPUTexture texture = wgpuDeviceCreateTexture(_device, &wgpuTextureDesc);
+        if (!texture) {
+            return nullptr;
+        }
+
+        WGPUTextureView view = wgpuTextureCreateView(texture, nullptr);
+        if (!view)
+        {
+            wgpuTextureRelease(texture);
+            return nullptr;
+        }
+
         return new WebGPUTexture(BackendAPI_WebGPU, texture, view);
     }
 
     GPUTexture* WebGPUGraphicsDevice::CreateTextureView(GPUTextureViewDesc* textureViewDesc)
     {
-        return new WebGPUTexture(BackendAPI_WebGPU, texture, view);
+        return nullptr;
     }
 
     void WebGPUGraphicsDevice::DestroyTexture(GPUTexture* texture)
@@ -266,6 +312,30 @@ namespace RHI
 
     GPUSampler* WebGPUGraphicsDevice::CreateSampler(GPUSamplerDesc* samplerDesc)
     {
+        if (!samplerDesc) {
+            return nullptr;
+        }
+
+        WGPUSamplerDescriptor wgpuSamplerDesc{};
+        wgpuSamplerDesc.nextInChain = nullptr;
+        wgpuSamplerDesc.label = {};
+        wgpuSamplerDesc.addressModeU = WGPUAddressMode_Undefined; // TODO(nemjit001): use LUT for address mode
+        wgpuSamplerDesc.addressModeV = WGPUAddressMode_Undefined;
+        wgpuSamplerDesc.addressModeW = WGPUAddressMode_Undefined;
+        wgpuSamplerDesc.magFilter = WGPUFilterMode_Nearest; // TODO(nemjit001): use LUT for filter mode
+        wgpuSamplerDesc.minFilter = WGPUFilterMode_Nearest;
+        wgpuSamplerDesc.mipmapFilter = WGPUMipmapFilterMode_Nearest; // TODO(nemjit001): use LUT for mipmap mode
+        wgpuSamplerDesc.lodMinClamp = samplerDesc->minLOD;
+        wgpuSamplerDesc.lodMaxClamp = samplerDesc->maxLOD;
+        wgpuSamplerDesc.compare = samplerDesc->enableCompareOp ?
+            WGPUCompareFunction_Never : WGPUCompareFunction_Undefined; // TODO(nemjit001): use LUT for compare op
+        wgpuSamplerDesc.maxAnisotropy = samplerDesc->maxAnisotropy;
+
+        WGPUSampler sampler = wgpuDeviceCreateSampler(_device, &wgpuSamplerDesc);
+        if (!sampler) {
+            return nullptr;
+        }
+
         return new WebGPUSampler(BackendAPI_WebGPU, sampler);
     }
 
@@ -276,11 +346,47 @@ namespace RHI
 
     GPUPipeline* WebGPUGraphicsDevice::CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc)
     {
-        return new WebGPUPipeline(BackendAPI_WebGPU, pipeline);
+        return nullptr;
     }
 
     GPUPipeline* WebGPUGraphicsDevice::CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc)
     {
+        if (!pipelineDesc) {
+            return nullptr;
+        }
+
+        WGPUShaderSourceWGSL computeShaderSource{};
+        computeShaderSource.chain.sType = WGPUSType_ShaderSourceWGSL;
+        computeShaderSource.chain.next = nullptr;
+        computeShaderSource.code.data = static_cast<char*>(pipelineDesc->computeShader.code);
+        computeShaderSource.code.length = pipelineDesc->computeShader.size;
+
+        WGPUShaderModuleDescriptor computeShaderDesc{};
+        computeShaderDesc.nextInChain = &computeShaderSource.chain;
+        computeShaderDesc.label = {};
+
+        WGPUShaderModule computeShader = wgpuDeviceCreateShaderModule(_device, &computeShaderDesc);
+        if (!computeShader) {
+            return nullptr;
+        }
+
+        WGPUComputePipelineDescriptor computePipelineDesc{};
+        computePipelineDesc.nextInChain = nullptr;
+        computePipelineDesc.label = {};
+        computePipelineDesc.layout = nullptr;
+        computePipelineDesc.compute.nextInChain = nullptr;
+        computePipelineDesc.compute.module = computeShader;
+        computePipelineDesc.compute.entryPoint = {}; // TODO(nemjit001): Provide entrypoint name in desc
+        computePipelineDesc.compute.constantCount = 0;
+        computePipelineDesc.compute.constants = nullptr;
+
+        WGPUComputePipeline pipeline = wgpuDeviceCreateComputePipeline(_device, &computePipelineDesc);
+        wgpuShaderModuleRelease(computeShader);
+        
+        if (!pipeline) {
+            return nullptr;
+        }
+
         return new WebGPUPipeline(BackendAPI_WebGPU, pipeline);
     }
 
@@ -293,7 +399,7 @@ namespace RHI
     {
         WGPUCommandEncoderDescriptor commandEncoderDesc{};
         commandEncoderDesc.nextInChain = nullptr;
-        commandEncoderDesc.label = WGPUStringView{ "Command Encoder", WGPU_STRLEN };
+        commandEncoderDesc.label = {};
 
         WGPUCommandEncoder commandEncoder = wgpuDeviceCreateCommandEncoder(_device, &commandEncoderDesc);
         if (!commandEncoder) {
