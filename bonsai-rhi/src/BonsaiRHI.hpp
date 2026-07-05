@@ -444,8 +444,8 @@ namespace RHI
         TextureFormat depthFormat = TextureFormat_Unknown;
         TextureFormat stencilFormat = TextureFormat_Unknown;
         RasterState rasterState = {};
-        DepthStencilState depthStencilState = {};
-        BlendState blendState = {};
+        DepthStencilState* depthStencilState = nullptr;
+        BlendState* blendState = nullptr;
     };
 
     /// @brief The RenderPassTargetDesc contains render pass state per attached render target.

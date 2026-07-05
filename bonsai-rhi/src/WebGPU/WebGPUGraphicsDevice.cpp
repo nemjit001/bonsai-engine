@@ -346,7 +346,55 @@ namespace RHI
 
     GPUPipeline* WebGPUGraphicsDevice::CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc)
     {
-        return nullptr;
+        if (!pipelineDesc) {
+            return;
+        }
+
+        WGPURenderPipelineDescriptor renderPipelineDesc{};
+        renderPipelineDesc.nextInChain = nullptr;
+        renderPipelineDesc.label = {};
+        renderPipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
+        renderPipelineDesc.vertex = {}; // TODO(nemjit001): Add support for vertex layout & vertex shader
+        renderPipelineDesc.fragment = nullptr; // TODO(nemjit001): Add support for color blend state & fragment shader
+        renderPipelineDesc.primitive.nextInChain = nullptr;
+        renderPipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList; // TODO(nemjit001): use topology LUT
+        renderPipelineDesc.primitive.stripIndexFormat = WGPUIndexFormat_Undefined; // TODO(nemjit001): add support for strip index formats
+        renderPipelineDesc.primitive.frontFace = pipelineDesc->rasterState.frontFaceCounterClockwise ?
+            WGPUFrontFace_CCW : WGPUFrontFace_CW;
+        renderPipelineDesc.primitive.cullMode = WGPUCullMode_None; // TODO(nemjit001): use cull mode LUT
+        renderPipelineDesc.primitive.unclippedDepth = false; // TODO(nemjit001): add support for unclipped depth
+        renderPipelineDesc.multisample.nextInChain = nullptr;
+        renderPipelineDesc.multisample.count = pipelineDesc->rasterState.sampleCount;
+        renderPipelineDesc.multisample.alphaToCoverageEnabled = pipelineDesc->rasterState.alphaToCoverageEnable;
+        renderPipelineDesc.multisample.mask = UINT32_MAX; // TODO(nemjit001): add support for msaa sample mask
+        renderPipelineDesc.depthStencil = nullptr;
+
+        WGPUDepthStencilState depthStencilState{};
+        if (pipelineDesc->depthStencilState)
+        {
+            depthStencilState.nextInChain = nullptr;
+            depthStencilState.format = WGPUTextureFormat_Undefined; // TODO(nemjit001): use texture format LUT
+            depthStencilState.depthWriteEnabled = pipelineDesc->depthStencilState->depthWrite ?
+                WGPUOptionalBool_True : WGPUOptionalBool_False;
+            depthStencilState.depthCompare = pipelineDesc->depthStencilState->depthTest ?
+                WGPUCompareFunction_Never : WGPUCompareFunction_Undefined; // TODO(nemjit001): use compare op LUT
+            depthStencilState.stencilFront = {};
+            depthStencilState.stencilBack = {};
+            depthStencilState.stencilReadMask = 0;
+            depthStencilState.stencilWriteMask = 0;
+            depthStencilState.depthBias = static_cast<uint32>(pipelineDesc->depthStencilState->depthBias);
+            depthStencilState.depthBiasSlopeScale = pipelineDesc->depthStencilState->depthBiasSlopeFactor;
+            depthStencilState.depthBiasClamp = pipelineDesc->depthStencilState->depthBiasClamp;
+            
+            renderPipelineDesc.depthStencil = &depthStencilState;
+        }
+
+        WGPURenderPipeline pipeline = wgpuDeviceCreateRenderPipeline(_device, &renderPipelineDesc);
+        if (!pipeline) {
+            return nullptr;
+        }
+
+        return new WebGPUPipeline(BackendAPI_WebGPU, pipeline);
     }
 
     GPUPipeline* WebGPUGraphicsDevice::CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc)
@@ -373,7 +421,7 @@ namespace RHI
         WGPUComputePipelineDescriptor computePipelineDesc{};
         computePipelineDesc.nextInChain = nullptr;
         computePipelineDesc.label = {};
-        computePipelineDesc.layout = nullptr;
+        computePipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
         computePipelineDesc.compute.nextInChain = nullptr;
         computePipelineDesc.compute.module = computeShader;
         computePipelineDesc.compute.entryPoint = {}; // TODO(nemjit001): Provide entrypoint name in desc
