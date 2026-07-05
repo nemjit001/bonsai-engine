@@ -22,6 +22,10 @@ target_sources(BonsaiRHI
         src/ShaderCompiler/ShaderBlob.hpp
         src/ShaderCompiler/SlangShaderCompiler.cpp
         src/ShaderCompiler/SlangShaderCompiler.hpp
+        src/WebGPU/WebGPUGraphicsDevice.cpp
+        src/WebGPU/WebGPUGraphicsDevice.hpp
+        src/WebGPU/WebGPUTypes.cpp
+        src/WebGPU/WebGPUTypes.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/

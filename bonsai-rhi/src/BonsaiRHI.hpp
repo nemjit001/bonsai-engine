@@ -604,6 +604,17 @@ namespace RHI
     /// @brief Destroy an RHI graphics device.
     /// @param graphicsDevice Graphics device to destroy.
     BONSAI_RHI_EXPORT void BONSAI_RHI_APICALL DestroyGraphicsDevice(IGraphicsDevice* graphicsDevice);
+
+    /// @brief Check if a bit flag is set in a bit set.
+    /// @tparam BitSetType Type of the bit set.
+    /// @tparam FlagType Type of the bit flag.
+    /// @param bitset Bitset to use for test.
+    /// @param flag Flag to test.
+    /// @return A boolean indicating if the flag is set.
+    template<typename BitSetType, typename FlagType>
+    constexpr bool BitFlagIsSet(BitSetType bitset, FlagType flag) {
+        return (bitset & flag) != 0;
+    }
 } // namespace RHI
 
 #endif //BONSAI_RHI_HPP
