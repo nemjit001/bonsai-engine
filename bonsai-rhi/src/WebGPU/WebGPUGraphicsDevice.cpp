@@ -5,6 +5,243 @@
 
 namespace RHI
 {
+    /// @brief Texture dims LUT.
+    static constexpr WGPUTextureDimension gTextureDimensionLUT[] = {
+        WGPUTextureDimension_1D,
+        WGPUTextureDimension_2D,
+        WGPUTextureDimension_3D,
+    };
+
+    /// @brief Texture view dims LUT.
+    static constexpr WGPUTextureViewDimension gTextureViewDimensionsLUT[] = {
+        WGPUTextureViewDimension_1D,
+        WGPUTextureViewDimension_2D,
+        WGPUTextureViewDimension_3D,
+        WGPUTextureViewDimension_Cube,
+        WGPUTextureViewDimension_Undefined, // View dimension 1D array unsupported
+        WGPUTextureViewDimension_2DArray,
+        WGPUTextureViewDimension_CubeArray,
+    };
+
+    /// @brief Texture format LUT.
+    static constexpr WGPUTextureFormat gTextureFormatLUT[] = {
+        WGPUTextureFormat_Undefined,
+    };
+
+    /// @brief Filter mode LUT.
+    static constexpr WGPUFilterMode gFilterModeLUT[] = {
+        WGPUFilterMode_Nearest,
+        WGPUFilterMode_Linear,
+    };
+
+    /// @brief Mipmap filter mode LUT.
+    static constexpr WGPUMipmapFilterMode gMipmapFilterModeLUT[] = {
+        WGPUMipmapFilterMode_Nearest,
+        WGPUMipmapFilterMode_Linear,
+    };
+
+    /// @brief Address mode LUT.
+    static constexpr WGPUAddressMode gAddressModeLUT[] = {
+        WGPUAddressMode_Repeat,
+        WGPUAddressMode_MirrorRepeat,
+        WGPUAddressMode_ClampToEdge,
+        WGPUAddressMode_ClampToEdge, // Address mode clamp to border unsupported
+    };
+
+    /// @brief Cull mode LUT.
+    static constexpr WGPUCullMode gCullModeLUT[] = {
+        WGPUCullMode_None,
+        WGPUCullMode_Front,
+        WGPUCullMode_Back,
+    };
+
+    /// @brief Primitive topology LUT.
+    static constexpr WGPUPrimitiveTopology gPrimitiveTopologyLUT[] = {
+        WGPUPrimitiveTopology_PointList,
+        WGPUPrimitiveTopology_LineList,
+        WGPUPrimitiveTopology_LineStrip,
+        WGPUPrimitiveTopology_TriangleList,
+        WGPUPrimitiveTopology_TriangleStrip,
+        WGPUPrimitiveTopology_Undefined, // Triangle fan unsupported
+    };
+
+    /// @brief Compare function LUT.
+    static constexpr WGPUCompareFunction gCompareFunctionLUT[] = {
+        WGPUCompareFunction_Never,
+        WGPUCompareFunction_Less,
+        WGPUCompareFunction_Equal,
+        WGPUCompareFunction_LessEqual,
+        WGPUCompareFunction_Greater,
+        WGPUCompareFunction_NotEqual,
+        WGPUCompareFunction_GreaterEqual,
+        WGPUCompareFunction_Always,
+    };
+
+    /// @brief Blend operation LUT.
+    static constexpr WGPUBlendOperation gBlendOperationLUT[] = {
+        WGPUBlendOperation_Add,
+        WGPUBlendOperation_Subtract,
+        WGPUBlendOperation_ReverseSubtract,
+        WGPUBlendOperation_Min,
+        WGPUBlendOperation_Max,
+    };
+
+    /// @brief Load op LUT.
+    static constexpr WGPULoadOp gLoadOpLUT[] = {
+        WGPULoadOp_Load,
+        WGPULoadOp_Clear,
+        WGPULoadOp_Undefined,
+    };
+
+    /// @brief Store op LUT.
+    static constexpr WGPUStoreOp gStoreOpLUT[] = {
+        WGPUStoreOp_Store,
+        WGPUStoreOp_Undefined,
+    };
+
+    /// @brief Blend factor LUT.
+    static constexpr WGPUBlendFactor gBlendFactorLUT[] = {
+        WGPUBlendFactor_Zero,
+        WGPUBlendFactor_One,
+        WGPUBlendFactor_Src,
+        WGPUBlendFactor_Dst,
+        WGPUBlendFactor_SrcAlpha,
+        WGPUBlendFactor_DstAlpha,
+        WGPUBlendFactor_Constant,
+        WGPUBlendFactor_Constant,
+        WGPUBlendFactor_SrcAlphaSaturated,
+        WGPUBlendFactor_Src1,
+        WGPUBlendFactor_Src1Alpha,
+        WGPUBlendFactor_OneMinusSrc,
+        WGPUBlendFactor_OneMinusDst,
+        WGPUBlendFactor_OneMinusSrcAlpha,
+        WGPUBlendFactor_OneMinusDstAlpha,
+        WGPUBlendFactor_OneMinusConstant,
+        WGPUBlendFactor_OneMinusConstant,
+        WGPUBlendFactor_OneMinusSrc1,
+        WGPUBlendFactor_OneMinusSrc1Alpha,
+    };
+
+    /// @brief Get the WebGPU buffer usage flags.
+    /// @param usageFlags 
+    /// @return 
+    static WGPUBufferUsage GetBufferUsage(RHI::BufferUsageFlags usageFlags)
+    {
+        WGPUBufferUsage usage = 0;
+        if (BitFlagIsSet(usageFlags, BufferUsage_TransferSrc)) {
+            usage |= WGPUBufferUsage_CopySrc;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_TransferDst)) {
+            usage |= WGPUBufferUsage_CopyDst;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_UniformBuffer)) {
+            usage |= WGPUBufferUsage_Uniform;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_StorageBuffer)) {
+            usage |= WGPUBufferUsage_Storage;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_IndexBuffer)) {
+            usage |= WGPUBufferUsage_Index;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_VertexBuffer)) {
+            usage |= WGPUBufferUsage_Vertex;
+        }
+        if (BitFlagIsSet(usageFlags, BufferUsage_IndirectBuffer)) {
+            usage |= WGPUBufferUsage_Indirect;
+        }
+
+        return usage;
+    };
+
+    /// @brief Get the WebGPU texture usage flags.
+    /// @param usageFlags 
+    /// @return 
+    static WGPUTextureUsage GetTextureUsage(TextureUsageFlags usageFlags)
+    {
+        WGPUTextureUsage usage = 0;
+        if (BitFlagIsSet(usageFlags, TextureUsage_TransferSrc)) {
+            usage |= WGPUTextureUsage_CopySrc;
+        }
+        if (BitFlagIsSet(usageFlags, TextureUsage_TransferDst)) {
+            usage |= WGPUTextureUsage_CopyDst;
+        }
+        if (BitFlagIsSet(usageFlags, TextureUsage_Sampled)) {
+            usage |= WGPUTextureUsage_TextureBinding;
+        }
+        if (BitFlagIsSet(usageFlags, TextureUsage_Storage)) {
+            usage |= WGPUTextureUsage_StorageBinding;
+        }
+        if (BitFlagIsSet(usageFlags, TextureUsage_RenderTarget)
+            || BitFlagIsSet(usageFlags, TextureUsage_DepthStencilTarget)) {
+            usage |= WGPUTextureUsage_RenderAttachment;
+        }
+
+        return usage;
+    }
+
+    /// @brief Get the WebGPU shader stage flags.
+    /// @param stageFlags 
+    /// @return 
+    static WGPUShaderStage GetShaderStage(ShaderStageFlags stageFlags)
+    {
+        WGPUShaderStage stages = 0;
+        if (BitFlagIsSet(stageFlags, ShaderStage_Vertex)) {
+            stages |= WGPUShaderStage_Vertex;
+        }
+        if (BitFlagIsSet(stageFlags, ShaderStage_Pixel)) {
+            stages |= WGPUShaderStage_Fragment;
+        }
+        if (BitFlagIsSet(stageFlags, ShaderStage_Compute)) {
+            stages |= WGPUShaderStage_Compute;
+        }
+
+        return stages;
+    }
+
+    /// @brief Get the WebGPU color write mask.
+    /// @param colorComponentFlags 
+    /// @return 
+    static WGPUColorWriteMask GetColorWriteMask(ColorComponentFlags colorComponentFlags)
+    {
+        WGPUColorWriteMask mask = 0;
+        if (BitFlagIsSet(colorComponentFlags, ColorComponent_Red)) {
+            mask |= WGPUColorWriteMask_Red;
+        }
+        if (BitFlagIsSet(colorComponentFlags, ColorComponent_Green)) {
+            mask |= WGPUColorWriteMask_Green;
+        }
+        if (BitFlagIsSet(colorComponentFlags, ColorComponent_Blue)) {
+            mask |= WGPUColorWriteMask_Blue;
+        }
+        if (BitFlagIsSet(colorComponentFlags, ColorComponent_Alpha)) {
+            mask |= WGPUColorWriteMask_Alpha;
+        }
+        if (BitFlagIsSet(colorComponentFlags, ColorComponent_All)) {
+            mask |= WGPUColorWriteMask_All;
+        }
+
+        return mask;
+    }
+
+    /// @brief Get a WebGPU texture aspect mask.
+    /// @param aspectMask 
+    /// @return 
+    static WGPUTextureAspect GetTextureAspect(TextureAspectMask aspectMask)
+    {
+        WGPUTextureAspect aspect = WGPUTextureAspect_Undefined;
+        if (BitFlagIsSet(aspectMask, TextureAspect_Color) || (BitFlagIsSet(aspectMask, TextureAspect_Depth) && BitFlagIsSet(aspectMask, TextureAspect_Stencil))) {
+            aspect = WGPUTextureAspect_All;
+        }
+        else if (BitFlagIsSet(aspectMask, TextureAspect_Depth)) {
+            aspect = WGPUTextureAspect_DepthOnly;
+        }
+        else if (BitFlagIsSet(aspectMask, TextureAspect_Stencil)) {
+            aspect = WGPUTextureAspect_StencilOnly;
+        }
+
+        return aspect;
+    }
+
     WebGPUCommandBuffer::WebGPUCommandBuffer(WGPUCommandEncoder commandEncoder)
         :
         _commandEncoder(commandEncoder)
@@ -95,13 +332,12 @@ namespace RHI
         //
     }
 
-    WebGPUGraphicsDevice::WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device, uint32 framesInFlight)
+    WebGPUGraphicsDevice::WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device)
         :
         _instance(instance),
         _adapter(adapter),
         _device(device),
-        _queue(wgpuDeviceGetQueue(device)),
-        _framesInFlight(framesInFlight)
+        _queue(wgpuDeviceGetQueue(device))
     {
         //
     }
@@ -114,13 +350,8 @@ namespace RHI
         wgpuInstanceRelease(_instance);
     }
 
-    RHI::IGraphicsDevice* WebGPUGraphicsDevice::TryCreate(RHI::GraphicsDeviceDesc const& graphicsDeviceDesc)
+    RHI::IGraphicsDevice* WebGPUGraphicsDevice::TryCreate([[maybe_unused]] RHI::GraphicsDeviceDesc const& graphicsDeviceDesc)
     {
-        // Validate params
-        if (graphicsDeviceDesc.framesInFlight == 0) {
-            return nullptr;
-        }
-
         // Create instance
         WGPUInstanceDescriptor instanceDesc{};
         instanceDesc.nextInChain = nullptr;
@@ -197,7 +428,7 @@ namespace RHI
             return nullptr;
         }
 
-        return new WebGPUGraphicsDevice(instance, adapter, device, graphicsDeviceDesc.framesInFlight);
+        return new WebGPUGraphicsDevice(instance, adapter, device);
     }
 
     GPUBuffer* WebGPUGraphicsDevice::CreateBuffer(GPUBufferDesc* bufferDesc)
@@ -205,34 +436,11 @@ namespace RHI
         if (!bufferDesc) {
             return nullptr;
         }
-        
-        WGPUBufferUsage usage = 0;
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_TransferSrc)) {
-            usage |= WGPUBufferUsage_CopySrc;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_TransferDst)) {
-            usage |= WGPUBufferUsage_CopyDst;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_UniformBuffer)) {
-            usage |= WGPUBufferUsage_Uniform;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_StorageBuffer)) {
-            usage |= WGPUBufferUsage_Storage;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_IndexBuffer)) {
-            usage |= WGPUBufferUsage_Index;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_VertexBuffer)) {
-            usage |= WGPUBufferUsage_Vertex;
-        }
-        if (BitFlagIsSet(bufferDesc->usage, BufferUsage_IndirectBuffer)) {
-            usage |= WGPUBufferUsage_Indirect;
-        }
 
         WGPUBufferDescriptor wgpuBufferDesc{};
         wgpuBufferDesc.nextInChain = nullptr;
         wgpuBufferDesc.label = {};
-        wgpuBufferDesc.usage = usage;
+        wgpuBufferDesc.usage = GetBufferUsage(bufferDesc->usage);
         wgpuBufferDesc.size = bufferDesc->size;
         wgpuBufferDesc.mappedAtCreation = false;
 
@@ -255,31 +463,13 @@ namespace RHI
             return nullptr;
         }
 
-        WGPUTextureUsage usage = 0;
-        if (BitFlagIsSet(textureDesc->usage, TextureUsage_TransferSrc)) {
-            usage |= WGPUTextureUsage_CopySrc;
-        }
-        if (BitFlagIsSet(textureDesc->usage, TextureUsage_TransferDst)) {
-            usage |= WGPUTextureUsage_CopyDst;
-        }
-        if (BitFlagIsSet(textureDesc->usage, TextureUsage_Sampled)) {
-            usage |= WGPUTextureUsage_TextureBinding;
-        }
-        if (BitFlagIsSet(textureDesc->usage, TextureUsage_Storage)) {
-            usage |= WGPUTextureUsage_StorageBinding;
-        }
-        if (BitFlagIsSet(textureDesc->usage, TextureUsage_RenderTarget)
-            || BitFlagIsSet(textureDesc->usage, TextureUsage_DepthStencilTarget)) {
-            usage |= WGPUTextureUsage_RenderAttachment;
-        }
-
         WGPUTextureDescriptor wgpuTextureDesc{};
         wgpuTextureDesc.nextInChain = nullptr;
         wgpuTextureDesc.label = {};
-        wgpuTextureDesc.usage = usage;
-        wgpuTextureDesc.dimension = WGPUTextureDimension_1D; // TODO(nemjit001): use LUT for dims
+        wgpuTextureDesc.usage = GetTextureUsage(textureDesc->usage);
+        wgpuTextureDesc.dimension = gTextureDimensionLUT[textureDesc->textureType];
         wgpuTextureDesc.size = {}; // TODO(nemjit001): Set up size desc
-        wgpuTextureDesc.format = WGPUTextureFormat_Undefined; // TODO(nemjit001): use LUT for format
+        wgpuTextureDesc.format = gTextureFormatLUT[textureDesc->format];
         wgpuTextureDesc.mipLevelCount = textureDesc->mipLevels;
         wgpuTextureDesc.sampleCount = textureDesc->sampleCount;
         wgpuTextureDesc.viewFormatCount = 0;
@@ -319,16 +509,15 @@ namespace RHI
         WGPUSamplerDescriptor wgpuSamplerDesc{};
         wgpuSamplerDesc.nextInChain = nullptr;
         wgpuSamplerDesc.label = {};
-        wgpuSamplerDesc.addressModeU = WGPUAddressMode_Undefined; // TODO(nemjit001): use LUT for address mode
-        wgpuSamplerDesc.addressModeV = WGPUAddressMode_Undefined;
-        wgpuSamplerDesc.addressModeW = WGPUAddressMode_Undefined;
-        wgpuSamplerDesc.magFilter = WGPUFilterMode_Nearest; // TODO(nemjit001): use LUT for filter mode
-        wgpuSamplerDesc.minFilter = WGPUFilterMode_Nearest;
-        wgpuSamplerDesc.mipmapFilter = WGPUMipmapFilterMode_Nearest; // TODO(nemjit001): use LUT for mipmap mode
+        wgpuSamplerDesc.addressModeU = gAddressModeLUT[samplerDesc->addressModeU];
+        wgpuSamplerDesc.addressModeV = gAddressModeLUT[samplerDesc->addressModeV];
+        wgpuSamplerDesc.addressModeW = gAddressModeLUT[samplerDesc->addressModeW];
+        wgpuSamplerDesc.magFilter = gFilterModeLUT[samplerDesc->magFilter];
+        wgpuSamplerDesc.minFilter = gFilterModeLUT[samplerDesc->minFilter];
+        wgpuSamplerDesc.mipmapFilter = gMipmapFilterModeLUT[samplerDesc->mipmapMode];
         wgpuSamplerDesc.lodMinClamp = samplerDesc->minLOD;
         wgpuSamplerDesc.lodMaxClamp = samplerDesc->maxLOD;
-        wgpuSamplerDesc.compare = samplerDesc->enableCompareOp ?
-            WGPUCompareFunction_Never : WGPUCompareFunction_Undefined; // TODO(nemjit001): use LUT for compare op
+        wgpuSamplerDesc.compare = samplerDesc->enableCompareOp ? gCompareFunctionLUT[samplerDesc->compareOp] : WGPUCompareFunction_Undefined;
         wgpuSamplerDesc.maxAnisotropy = samplerDesc->maxAnisotropy;
 
         WGPUSampler sampler = wgpuDeviceCreateSampler(_device, &wgpuSamplerDesc);
@@ -347,21 +536,20 @@ namespace RHI
     GPUPipeline* WebGPUGraphicsDevice::CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc)
     {
         if (!pipelineDesc) {
-            return;
+            return nullptr;
         }
 
         WGPURenderPipelineDescriptor renderPipelineDesc{};
         renderPipelineDesc.nextInChain = nullptr;
         renderPipelineDesc.label = {};
         renderPipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
-        renderPipelineDesc.vertex = {}; // TODO(nemjit001): Add support for vertex layout & vertex shader
-        renderPipelineDesc.fragment = nullptr; // TODO(nemjit001): Add support for color blend state & fragment shader
+        renderPipelineDesc.vertex = {}; // Initialization is only done if a vertex shader is present.
+        renderPipelineDesc.fragment = nullptr; // Initialization is only done if a pixel shader is present.
         renderPipelineDesc.primitive.nextInChain = nullptr;
-        renderPipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList; // TODO(nemjit001): use topology LUT
+        renderPipelineDesc.primitive.topology = gPrimitiveTopologyLUT[pipelineDesc->rasterState.primitiveTopology];
         renderPipelineDesc.primitive.stripIndexFormat = WGPUIndexFormat_Undefined; // TODO(nemjit001): add support for strip index formats
-        renderPipelineDesc.primitive.frontFace = pipelineDesc->rasterState.frontFaceCounterClockwise ?
-            WGPUFrontFace_CCW : WGPUFrontFace_CW;
-        renderPipelineDesc.primitive.cullMode = WGPUCullMode_None; // TODO(nemjit001): use cull mode LUT
+        renderPipelineDesc.primitive.frontFace = pipelineDesc->rasterState.frontFaceCounterClockwise ? WGPUFrontFace_CCW : WGPUFrontFace_CW;
+        renderPipelineDesc.primitive.cullMode = gCullModeLUT[pipelineDesc->rasterState.cullMode];
         renderPipelineDesc.primitive.unclippedDepth = false; // TODO(nemjit001): add support for unclipped depth
         renderPipelineDesc.multisample.nextInChain = nullptr;
         renderPipelineDesc.multisample.count = pipelineDesc->rasterState.sampleCount;
@@ -369,22 +557,34 @@ namespace RHI
         renderPipelineDesc.multisample.mask = UINT32_MAX; // TODO(nemjit001): add support for msaa sample mask
         renderPipelineDesc.depthStencil = nullptr;
 
+        if (pipelineDesc->vertexShader)
+        {
+            // TODO(nemjit001): Initialize vertex shader
+        }
+        
+        WGPUFragmentState fragmentState{};
+        if (pipelineDesc->pixelShader)
+        {
+            // TODO(nemjit001): Initialize pixel shader and blend state
+            renderPipelineDesc.fragment = &fragmentState;
+        }
+
         WGPUDepthStencilState depthStencilState{};
         if (pipelineDesc->depthStencilState)
         {
+            DepthStencilState const& pipelineDepthStencilState = *pipelineDesc->depthStencilState;
+
             depthStencilState.nextInChain = nullptr;
-            depthStencilState.format = WGPUTextureFormat_Undefined; // TODO(nemjit001): use texture format LUT
-            depthStencilState.depthWriteEnabled = pipelineDesc->depthStencilState->depthWrite ?
-                WGPUOptionalBool_True : WGPUOptionalBool_False;
-            depthStencilState.depthCompare = pipelineDesc->depthStencilState->depthTest ?
-                WGPUCompareFunction_Never : WGPUCompareFunction_Undefined; // TODO(nemjit001): use compare op LUT
-            depthStencilState.stencilFront = {};
-            depthStencilState.stencilBack = {};
-            depthStencilState.stencilReadMask = 0;
-            depthStencilState.stencilWriteMask = 0;
-            depthStencilState.depthBias = static_cast<uint32>(pipelineDesc->depthStencilState->depthBias);
-            depthStencilState.depthBiasSlopeScale = pipelineDesc->depthStencilState->depthBiasSlopeFactor;
-            depthStencilState.depthBiasClamp = pipelineDesc->depthStencilState->depthBiasClamp;
+            depthStencilState.format = gTextureFormatLUT[pipelineDesc->depthStencilFormat];
+            depthStencilState.depthWriteEnabled = pipelineDepthStencilState.depthWrite ? WGPUOptionalBool_True : WGPUOptionalBool_False;
+            depthStencilState.depthCompare = pipelineDepthStencilState.depthTest ? gCompareFunctionLUT[pipelineDepthStencilState.depthCompareOp] : WGPUCompareFunction_Undefined;
+            depthStencilState.stencilFront = { WGPUCompareFunction_Always, WGPUStencilOperation_Keep, WGPUStencilOperation_Keep, WGPUStencilOperation_Keep }; // TODO(nemjit001): add support for stencil ops
+            depthStencilState.stencilBack = { WGPUCompareFunction_Always, WGPUStencilOperation_Keep, WGPUStencilOperation_Keep, WGPUStencilOperation_Keep };
+            depthStencilState.stencilReadMask = UINT32_MAX;
+            depthStencilState.stencilWriteMask = UINT32_MAX;
+            depthStencilState.depthBias = static_cast<uint32>(pipelineDepthStencilState.depthBias);
+            depthStencilState.depthBiasSlopeScale = pipelineDepthStencilState.depthBiasSlopeFactor;
+            depthStencilState.depthBiasClamp = pipelineDepthStencilState.depthBiasClamp;
             
             renderPipelineDesc.depthStencil = &depthStencilState;
         }

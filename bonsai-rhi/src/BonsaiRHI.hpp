@@ -326,6 +326,7 @@ namespace RHI
     struct RasterState
     {
         PolygonMode polygonMode = PolygonMode_Fill;
+        PrimitiveTopology primitiveTopology = PrimitiveTopology_TriangleList;
         CullMode cullMode = CullMode_None;
         bool frontFaceCounterClockwise = false;
         uint32 sampleCount = 1;
@@ -395,7 +396,7 @@ namespace RHI
     {
         TextureType textureType = TextureType_1D;
         TextureFormat format = TextureFormat_Unknown;
-        Extent3D dimensions = {};
+        Extent3D size = {};
         uint32 mipLevels = 1;
         uint32 arrayLayers = 1;
         uint32 sampleCount = 1;
@@ -428,12 +429,6 @@ namespace RHI
         float maxLOD = LOD_CLAMP_NONE;
     };
 
-    /// @brief A GPUComputePipelineDesc is used to create compute GPUPipelines.
-    struct GPUComputePipelineDesc
-    {
-        ShaderBlob computeShader = {};
-    };
-
     /// @brief A GPUGraphicsPipelineDesc is used to create raster GPUPipelines.
     struct GPUGraphicsPipelineDesc
     {
@@ -441,11 +436,16 @@ namespace RHI
         ShaderBlob* pixelShader = nullptr;
         uint32 renderTargetCount = 0;
         TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
-        TextureFormat depthFormat = TextureFormat_Unknown;
-        TextureFormat stencilFormat = TextureFormat_Unknown;
+        TextureFormat depthStencilFormat = TextureFormat_Unknown;
         RasterState rasterState = {};
         DepthStencilState* depthStencilState = nullptr;
         BlendState* blendState = nullptr;
+    };
+
+    /// @brief A GPUComputePipelineDesc is used to create compute GPUPipelines.
+    struct GPUComputePipelineDesc
+    {
+        ShaderBlob computeShader = {};
     };
 
     /// @brief The RenderPassTargetDesc contains render pass state per attached render target.

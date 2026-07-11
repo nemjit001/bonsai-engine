@@ -60,7 +60,7 @@ namespace RHI
     class WebGPUGraphicsDevice : public IGraphicsDevice
     {
     private:
-        WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device, uint32 framesInFlight);
+        WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device);
 
     public:
         ~WebGPUGraphicsDevice();
@@ -96,7 +96,6 @@ namespace RHI
         WGPUAdapter _adapter = nullptr;
         WGPUDevice _device = nullptr;
         WGPUQueue _queue = nullptr;
-        uint32 _framesInFlight = 0;
     };
 } // namespace RHI
 
