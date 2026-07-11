@@ -13,8 +13,8 @@ namespace RHI
     class WebGPUBuffer : public GPUBuffer
     {
     public:
-        constexpr WebGPUBuffer(BackendAPI backendAPI, WGPUBuffer buffer)
-            : GPUBuffer(backendAPI), _buffer(buffer) {}
+        constexpr WebGPUBuffer(WGPUBuffer buffer)
+            : GPUBuffer(BackendAPI_WebGPU), _buffer(buffer) {}
         ~WebGPUBuffer() override;
 
         /// @brief Get the internal buffer handle.
@@ -29,8 +29,8 @@ namespace RHI
     class WebGPUTexture : public GPUTexture
     {
     public:
-        constexpr WebGPUTexture(BackendAPI backendAPI, WGPUTexture texture, WGPUTextureView view)
-            : GPUTexture(backendAPI), _texture(texture), _view(view) {}
+        constexpr WebGPUTexture(WGPUTexture texture, WGPUTextureView view)
+            : GPUTexture(BackendAPI_WebGPU), _texture(texture), _view(view) {}
         ~WebGPUTexture() override;
 
         /// @brief Get the internal texture handle.
@@ -50,8 +50,8 @@ namespace RHI
     class WebGPUSampler : public GPUSampler
     {
     public:
-        constexpr WebGPUSampler(BackendAPI backendAPI, WGPUSampler sampler)
-            : GPUSampler(backendAPI), _sampler(sampler) {}
+        constexpr WebGPUSampler(WGPUSampler sampler)
+            : GPUSampler(BackendAPI_WebGPU), _sampler(sampler) {}
         ~WebGPUSampler() override;
 
         /// @brief Get the internal sampler handle.
@@ -66,10 +66,10 @@ namespace RHI
     class WebGPUPipeline : public GPUPipeline
     {
     public:
-        constexpr WebGPUPipeline(BackendAPI backendAPI, WGPURenderPipeline pipeline)
-            : GPUPipeline(backendAPI), _type(PipelineType_RenderPipeline) { _pso.renderPipeline = pipeline; }
-        constexpr WebGPUPipeline(BackendAPI backendAPI, WGPUComputePipeline pipeline)
-            : GPUPipeline(backendAPI), _type(PipelineType_ComputePipeline) { _pso.computePipeline = pipeline; }
+        constexpr WebGPUPipeline(WGPURenderPipeline pipeline)
+            : GPUPipeline(BackendAPI_WebGPU), _type(PipelineType_RenderPipeline) { _pso.renderPipeline = pipeline; }
+        constexpr WebGPUPipeline(WGPUComputePipeline pipeline)
+            : GPUPipeline(BackendAPI_WebGPU), _type(PipelineType_ComputePipeline) { _pso.computePipeline = pipeline; }
         ~WebGPUPipeline() override;
 
         /// @brief Try to get the internal render pipeline handle.

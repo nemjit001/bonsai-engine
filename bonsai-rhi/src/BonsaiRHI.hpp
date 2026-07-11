@@ -22,7 +22,8 @@ namespace RHI
     /// @brief Enumeration of GraphicsDevice result codes.
     enum GraphicsDeviceResult : uint32
     {
-        GraphicsDeviceResult_Ok = 0,
+        GraphicsDeviceResult_Ok         = 0,
+        GraphicsDeviceResult_BadSubmit  = 1,
     };
 
     /// @brief Enumeration of potentially supported backend graphics APIs.
@@ -434,6 +435,8 @@ namespace RHI
     {
         ShaderBlob* vertexShader = nullptr;
         ShaderBlob* pixelShader = nullptr;
+        char const* vertexShaderEntrypoint = "main";
+        char const* pixelShaderEntrypoint = "main";
         uint32 renderTargetCount = 0;
         TextureFormat renderTargetFormats[MAX_RENDER_TARGETS] = {};
         TextureFormat depthStencilFormat = TextureFormat_Unknown;
@@ -446,6 +449,7 @@ namespace RHI
     struct GPUComputePipelineDesc
     {
         ShaderBlob computeShader = {};
+        char const* entrypoint = "main";
     };
 
     /// @brief The RenderPassTargetDesc contains render pass state per attached render target.
@@ -524,6 +528,8 @@ namespace RHI
 
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) = 0;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) = 0;
+
+        virtual BackendAPI GetBackendAPI() const = 0;
     };
 
     /// @brief The GraphicsDevice interface implements an abstraction layer on top of low-level graphics APIs.

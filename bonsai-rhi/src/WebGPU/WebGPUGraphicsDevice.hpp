@@ -47,6 +47,8 @@ namespace RHI
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) override final;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) override final;
 
+        virtual BackendAPI GetBackendAPI() const override final { return BackendAPI_WebGPU; }
+
         /// @brief Get the internal command encoder handle.
         /// @return 
         WGPUCommandEncoder GetCommandEncoder() const { return _commandEncoder; }

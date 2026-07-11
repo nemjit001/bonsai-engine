@@ -1,6 +1,7 @@
 #include "WebGPUGraphicsDevice.hpp"
 #if BONSAI_RHI_WEBGPU_SUPPORT
 
+#include <Containers/DynamicArray.hpp>
 #include "WebGPUTypes.hpp"
 
 namespace RHI
@@ -449,7 +450,7 @@ namespace RHI
             return nullptr;
         }
 
-        return new WebGPUBuffer(BackendAPI_WebGPU, buffer);
+        return new WebGPUBuffer(buffer);
     }
 
     void WebGPUGraphicsDevice::DestroyBuffer(GPUBuffer* buffer)
@@ -487,12 +488,38 @@ namespace RHI
             return nullptr;
         }
 
-        return new WebGPUTexture(BackendAPI_WebGPU, texture, view);
+        return new WebGPUTexture(texture, view);
     }
 
     GPUTexture* WebGPUGraphicsDevice::CreateTextureView(GPUTextureViewDesc* textureViewDesc)
     {
-        return nullptr;
+        if (!textureViewDesc) {
+            return nullptr;
+        }
+
+        if (!textureViewDesc->texture || textureViewDesc->texture->GetBackendAPI() != BackendAPI_WebGPU) {
+            return nullptr;
+        }
+
+        WebGPUTexture* texture = static_cast<WebGPUTexture*>(textureViewDesc->texture);
+        WGPUTextureViewDescriptor wgpuTextureViewDesc{};
+        wgpuTextureViewDesc.nextInChain = nullptr;
+        wgpuTextureViewDesc.label = {};
+        wgpuTextureViewDesc.format = gTextureFormatLUT[textureViewDesc->format];
+        wgpuTextureViewDesc.dimension = gTextureViewDimensionsLUT[textureViewDesc->viewType];
+        wgpuTextureViewDesc.baseMipLevel = textureViewDesc->subresourceRange.baseMipLevel;
+        wgpuTextureViewDesc.mipLevelCount = textureViewDesc->subresourceRange.levelCount;
+        wgpuTextureViewDesc.baseArrayLayer = textureViewDesc->subresourceRange.baseArrayLayer;
+        wgpuTextureViewDesc.arrayLayerCount = textureViewDesc->subresourceRange.layerCount;
+        wgpuTextureViewDesc.aspect = GetTextureAspect(textureViewDesc->subresourceRange.aspectMask);
+        wgpuTextureViewDesc.usage = wgpuTextureGetUsage(texture->GetTexture());
+
+        WGPUTextureView view = wgpuTextureCreateView(texture->GetTexture(), &wgpuTextureViewDesc);
+        if (!view) {
+            return nullptr;
+        }
+
+        return new WebGPUTexture(nullptr, view);
     }
 
     void WebGPUGraphicsDevice::DestroyTexture(GPUTexture* texture)
@@ -525,7 +552,7 @@ namespace RHI
             return nullptr;
         }
 
-        return new WebGPUSampler(BackendAPI_WebGPU, sampler);
+        return new WebGPUSampler(sampler);
     }
 
     void WebGPUGraphicsDevice::DestroySampler(GPUSampler* sampler)
@@ -557,18 +584,18 @@ namespace RHI
         renderPipelineDesc.multisample.mask = UINT32_MAX; // TODO(nemjit001): add support for msaa sample mask
         renderPipelineDesc.depthStencil = nullptr;
 
-        if (pipelineDesc->vertexShader)
+        // Set up color target state
+        DynamicArray<WGPUColorTargetState> colorTargets(pipelineDesc->renderTargetCount); // FIXME(nemjit001): Use internal allocator
+        for (uint32 i = 0; i < pipelineDesc->renderTargetCount; i++)
         {
-            // TODO(nemjit001): Initialize vertex shader
-        }
-        
-        WGPUFragmentState fragmentState{};
-        if (pipelineDesc->pixelShader)
-        {
-            // TODO(nemjit001): Initialize pixel shader and blend state
-            renderPipelineDesc.fragment = &fragmentState;
+            WGPUColorTargetState& target = colorTargets[i];
+            target.nextInChain = nullptr;
+            target.format = gTextureFormatLUT[pipelineDesc->renderTargetFormats[i]];
+            target.blend = nullptr;
+            target.writeMask = WGPUColorWriteMask_All; // Assume all unless specified differently in blend state.
         }
 
+        // Set up depth/stencil state
         WGPUDepthStencilState depthStencilState{};
         if (pipelineDesc->depthStencilState)
         {
@@ -589,12 +616,96 @@ namespace RHI
             renderPipelineDesc.depthStencil = &depthStencilState;
         }
 
+        // Set up color target blend state
+        DynamicArray<WGPUBlendState> targetBlendStates; // FIXME(nemjit001): Use internal allocator
+        if (pipelineDesc->blendState)
+        {
+            BlendState const& pipelineBlendState = *pipelineDesc->blendState;
+            targetBlendStates.resize(pipelineDesc->renderTargetCount);
+
+            for (uint32 i = 0; i < pipelineDesc->renderTargetCount; i++)
+            {
+                RenderTargetBlendState const& currentBlendState = pipelineBlendState.blendTargets[i];
+
+                WGPUBlendState& blendState = targetBlendStates[i];
+                blendState.color.srcFactor = gBlendFactorLUT[currentBlendState.srcColorBlendFactor];
+                blendState.color.dstFactor = gBlendFactorLUT[currentBlendState.destColorBlendFactor];
+                blendState.color.operation = gBlendOperationLUT[currentBlendState.colorBlendOp];
+                blendState.alpha.srcFactor = gBlendFactorLUT[currentBlendState.srcAlphaBlendFactor];
+                blendState.alpha.dstFactor = gBlendFactorLUT[currentBlendState.destAlphaBlendFactor];
+                blendState.alpha.operation = gBlendOperationLUT[currentBlendState.alphaBlendOp];
+
+                WGPUColorTargetState& target = colorTargets[i];
+                target.blend = currentBlendState.blendEnable ? &blendState : nullptr;
+                target.writeMask = GetColorWriteMask(currentBlendState.colorWriteMask);
+            }
+        }
+
+        // Set up vertex state
+        WGPUShaderModule vertexShaderModule = nullptr;
+        if (pipelineDesc->vertexShader)
+        {
+            WGPUShaderSourceWGSL shaderSource{};
+            shaderSource.chain.sType = WGPUSType_ShaderSourceWGSL;
+            shaderSource.chain.next = nullptr;
+            shaderSource.code.data = static_cast<char const*>(pipelineDesc->vertexShader->code);
+            shaderSource.code.length = pipelineDesc->vertexShader->size;
+
+            WGPUShaderModuleDescriptor shaderModuleDesc{};
+            shaderModuleDesc.nextInChain = nullptr;
+            shaderModuleDesc.label = {};
+            vertexShaderModule = wgpuDeviceCreateShaderModule(_device, &shaderModuleDesc);
+
+            renderPipelineDesc.vertex.nextInChain = nullptr;
+            renderPipelineDesc.vertex.module = vertexShaderModule;
+            renderPipelineDesc.vertex.entryPoint = WGPUStringView{ pipelineDesc->vertexShaderEntrypoint, WGPU_STRLEN };
+            renderPipelineDesc.vertex.constantCount = 0;
+            renderPipelineDesc.vertex.constants = nullptr;
+            renderPipelineDesc.vertex.bufferCount = 0; // TODO(nemjit001): Add vertex input layout support.
+            renderPipelineDesc.vertex.buffers = nullptr;
+        }
+        
+        // Set up fragment state
+        WGPUShaderModule fragmentShaderModule = nullptr;
+        WGPUFragmentState fragmentState{};
+        if (pipelineDesc->pixelShader)
+        {
+            WGPUShaderSourceWGSL shaderSource{};
+            shaderSource.chain.sType = WGPUSType_ShaderSourceWGSL;
+            shaderSource.chain.next = nullptr;
+            shaderSource.code.data = static_cast<char const*>(pipelineDesc->pixelShader->code);
+            shaderSource.code.length = pipelineDesc->pixelShader->size;
+
+            WGPUShaderModuleDescriptor shaderModuleDesc{};
+            shaderModuleDesc.nextInChain = nullptr;
+            shaderModuleDesc.label = {};
+            fragmentShaderModule = wgpuDeviceCreateShaderModule(_device, &shaderModuleDesc);
+
+            fragmentState.nextInChain = nullptr;
+            fragmentState.module = fragmentShaderModule;
+            fragmentState.entryPoint = WGPUStringView{ pipelineDesc->pixelShaderEntrypoint, WGPU_STRLEN };
+            fragmentState.constantCount = 0;
+            fragmentState.constants = nullptr;
+            fragmentState.targetCount = pipelineDesc->renderTargetCount;
+            fragmentState.targets = colorTargets.data();
+
+            renderPipelineDesc.fragment = &fragmentState;
+        }
+
         WGPURenderPipeline pipeline = wgpuDeviceCreateRenderPipeline(_device, &renderPipelineDesc);
+        if (vertexShaderModule) {
+            wgpuShaderModuleRelease(vertexShaderModule);
+        }
+
+        if (fragmentShaderModule) {
+            wgpuShaderModuleRelease(fragmentShaderModule);
+        }
+
         if (!pipeline) {
             return nullptr;
         }
 
-        return new WebGPUPipeline(BackendAPI_WebGPU, pipeline);
+        return new WebGPUPipeline(pipeline);
     }
 
     GPUPipeline* WebGPUGraphicsDevice::CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc)
@@ -606,7 +717,7 @@ namespace RHI
         WGPUShaderSourceWGSL computeShaderSource{};
         computeShaderSource.chain.sType = WGPUSType_ShaderSourceWGSL;
         computeShaderSource.chain.next = nullptr;
-        computeShaderSource.code.data = static_cast<char*>(pipelineDesc->computeShader.code);
+        computeShaderSource.code.data = static_cast<char const*>(pipelineDesc->computeShader.code);
         computeShaderSource.code.length = pipelineDesc->computeShader.size;
 
         WGPUShaderModuleDescriptor computeShaderDesc{};
@@ -624,7 +735,7 @@ namespace RHI
         computePipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
         computePipelineDesc.compute.nextInChain = nullptr;
         computePipelineDesc.compute.module = computeShader;
-        computePipelineDesc.compute.entryPoint = {}; // TODO(nemjit001): Provide entrypoint name in desc
+        computePipelineDesc.compute.entryPoint = WGPUStringView{ pipelineDesc->entrypoint, WGPU_STRLEN };
         computePipelineDesc.compute.constantCount = 0;
         computePipelineDesc.compute.constants = nullptr;
 
@@ -635,7 +746,7 @@ namespace RHI
             return nullptr;
         }
 
-        return new WebGPUPipeline(BackendAPI_WebGPU, pipeline);
+        return new WebGPUPipeline(pipeline);
     }
 
     void WebGPUGraphicsDevice::DestroyPipeline(GPUPipeline* pipeline)
@@ -662,14 +773,37 @@ namespace RHI
         delete commandBuffer;
     }
 
-    GraphicsDeviceResult WebGPUGraphicsDevice::Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount)
+    GraphicsDeviceResult WebGPUGraphicsDevice::Submit([[maybe_unused]] GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount)
     {
+        DynamicArray<WGPUCommandBuffer> submissions; // FIXME(nemjit001): Use internal allocator
+        submissions.reserve(commandBufferCount);
+        for (uint32 i = 0; i < commandBufferCount; i++)
+        {
+            if (commandBuffers[i]->GetBackendAPI() != BackendAPI_WebGPU) {
+                return GraphicsDeviceResult_BadSubmit;
+            }
+
+
+            WGPUCommandBufferDescriptor commandBufferDesc{};
+            commandBufferDesc.nextInChain = nullptr;
+            commandBufferDesc.label = {};
+
+            WebGPUCommandBuffer const* commandBuffer = static_cast<WebGPUCommandBuffer const*>(commandBuffers[i]);
+            WGPUCommandBuffer submission = wgpuCommandEncoderFinish(commandBuffer->GetCommandEncoder(), &commandBufferDesc);
+            if (!submission) {
+                return GraphicsDeviceResult_BadSubmit;
+            }
+
+            submissions.push_back(submission);
+        }
+
+        wgpuQueueSubmit(_queue, commandBufferCount, submissions.data());
         return GraphicsDeviceResult_Ok;
     }
     
     void WebGPUGraphicsDevice::WaitIdle()
     {
-        //
+        // TODO(nemjit001): Implement callback-based wait on submits (timeline semaphore?)
     }
 } // namespace RHI
 
