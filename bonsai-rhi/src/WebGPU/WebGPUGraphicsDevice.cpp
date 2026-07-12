@@ -257,7 +257,10 @@ namespace RHI
 
     void WebGPUCommandBuffer::CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset)
     {
-        //
+        BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
+        WebGPUBuffer const* internalDest = static_cast<WebGPUBuffer const*>(dest);
+        wgpuCommandEncoderCopyBufferToBuffer(_commandEncoder, internalSrc->GetBuffer(), static_cast<uint64>(srcOffset), internalDest->GetBuffer(), static_cast<uint64>(destOffset), size);
     }
 
     void WebGPUCommandBuffer::CopyTextureToTexture(
@@ -267,7 +270,24 @@ namespace RHI
         Extent3D extent
     )
     {
-        //
+        BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
+        WebGPUTexture const* internalDest = static_cast<WebGPUTexture const*>(dest);
+
+        WGPUTexelCopyTextureInfo srcCopy{};
+        srcCopy.texture = internalSrc->GetTexture();
+        srcCopy.origin = WGPUOrigin3D{ static_cast<uint32>(srcOffset.x), static_cast<uint32>(srcOffset.y), static_cast<uint32>(srcOffset.z) };
+        srcCopy.mipLevel = srcSubresource.mipLevel;
+        srcCopy.aspect = GetTextureAspect(srcSubresource.aspectMask);
+
+        WGPUTexelCopyTextureInfo destCopy{};
+        destCopy.texture = internalDest->GetTexture();
+        destCopy.origin = WGPUOrigin3D{ static_cast<uint32>(destOffset.x), static_cast<uint32>(destOffset.y), static_cast<uint32>(destOffset.z) };
+        destCopy.mipLevel = destSubresource.mipLevel;
+        destCopy.aspect = GetTextureAspect(destSubresource.aspectMask);
+
+        WGPUExtent3D const copyExtent{ extent.width, extent.height, extent.depth };
+        wgpuCommandEncoderCopyTextureToTexture(_commandEncoder, &srcCopy, &destCopy, &copyExtent);
     }
 
     void WebGPUCommandBuffer::CopyBufferToTexture(
@@ -276,7 +296,24 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
-        //
+        BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
+        WebGPUTexture const* internalDest = static_cast<WebGPUTexture const*>(dest);
+
+        WGPUTexelCopyBufferInfo bufferCopy{};
+        bufferCopy.buffer = internalSrc->GetBuffer();
+        bufferCopy.layout.offset = static_cast<uint64>(bufferOffset);
+        bufferCopy.layout.bytesPerRow = rowPitch;
+        bufferCopy.layout.rowsPerImage = rowCount;
+
+        WGPUTexelCopyTextureInfo textureCopy{};
+        textureCopy.texture = internalDest->GetTexture();
+        textureCopy.origin = WGPUOrigin3D{ static_cast<uint32>(textureOffset.x), static_cast<uint32>(textureOffset.y), static_cast<uint32>(textureOffset.z) };
+        textureCopy.mipLevel = subresource.mipLevel;
+        textureCopy.aspect = GetTextureAspect(subresource.aspectMask);
+
+        WGPUExtent3D const copyExtent{ textureExtent.width, textureExtent.height, textureExtent.depth };
+        wgpuCommandEncoderCopyBufferToTexture(_commandEncoder, &bufferCopy, &textureCopy, &copyExtent);
     }
 
     void WebGPUCommandBuffer::CopyTextureToBuffer(
@@ -285,12 +322,44 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
-        //
+        BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
+        WebGPUBuffer const* internalDest = static_cast<WebGPUBuffer const*>(dest);
+
+        WGPUTexelCopyTextureInfo textureCopy{};
+        textureCopy.texture = internalSrc->GetTexture();
+        textureCopy.origin = WGPUOrigin3D{ static_cast<uint32>(textureOffset.x), static_cast<uint32>(textureOffset.y), static_cast<uint32>(textureOffset.z) };
+        textureCopy.mipLevel = subresource.mipLevel;
+        textureCopy.aspect = GetTextureAspect(subresource.aspectMask);
+
+        WGPUTexelCopyBufferInfo bufferCopy{};
+        bufferCopy.buffer = internalDest->GetBuffer();
+        bufferCopy.layout.offset = static_cast<uint64>(bufferOffset);
+        bufferCopy.layout.bytesPerRow = rowPitch;
+        bufferCopy.layout.rowsPerImage = rowCount;
+
+        WGPUExtent3D const copyExtent{ textureExtent.width, textureExtent.height, textureExtent.depth };
+        wgpuCommandEncoderCopyTextureToBuffer(_commandEncoder, &textureCopy, &bufferCopy, &copyExtent);
     }
 
     void WebGPUCommandBuffer::SetPipeline(GPUPipeline* pipeline)
     {
-        //
+        BONSAI_ASSERT(pipeline->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUPipeline const* internalPipeline = static_cast<WebGPUPipeline const*>(pipeline);
+
+        if (_activeRenderPass)
+        {
+            WGPURenderPipeline renderPipeline = internalPipeline->TryGetRenderPipeline();
+            BONSAI_ASSERT(renderPipeline && "Provided pipeline is not a render pipeline, which was expected!");
+            wgpuRenderPassEncoderSetPipeline(_activeRenderPass, renderPipeline);
+        }
+        
+        if (_activeComputePass)
+        {
+            WGPUComputePipeline computePipeline = internalPipeline->TryGetComputePipeline();
+            BONSAI_ASSERT(computePipeline && "Provided pipeline is not a compute pipeline, which was expected!");
+            wgpuComputePassEncoderSetPipeline(_activeComputePass, computePipeline);
+        }
     }
 
     void WebGPUCommandBuffer::SetDepthStencilState(DepthStencilState* depthStencilState)
@@ -305,32 +374,148 @@ namespace RHI
 
     void WebGPUCommandBuffer::BeginRenderPass(RenderPassDesc* renderPassDesc)
     {
-        //
+        BONSAI_ASSERT(renderPassDesc && "The render pass desc must not be null!");
+
+        // Set up color attachments
+        DynamicArray<WGPURenderPassColorAttachment> colorAttachments(renderPassDesc->colorTargetCount);
+        for (uint32 i = 0; i < renderPassDesc->colorTargetCount; i++)
+        {
+            RenderPassTargetDesc const& target = renderPassDesc->colorTargets[i];
+            BONSAI_ASSERT(target.texture && "The color target texture must not be null!");
+            BONSAI_ASSERT(target.texture->GetBackendAPI() == BackendAPI_WebGPU);
+
+            // Set up color attachment
+            WebGPUTexture const* texture = static_cast<WebGPUTexture const*>(target.texture);
+            WGPURenderPassColorAttachment& colorAttachment = colorAttachments[i];
+            colorAttachment.nextInChain = nullptr;
+            colorAttachment.view = texture->GetTextureView();
+            colorAttachment.resolveTarget = nullptr;
+            colorAttachment.loadOp = gLoadOpLUT[target.loadOp];
+            colorAttachment.storeOp = gStoreOpLUT[target.storeOp];
+            colorAttachment.clearValue = {
+                target.clearValue.color.float32[0],
+                target.clearValue.color.float32[1],
+                target.clearValue.color.float32[2],
+                target.clearValue.color.float32[3],
+            };
+            colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+
+            // Handle optional resolve target
+            if (target.resolveTarget)
+            {
+                BONSAI_ASSERT(target.resolveTarget->GetBackendAPI() == BackendAPI_WebGPU);
+                WebGPUTexture const* resolveTarget = static_cast<WebGPUTexture const*>(target.resolveTarget);
+                colorAttachment.resolveTarget = resolveTarget->GetTextureView();
+            }
+
+            colorAttachments.push_back(colorAttachment);
+        }
+
+        // Set up render pass desc
+        WGPURenderPassDescriptor internalRenderPassDesc{};
+        internalRenderPassDesc.nextInChain = nullptr;
+        internalRenderPassDesc.label = {};
+        internalRenderPassDesc.colorAttachmentCount = renderPassDesc->colorTargetCount;
+        internalRenderPassDesc.colorAttachments = colorAttachments.data();
+        internalRenderPassDesc.depthStencilAttachment = nullptr;
+        internalRenderPassDesc.timestampWrites = nullptr;
+        internalRenderPassDesc.occlusionQuerySet = nullptr;
+
+        // Attach optional depth/stencil attachment
+        WGPURenderPassDepthStencilAttachment depthStencilAttachment{};
+        if (renderPassDesc->depthStencilTarget)
+        {
+            RenderPassTargetDesc const& target = *renderPassDesc->depthStencilTarget;
+            BONSAI_ASSERT(target.texture && "The depth/stencil target texture must not be null!");
+            BONSAI_ASSERT(target.texture->GetBackendAPI() == BackendAPI_WebGPU);
+
+            // Set up depth/stencil attachment
+            WebGPUTexture const* texture = static_cast<WebGPUTexture const*>(target.texture);
+            depthStencilAttachment.view = texture->GetTextureView();
+            depthStencilAttachment.depthReadOnly = false; // TODO(nemjit001): Handle read-only depth attachment
+            depthStencilAttachment.depthLoadOp = gLoadOpLUT[target.loadOp];
+            depthStencilAttachment.depthStoreOp = gStoreOpLUT[target.storeOp];
+            depthStencilAttachment.depthClearValue = target.clearValue.depthStencil.depth;
+            depthStencilAttachment.stencilReadOnly = false; // TODO(nemjit001): Handle read-only stencil attachment
+            depthStencilAttachment.stencilLoadOp = gLoadOpLUT[target.loadOp];
+            depthStencilAttachment.stencilStoreOp = gStoreOpLUT[target.storeOp];
+            depthStencilAttachment.stencilClearValue = target.clearValue.depthStencil.stencil;
+
+            internalRenderPassDesc.depthStencilAttachment = &depthStencilAttachment;
+        }
+
+        _activeRenderPass = wgpuCommandEncoderBeginRenderPass(_commandEncoder, &internalRenderPassDesc);
     }
 
     void WebGPUCommandBuffer::EndRenderPass()
     {
-        //
+        BONSAI_ASSERT(_activeRenderPass && "No active render pass to end!");
+        wgpuRenderPassEncoderEnd(_activeRenderPass);
+        wgpuRenderPassEncoderRelease(_activeRenderPass);
+        _activeRenderPass = nullptr;
     }
 
     void WebGPUCommandBuffer::Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ)
     {
-        //
+        BONSAI_ASSERT(_activeComputePass && "A compute pass should be active when recording compute commands!");
+        wgpuComputePassEncoderDispatchWorkgroups(_activeComputePass, sizeX, sizeY, sizeZ);
     }
 
     void WebGPUCommandBuffer::DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset)
     {
-        //
+        BONSAI_ASSERT(_activeComputePass && "A compute pass should be active when recording compute commands!");
+        BONSAI_ASSERT(dispatchCommands->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalDispatchCommands = static_cast<WebGPUBuffer const*>(dispatchCommands);
+        wgpuComputePassEncoderDispatchWorkgroupsIndirect(_activeComputePass, internalDispatchCommands->GetBuffer(), static_cast<uint64>(offset));
+    }
+
+    void WebGPUCommandBuffer::SetViewport(Viewport* viewport)
+    {
+        BONSAI_ASSERT(viewport && "The viewport must not be null!");
+        BONSAI_ASSERT(_activeRenderPass && "A render pass should be active when recording draw commands!");
+        wgpuRenderPassEncoderSetViewport(_activeRenderPass,
+            viewport->x,
+            viewport->y,
+            viewport->width,
+            viewport->height,
+            viewport->minDepth,
+            viewport->maxDepth
+        );
+    }
+
+    void WebGPUCommandBuffer::SetScissor(Rect2D* scissor)
+    {
+        BONSAI_ASSERT(scissor && "The scissor rect must not be null!");
+        BONSAI_ASSERT(_activeRenderPass && "A render pass should be active when recording draw commands!");
+        wgpuRenderPassEncoderSetScissorRect(_activeRenderPass,
+            static_cast<uint32>(scissor->offset.x),
+            static_cast<uint32>(scissor->offset.y),
+            scissor->extent.width,
+            scissor->extent.height
+        );
     }
 
     void WebGPUCommandBuffer::DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance)
     {
-        //
+        BONSAI_ASSERT(_activeRenderPass && "A render pass should be active when recording draw commands!");
+        wgpuRenderPassEncoderDrawIndexed(_activeRenderPass, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
     }
 
     void WebGPUCommandBuffer::DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset)
     {
-        //
+        BONSAI_ASSERT(_activeRenderPass && "A render pass should be active when recording draw commands!");
+        BONSAI_ASSERT(drawCommands->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalDrawCommands = static_cast<WebGPUBuffer const*>(drawCommands);
+        wgpuRenderPassEncoderDrawIndexedIndirect(_activeRenderPass, internalDrawCommands->GetBuffer(), static_cast<uint64>(offset));
+    }
+
+    WGPUCommandBuffer WebGPUCommandBuffer::Finish() const
+    {
+        WGPUCommandBufferDescriptor commandBufferDesc{};
+        commandBufferDesc.nextInChain = nullptr;
+        commandBufferDesc.label = {};
+
+        return wgpuCommandEncoderFinish(_commandEncoder, &commandBufferDesc);
     }
 
     WebGPUGraphicsDevice::WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device)
@@ -469,7 +654,7 @@ namespace RHI
         wgpuTextureDesc.label = {};
         wgpuTextureDesc.usage = GetTextureUsage(textureDesc->usage);
         wgpuTextureDesc.dimension = gTextureDimensionLUT[textureDesc->textureType];
-        wgpuTextureDesc.size = {}; // TODO(nemjit001): Set up size desc
+        wgpuTextureDesc.size = { textureDesc->size.width, textureDesc->size.height, std::max(textureDesc->size.depth, textureDesc->arrayLayers) }; // dpeth or array layers is interpreted as max value, kinda sneaky but should work OK
         wgpuTextureDesc.format = gTextureFormatLUT[textureDesc->format];
         wgpuTextureDesc.mipLevelCount = textureDesc->mipLevels;
         wgpuTextureDesc.sampleCount = textureDesc->sampleCount;
@@ -783,13 +968,8 @@ namespace RHI
                 return GraphicsDeviceResult_BadSubmit;
             }
 
-
-            WGPUCommandBufferDescriptor commandBufferDesc{};
-            commandBufferDesc.nextInChain = nullptr;
-            commandBufferDesc.label = {};
-
             WebGPUCommandBuffer const* commandBuffer = static_cast<WebGPUCommandBuffer const*>(commandBuffers[i]);
-            WGPUCommandBuffer submission = wgpuCommandEncoderFinish(commandBuffer->GetCommandEncoder(), &commandBufferDesc);
+            WGPUCommandBuffer submission = commandBuffer->Finish();
             if (!submission) {
                 return GraphicsDeviceResult_BadSubmit;
             }

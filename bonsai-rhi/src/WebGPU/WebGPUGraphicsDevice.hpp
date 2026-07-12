@@ -44,18 +44,21 @@ namespace RHI
         virtual void Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ) override final;
         virtual void DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset) override final;
 
+        virtual void SetViewport(Viewport* viewport) override final;
+        virtual void SetScissor(Rect2D* scissor) override final;
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) override final;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) override final;
 
         virtual BackendAPI GetBackendAPI() const override final { return BackendAPI_WebGPU; }
 
-        /// @brief Get the internal command encoder handle.
+        /// @brief Complete command recording and return the resulting command buffer.
         /// @return 
-        WGPUCommandEncoder GetCommandEncoder() const { return _commandEncoder; }
+        WGPUCommandBuffer Finish() const;
 
     private:
         WGPUCommandEncoder _commandEncoder = nullptr;
         WGPURenderPassEncoder _activeRenderPass = nullptr; //< The active render pass is transient, i.e. not necessarily initialized.
+        WGPUComputePassEncoder _activeComputePass = nullptr; //< The active compute pass is transient, i.e. not necessarily initialized.
     };
 
     /// @brief WebGPU graphics device implementation.

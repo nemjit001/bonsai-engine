@@ -294,6 +294,24 @@ namespace RHI
         uint32 depth;
     };
 
+    /// @brief 2D rectangle.
+    struct Rect2D
+    {
+        Offset2D offset;
+        Extent2D extent;
+    };
+
+    /// @brief Render viewport.
+    struct Viewport
+    {
+        float x;
+        float y;
+        float width;
+        float height;
+        float minDepth;
+        float maxDepth;
+    };
+
     /// @brief Clear value for color targets.
     struct ClearColorValue
     {
@@ -314,6 +332,24 @@ namespace RHI
     {
         ClearColorValue color;
         ClearDepthStencilValue depthStencil;
+    };
+
+    /// @brief Indirect indexed draw command.
+    struct DrawIndexedIndirectCommand
+    {
+        uint32 indexCount;
+        uint32 instanceCount;
+        uint32 firstIndex;
+        int32 vertexOffset;
+        uint32 firstInstance;
+    };
+
+    /// @brief Indirect dispatch command.
+    struct DispatchIndirectCommand
+    {
+        uint32 sizeX;
+        uint32 sizeY;
+        uint32 sizeZ;
     };
 
     /// @brief A ShaderBlob contains compiled shader IR code.
@@ -526,6 +562,8 @@ namespace RHI
         virtual void Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ) = 0;
         virtual void DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset) = 0;
 
+        virtual void SetViewport(Viewport* viewport) = 0;
+        virtual void SetScissor(Rect2D* scissor) = 0;
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) = 0;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) = 0;
 
