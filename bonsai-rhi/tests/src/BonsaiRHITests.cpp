@@ -44,7 +44,7 @@ TEST_F(BonsaiRHITests, TestCreateTextureAndView)
 {
     RHI::GPUTextureDesc textureDesc{};
     textureDesc.textureType = RHI::TextureType_2D;
-    textureDesc.format = RHI::TextureFormat_Unknown;
+    textureDesc.format = RHI::TextureFormat_RGBA32_SFloat;
     textureDesc.size = { 512, 512, 1 };
     textureDesc.mipLevels = 1;
     textureDesc.arrayLayers = 1;
@@ -57,7 +57,7 @@ TEST_F(BonsaiRHITests, TestCreateTextureAndView)
     RHI::GPUTextureViewDesc viewDesc{};
     viewDesc.texture = texture;
     viewDesc.viewType = RHI::TextureViewType_2D;
-    viewDesc.format = RHI::TextureFormat_Unknown;
+    viewDesc.format = RHI::TextureFormat_RGBA32_SFloat;
     viewDesc.subresourceRange.aspectMask = RHI::TextureAspect_Color;
     viewDesc.subresourceRange.baseMipLevel = 0;
     viewDesc.subresourceRange.levelCount = RHI::ALL_REMAINING_MIPS;
@@ -82,14 +82,17 @@ TEST_F(BonsaiRHITests, TestCreateSampler)
 
 TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 {
+    // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
+    RHI::ShaderBlob shaderBlob = {};
+
     RHI::GPUGraphicsPipelineDesc pipelineDesc{};
-    pipelineDesc.vertexShader = nullptr;
-    pipelineDesc.pixelShader = nullptr;
+    pipelineDesc.vertexShader = &shaderBlob;
+    pipelineDesc.pixelShader = &shaderBlob;
     pipelineDesc.vertexShaderEntrypoint = "VSMain";
     pipelineDesc.pixelShaderEntrypoint = "PSMain";
     pipelineDesc.renderTargetCount = 1;
     pipelineDesc.renderTargetFormats[0] = RHI::TextureFormat_Unknown;
-    pipelineDesc.depthStencilFormat = RHI::TextureFormat_Unknown;
+    pipelineDesc.depthStencilFormat = RHI::TextureFormat_RGBA8_UNormSRGB;
     pipelineDesc.rasterState.polygonMode = RHI::PolygonMode_Fill;
     pipelineDesc.rasterState.primitiveTopology = RHI::PrimitiveTopology_TriangleList;
     pipelineDesc.rasterState.cullMode = RHI::CullMode_None;
@@ -135,7 +138,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_NE(outBuffer, nullptr);
 
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
-    commands->SetPipeline(pipeline); // TODO(nemjit001): bind params
+    commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
     commands->Dispatch(1, 1, 1);
     commands->Finish();
 

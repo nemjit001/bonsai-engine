@@ -5,26 +5,36 @@ namespace RHI
 {
     WebGPUBuffer::~WebGPUBuffer()
     {
-        wgpuBufferRelease(_buffer);
+        if (_buffer) {
+            wgpuBufferRelease(_buffer);
+        }
     }
 
     WebGPUTexture::~WebGPUTexture()
     {
-        wgpuTextureViewRelease(_view);
-        wgpuTextureRelease(_texture);
+        if (_view) {
+            wgpuTextureViewRelease(_view);
+        }
+
+        if (_texture) {
+            wgpuTextureRelease(_texture);
+        }
     }
 
     WebGPUSampler::~WebGPUSampler()
     {
-        wgpuSamplerRelease(_sampler);
+        if (_sampler) {
+            wgpuSamplerRelease(_sampler);
+        }
     }
 
     WebGPUPipeline::~WebGPUPipeline()
     {
-        if (_type == PipelineType_RenderPipeline) {
+        if (_type == PipelineType_RenderPipeline && _pso.renderPipeline) {
             wgpuRenderPipelineRelease(_pso.renderPipeline);
         }
-        else if (_type == PipelineType_ComputePipeline) {
+
+        if (_type == PipelineType_ComputePipeline && _pso.computePipeline) {
             wgpuComputePipelineRelease(_pso.computePipeline);
         }
     }
