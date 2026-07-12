@@ -15,6 +15,7 @@ namespace RHI
 
     static constexpr uint32 ALL_REMAINING_MIPS      = (~0u);
     static constexpr uint32 ALL_REMAINING_LAYERS    = (~0u);
+    static constexpr uint64 WHOLE_SIZE              = (~0ull);
     static constexpr float  LOD_CLAMP_NONE          = 1'000.0F;
 
     static constexpr uint32 MAX_RENDER_TARGETS      = 8u;

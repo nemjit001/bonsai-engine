@@ -82,7 +82,7 @@ TEST_F(BonsaiRHITests, TestCreateSampler)
 
 TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 {
-    char const* shaderCode = R"(
+    constexpr char const* SHADER_CODE = R"(
     struct VSOutput
     {
         float4 position : SV_Position;
@@ -130,7 +130,7 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 
 TEST_F(BonsaiRHITests, TestCreateComputePipeline)
 {
-    char const* shaderCode = R"(
+    constexpr char const* SHADER_CODE = R"(
     [shader("compute")]
     [numthreads(1, 1, 1)]
     void CSMain() {
@@ -187,7 +187,8 @@ TEST_F(BonsaiRHITests, TestMapReadbackBufferRegion)
 TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 {
     // Set up basic compute shader that fills an output buffer
-    char const* shaderCode = R"(
+    constexpr uint32 NUM_BUFFER_ENTRIES = 128u;
+    constexpr char const* SHADER_CODE = R"(
     [[vk::binding(0, 0)]] RWStructuredBuffer<uint> gOutputBuffer : register(u0, space0);
 
     [shader("compute")]
@@ -215,7 +216,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 
     // Create output buffer
     RHI::GPUBufferDesc outBufferDesc{};
-    outBufferDesc.size = sizeof(uint32) * 32;
+    outBufferDesc.size = sizeof(uint32) * NUM_BUFFER_ENTRIES;
     outBufferDesc.usage = RHI::BufferUsage_StorageBuffer;
     RHI::GPUBuffer* outBuffer = _gpu->CreateBuffer(&outBufferDesc);
     EXPECT_NE(outBuffer, nullptr);
@@ -223,7 +224,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
     commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
-    commands->Dispatch(32, 1, 1); // Linear dispatch of 32 workgroups
+    commands->Dispatch(NUM_BUFFER_ENTRIES, 1, 1); // Linear dispatch of N workgroups
     commands->Finish();
 
     EXPECT_EQ(_gpu->Submit(RHI::GPUQueueType_Compute, &commands, 1), RHI::GraphicsDeviceResult_Ok);
@@ -231,9 +232,9 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 
     // Validate buffer contents
     uint32* bufferData = nullptr;
-    EXPECT_EQ(_gpu->MapBuffer(outBuffer, 0, sizeof(uint32) * 32, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
+    EXPECT_EQ(_gpu->MapBuffer(outBuffer, 0, RHI::WHOLE_SIZE, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
     EXPECT_NE(bufferData, nullptr);
-    for (uint32 i = 0; i < 32; i++) {
+    for (uint32 i = 0; i < NUM_BUFFER_ENTRIES; i++) {
         EXPECT_EQ(bufferData[i], i);
     }
 
