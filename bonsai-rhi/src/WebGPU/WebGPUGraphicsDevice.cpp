@@ -321,6 +321,7 @@ namespace RHI
 
     void WebGPUCommandBuffer::CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset)
     {
+        BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
         WebGPUBuffer const* internalDest = static_cast<WebGPUBuffer const*>(dest);
@@ -334,6 +335,7 @@ namespace RHI
         Extent3D extent
     )
     {
+        BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
         WebGPUTexture const* internalDest = static_cast<WebGPUTexture const*>(dest);
@@ -360,6 +362,7 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
+        BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
         WebGPUTexture const* internalDest = static_cast<WebGPUTexture const*>(dest);
@@ -386,6 +389,7 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
+        BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
         WebGPUBuffer const* internalDest = static_cast<WebGPUBuffer const*>(dest);
@@ -408,6 +412,7 @@ namespace RHI
 
     void WebGPUCommandBuffer::SetPipeline(GPUPipeline* pipeline)
     {
+        BONSAI_ASSERT(pipeline && "A pipeline must be provided!");
         BONSAI_ASSERT(pipeline->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUPipeline const* internalPipeline = static_cast<WebGPUPipeline const*>(pipeline);
 
@@ -528,6 +533,7 @@ namespace RHI
     void WebGPUCommandBuffer::DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset)
     {
         BONSAI_ASSERT(_activeComputePass && "A compute pass should be active when recording compute commands!");
+        BONSAI_ASSERT(dispatchCommands && "Dispatch commands must be provided!");
         BONSAI_ASSERT(dispatchCommands->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalDispatchCommands = static_cast<WebGPUBuffer const*>(dispatchCommands);
         wgpuComputePassEncoderDispatchWorkgroupsIndirect(_activeComputePass, internalDispatchCommands->GetBuffer(), static_cast<uint64>(offset));
@@ -568,6 +574,7 @@ namespace RHI
     void WebGPUCommandBuffer::DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset)
     {
         BONSAI_ASSERT(_activeRenderPass && "A render pass should be active when recording draw commands!");
+        BONSAI_ASSERT(drawCommands && "Draw commands must be provided!");
         BONSAI_ASSERT(drawCommands->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalDrawCommands = static_cast<WebGPUBuffer const*>(drawCommands);
         wgpuRenderPassEncoderDrawIndexedIndirect(_activeRenderPass, internalDrawCommands->GetBuffer(), static_cast<uint64>(offset));
@@ -692,10 +699,22 @@ namespace RHI
             return nullptr;
         }
 
+        // Set up buffer usage and supported map modes based on transfer flags and requested heap type
+        WGPUBufferUsage usage = GetBufferUsage(bufferDesc->usage);
+        if (bufferDesc->heapType == GPUHeapType_Default && !BitFlagIsSet(bufferDesc->usage, BufferUsage_TransferDst)) {
+            usage |= WGPUBufferUsage_MapWrite; // host write only supported
+        }
+        else if (bufferDesc->heapType == GPUHeapType_Default && !BitFlagIsSet(bufferDesc->usage, BufferUsage_TransferSrc)) {
+            usage |= WGPUBufferUsage_MapRead; // host read only supported
+        }
+        else if (bufferDesc->heapType == GPUHeapType_Readback && !BitFlagIsSet(bufferDesc->usage, BufferUsage_TransferSrc)) {
+            usage |= WGPUBufferUsage_MapRead; // host read only supported
+        }
+    
         WGPUBufferDescriptor wgpuBufferDesc{};
         wgpuBufferDesc.nextInChain = nullptr;
         wgpuBufferDesc.label = {};
-        wgpuBufferDesc.usage = GetBufferUsage(bufferDesc->usage);
+        wgpuBufferDesc.usage = usage;
         wgpuBufferDesc.size = bufferDesc->size;
         wgpuBufferDesc.mappedAtCreation = false;
 
@@ -1050,6 +1069,60 @@ namespace RHI
         return GraphicsDeviceResult_Ok;
     }
     
+    GraphicsDeviceResult WebGPUGraphicsDevice::MapBuffer(GPUBuffer* buffer, int64 offset, uint64 size, void** outData) const
+    {
+        BONSAI_ASSERT(buffer && "A buffer must be provided!");
+        BONSAI_ASSERT(outData != nullptr && "An output pointer value for the mapped buffer region must be provided!");
+        BONSAI_ASSERT(buffer->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalBuffer = static_cast<WebGPUBuffer const*>(buffer);
+        *outData = nullptr;
+
+        // Determine map mode based on usage flags
+        WGPUMapMode bufferMapMode = WGPUMapMode_None;
+        WGPUBufferUsage const usage = wgpuBufferGetUsage(internalBuffer->GetBuffer());
+        if (BitFlagIsSet(usage, WGPUBufferUsage_MapRead)) {
+            bufferMapMode = WGPUMapMode_Read;
+        }
+        else if (BitFlagIsSet(usage, WGPUBufferUsage_MapWrite)) {
+            bufferMapMode = WGPUMapMode_Write;
+        }
+
+        // Set up map callback
+        bool mapSuccessful = false;
+        WGPUBufferMapCallbackInfo mapCallbackInfo{};
+        mapCallbackInfo.nextInChain = nullptr;
+        mapCallbackInfo.mode = WGPUCallbackMode_AllowProcessEvents;
+        mapCallbackInfo.userdata1 = &mapSuccessful;
+        mapCallbackInfo.userdata2 = nullptr;
+        mapCallbackInfo.callback = [](WGPUMapAsyncStatus status, WGPUStringView message, void* ud1, void*) {
+            bool& outMapSuccessful = *static_cast<bool*>(ud1);
+            if (status == WGPUMapAsyncStatus_Success) {
+                outMapSuccessful = true;
+            }
+            else {
+                PrintDebugString("WebGPU Error: %*.s", message.data, message.length);
+            }
+        };
+
+        // Actually map buffer
+        wgpuBufferMapAsync(internalBuffer->GetBuffer(), bufferMapMode, offset, size, mapCallbackInfo);
+        wgpuInstanceProcessEvents(_instance);
+        if (!mapSuccessful) {
+            return GraphicsDeviceResult_BadMap;
+        }
+
+        *outData = wgpuBufferGetMappedRange(internalBuffer->GetBuffer(), offset, size);
+        return GraphicsDeviceResult_Ok;
+    }
+
+    void WebGPUGraphicsDevice::UnmapBuffer(GPUBuffer* buffer) const
+    {
+        BONSAI_ASSERT(buffer && "A buffer must be provided!");
+        BONSAI_ASSERT(buffer->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUBuffer const* internalBuffer = static_cast<WebGPUBuffer const*>(buffer);
+        wgpuBufferUnmap(internalBuffer->GetBuffer());
+    }
+
     void WebGPUGraphicsDevice::WaitIdle()
     {
         // TODO(nemjit001): Implement callback-based wait on submits (timeline semaphore?)

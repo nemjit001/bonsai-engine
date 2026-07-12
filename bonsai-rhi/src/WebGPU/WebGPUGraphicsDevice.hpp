@@ -96,7 +96,8 @@ namespace RHI
         virtual void DestroyCommandBuffer(IGPUCommandBuffer* commandBuffer) override final;
 
         virtual GraphicsDeviceResult Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount) override final;
-        
+        virtual GraphicsDeviceResult MapBuffer(GPUBuffer* buffer, int64 offset, uint64 size, void** outData) const override final;
+        virtual void UnmapBuffer(GPUBuffer* buffer) const override final;
         virtual void WaitIdle() override final;
 
     private:

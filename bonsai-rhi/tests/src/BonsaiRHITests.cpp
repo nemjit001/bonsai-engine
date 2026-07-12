@@ -121,22 +121,62 @@ TEST_F(BonsaiRHITests, TestCreateComputePipeline)
     _gpu->DestroyPipeline(pipeline);
 }
 
+TEST_F(BonsaiRHITests, TestMapBufferRegion)
+{
+    RHI::GPUBufferDesc bufferDesc{};
+    bufferDesc.heapType = RHI::GPUHeapType_Default;
+    bufferDesc.size = sizeof(uint32);
+    bufferDesc.usage = RHI::BufferUsage_TransferSrc;
+
+    RHI::GPUBuffer* buffer = _gpu->CreateBuffer(&bufferDesc);
+    EXPECT_NE(buffer, nullptr);
+
+    uint32* bufferData = nullptr;
+    EXPECT_EQ(_gpu->MapBuffer(buffer, 0, sizeof(uint32), reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
+    EXPECT_NE(bufferData, nullptr);
+
+    _gpu->UnmapBuffer(buffer);
+    _gpu->DestroyBuffer(buffer);
+}
+
+TEST_F(BonsaiRHITests, TestMapReadbackBufferRegion)
+{
+    RHI::GPUBufferDesc bufferDesc{};
+    bufferDesc.heapType = RHI::GPUHeapType_Readback;
+    bufferDesc.size = sizeof(uint32);
+    bufferDesc.usage = RHI::BufferUsage_TransferDst;
+
+    RHI::GPUBuffer* buffer = _gpu->CreateBuffer(&bufferDesc);
+    EXPECT_NE(buffer, nullptr);
+
+    uint32* bufferData = nullptr;
+    EXPECT_EQ(_gpu->MapBuffer(buffer, 0, sizeof(uint32), reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
+    EXPECT_NE(bufferData, nullptr);
+
+    _gpu->UnmapBuffer(buffer);
+    _gpu->DestroyBuffer(buffer);
+}
+
 TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 {
+    // Set up basic compute shader that fills an output buffer
     // FIXME(nemjit001): Set up basic compute shader with a expected output (e.g. a simple fill to fixed value?)
     RHI::GPUComputePipelineDesc pipelineDesc{};
     pipelineDesc.computeShader = {}; // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
     pipelineDesc.entrypoint = "CSMain";
 
+    // Set up compute pipeline
     RHI::GPUPipeline* pipeline = _gpu->CreateComputePipeline(&pipelineDesc);
     EXPECT_NE(pipeline, nullptr);
 
+    // Create output buffer
     RHI::GPUBufferDesc outBufferDesc{};
     outBufferDesc.size = sizeof(uint32) * 32;
     outBufferDesc.usage = RHI::BufferUsage_StorageBuffer;
     RHI::GPUBuffer* outBuffer = _gpu->CreateBuffer(&outBufferDesc);
     EXPECT_NE(outBuffer, nullptr);
 
+    // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
     commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
     commands->Dispatch(1, 1, 1);
@@ -145,7 +185,15 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_EQ(_gpu->Submit(RHI::GPUQueueType_Compute, &commands, 1), RHI::GraphicsDeviceResult_Ok);
     _gpu->DestroyCommandBuffer(commands);
 
-    // TODO(nemjit001): Validate buffer contents
+    // Validate buffer contents
+    uint32* bufferData = nullptr;
+    EXPECT_EQ(_gpu->MapBuffer(outBuffer, 0, sizeof(uint32) * 32, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
+    EXPECT_NE(bufferData, nullptr);
+    for (uint32 i = 0; i < 32; i++) {
+        EXPECT_EQ(bufferData[i], UINT32_MAX);
+    }
+
+    _gpu->UnmapBuffer(outBuffer);
     _gpu->DestroyBuffer(outBuffer);
     _gpu->DestroyPipeline(pipeline);
 }

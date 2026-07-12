@@ -24,6 +24,7 @@ namespace RHI
     {
         GraphicsDeviceResult_Ok         = 0,
         GraphicsDeviceResult_BadSubmit  = 1,
+        GraphicsDeviceResult_BadMap     = 2,
     };
 
     /// @brief Enumeration of potentially supported backend graphics APIs.
@@ -678,6 +679,18 @@ namespace RHI
         /// @param commandBufferCount Number of command buffers in command buffer array.
         /// @return A GraphicsDeviceResult indicating submit status.
         [[nodiscard]] virtual GraphicsDeviceResult Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount) = 0;
+
+        /// @brief Map a buffer region to a host-side pointer.
+        /// @param buffer Buffer to map. This buffer must be host-accessible (i.e. created using GPUHeapType_Default or GPUHeapType_Readback).
+        /// @param offset Offset in bytes from the start of the buffer.
+        /// @param size Size of the buffer region to map in bytes.
+        /// @param outData Output data pointer, points to the start of the mapped buffer region.
+        /// @return A GraphicsDeviceResult indicating map status.
+        [[nodiscard]] virtual GraphicsDeviceResult MapBuffer(GPUBuffer* buffer, int64 offset, uint64 size, void** outData) const = 0;
+
+        /// @brief Unmap a buffer from memory.
+        /// @param buffer Buffer to unmap.
+        virtual void UnmapBuffer(GPUBuffer* buffer) const = 0;
 
         /// @brief Wait for the graphics device to be idle (i.e. all submitted work has finished).
         virtual void WaitIdle() = 0;
