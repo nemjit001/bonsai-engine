@@ -7,6 +7,7 @@ project("BonsaiRHI"
 # Set up shared dependencies
 find_package(slang CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
+find_package(slang CONFIG REQUIRED)
 
 # Create library target
 add_library(BonsaiRHI SHARED)
@@ -46,6 +47,7 @@ target_link_libraries(BonsaiRHI
     PUBLIC
         Bonsai::Base
         SDL3::SDL3
+        slang::slang
 )
 
 # Configure supported backend APIs
