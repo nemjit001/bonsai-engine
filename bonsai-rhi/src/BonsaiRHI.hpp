@@ -567,6 +567,8 @@ namespace RHI
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) = 0;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) = 0;
 
+        virtual void Finish() = 0;
+
         virtual BackendAPI GetBackendAPI() const = 0;
     };
 
@@ -623,8 +625,9 @@ namespace RHI
         virtual void DestroyPipeline(GPUPipeline* pipeline) = 0;
 
         /// @brief Create a GPUCommandBuffer.
+        /// @param queue Queue type to create the command buffer for.
         /// @return A new GPUCommandBuffer, or nullptr on failure.
-        [[nodiscard]] virtual IGPUCommandBuffer* CreateCommandBuffer() = 0;
+        [[nodiscard]] virtual IGPUCommandBuffer* CreateCommandBuffer(GPUQueueType queue) = 0;
 
         /// @brief Destroy a GPUCommandBuffer.
         /// @param commandBuffer 

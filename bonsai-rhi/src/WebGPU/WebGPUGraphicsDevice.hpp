@@ -49,14 +49,17 @@ namespace RHI
         virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance) override final;
         virtual void DrawIndexedIndirect(GPUBuffer* drawCommands, int64 offset) override final;
 
+        virtual void Finish() override final;
+
         virtual BackendAPI GetBackendAPI() const override final { return BackendAPI_WebGPU; }
 
-        /// @brief Complete command recording and return the resulting command buffer.
+        /// @brief Get the completed command buffer.
         /// @return 
-        WGPUCommandBuffer Finish() const;
+        WGPUCommandBuffer GetCommandBuffer() const { return _commandBuffer; };
 
     private:
         WGPUCommandEncoder _commandEncoder = nullptr;
+        WGPUCommandBuffer _commandBuffer = nullptr;
         WGPURenderPassEncoder _activeRenderPass = nullptr; //< The active render pass is transient, i.e. not necessarily initialized.
         WGPUComputePassEncoder _activeComputePass = nullptr; //< The active compute pass is transient, i.e. not necessarily initialized.
     };
@@ -75,24 +78,24 @@ namespace RHI
         /// @return A new WebGPUGraphicsDevice, or nullptr on failure.
         static IGraphicsDevice* TryCreate(GraphicsDeviceDesc const& graphicsDeviceDesc);
 
-        [[nodiscard]] virtual GPUBuffer* CreateBuffer(GPUBufferDesc* bufferDesc) override final;
+        virtual GPUBuffer* CreateBuffer(GPUBufferDesc* bufferDesc) override final;
         virtual void DestroyBuffer(GPUBuffer* buffer) override final;
 
-        [[nodiscard]] virtual GPUTexture* CreateTexture(GPUTextureDesc* textureDesc) override final;
+        virtual GPUTexture* CreateTexture(GPUTextureDesc* textureDesc) override final;
         virtual GPUTexture* CreateTextureView(GPUTextureViewDesc* textureViewDesc) override final;
         virtual void DestroyTexture(GPUTexture* texture) override final;
 
         virtual GPUSampler* CreateSampler(GPUSamplerDesc* samplerDesc) override final;
         virtual void DestroySampler(GPUSampler* sampler) override final;
 
-        [[nodiscard]] virtual GPUPipeline* CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc) override final;
-        [[nodiscard]] virtual GPUPipeline* CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc) override final;
+        virtual GPUPipeline* CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc) override final;
+        virtual GPUPipeline* CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc) override final;
         virtual void DestroyPipeline(GPUPipeline* pipeline) override final;
 
-        [[nodiscard]] virtual IGPUCommandBuffer* CreateCommandBuffer() override final;
+        virtual IGPUCommandBuffer* CreateCommandBuffer(GPUQueueType queue) override final;
         virtual void DestroyCommandBuffer(IGPUCommandBuffer* commandBuffer) override final;
 
-        [[nodiscard]] virtual GraphicsDeviceResult Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount) override final;
+        virtual GraphicsDeviceResult Submit(GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount) override final;
         
         virtual void WaitIdle() override final;
 

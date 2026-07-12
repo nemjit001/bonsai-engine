@@ -252,7 +252,21 @@ namespace RHI
 
     WebGPUCommandBuffer::~WebGPUCommandBuffer()
     {
-        wgpuCommandEncoderRelease(_commandEncoder);
+        if (_commandEncoder) {
+            wgpuCommandEncoderRelease(_commandEncoder);
+        }
+
+        if (_commandBuffer) {
+            wgpuCommandBufferRelease(_commandBuffer);
+        }
+
+        if (_activeRenderPass) {
+            wgpuRenderPassEncoderRelease(_activeRenderPass);
+        }
+
+        if (_activeComputePass) {
+            wgpuComputePassEncoderRelease(_activeComputePass);
+        }
     }
 
     void WebGPUCommandBuffer::CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset)
@@ -509,13 +523,18 @@ namespace RHI
         wgpuRenderPassEncoderDrawIndexedIndirect(_activeRenderPass, internalDrawCommands->GetBuffer(), static_cast<uint64>(offset));
     }
 
-    WGPUCommandBuffer WebGPUCommandBuffer::Finish() const
+    void WebGPUCommandBuffer::Finish()
     {
-        WGPUCommandBufferDescriptor commandBufferDesc{};
-        commandBufferDesc.nextInChain = nullptr;
-        commandBufferDesc.label = {};
+        if (_commandEncoder)
+        {
+            WGPUCommandBufferDescriptor commandBufferDesc{};
+            commandBufferDesc.nextInChain = nullptr;
+            commandBufferDesc.label = {};
 
-        return wgpuCommandEncoderFinish(_commandEncoder, &commandBufferDesc);
+            _commandBuffer = wgpuCommandEncoderFinish(_commandEncoder, &commandBufferDesc);
+            wgpuCommandEncoderRelease(_commandEncoder);
+            _commandEncoder = nullptr;
+        }
     }
 
     WebGPUGraphicsDevice::WebGPUGraphicsDevice(WGPUInstance instance, WGPUAdapter adapter, WGPUDevice device)
@@ -730,7 +749,7 @@ namespace RHI
         wgpuSamplerDesc.lodMinClamp = samplerDesc->minLOD;
         wgpuSamplerDesc.lodMaxClamp = samplerDesc->maxLOD;
         wgpuSamplerDesc.compare = samplerDesc->enableCompareOp ? gCompareFunctionLUT[samplerDesc->compareOp] : WGPUCompareFunction_Undefined;
-        wgpuSamplerDesc.maxAnisotropy = samplerDesc->maxAnisotropy;
+        wgpuSamplerDesc.maxAnisotropy = std::clamp(samplerDesc->maxAnisotropy, 1u, 16u); // Force the anisotropy to be in range [1, 16]
 
         WGPUSampler sampler = wgpuDeviceCreateSampler(_device, &wgpuSamplerDesc);
         if (!sampler) {
@@ -939,7 +958,7 @@ namespace RHI
         delete pipeline;
     }
 
-    IGPUCommandBuffer* WebGPUGraphicsDevice::CreateCommandBuffer()
+    IGPUCommandBuffer* WebGPUGraphicsDevice::CreateCommandBuffer([[maybe_unused]] GPUQueueType queue)
     {
         WGPUCommandEncoderDescriptor commandEncoderDesc{};
         commandEncoderDesc.nextInChain = nullptr;
@@ -969,7 +988,7 @@ namespace RHI
             }
 
             WebGPUCommandBuffer const* commandBuffer = static_cast<WebGPUCommandBuffer const*>(commandBuffers[i]);
-            WGPUCommandBuffer submission = commandBuffer->Finish();
+            WGPUCommandBuffer submission = commandBuffer->GetCommandBuffer();
             if (!submission) {
                 return GraphicsDeviceResult_BadSubmit;
             }
