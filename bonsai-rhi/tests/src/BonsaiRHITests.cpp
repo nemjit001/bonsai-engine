@@ -82,6 +82,25 @@ TEST_F(BonsaiRHITests, TestCreateSampler)
 
 TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 {
+    char const* shaderCode = R"(
+    struct VSOutput
+    {
+        float4 position : SV_Position;
+    };
+
+    [shader("vertex")]
+    VSOutput VSMain() {
+        VSOutput result = {0};
+        result.position = float4(0, 0, 0, 1);
+        return result;
+    }
+
+    [shader("pixel")]
+    float4 PSMain(VSOutput input) : SV_Target0 {
+        return float4(0, 0, 0, 1);
+    }
+    )";
+
     // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
     RHI::ShaderBlob shaderBlob = {};
 
@@ -111,6 +130,14 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 
 TEST_F(BonsaiRHITests, TestCreateComputePipeline)
 {
+    char const* shaderCode = R"(
+    [shader("compute")]
+    [numthreads(1, 1, 1)]
+    void CSMain() {
+        //
+    }
+    )";
+
     RHI::GPUComputePipelineDesc pipelineDesc{};
     pipelineDesc.computeShader = {}; // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
     pipelineDesc.entrypoint = "CSMain";
@@ -160,7 +187,24 @@ TEST_F(BonsaiRHITests, TestMapReadbackBufferRegion)
 TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 {
     // Set up basic compute shader that fills an output buffer
-    // FIXME(nemjit001): Set up basic compute shader with a expected output (e.g. a simple fill to fixed value?)
+    char const* shaderCode = R"(
+    [[vk::binding(0, 0)]] RWStructuredBuffer<uint> gOutputBuffer : register(u0, space0);
+
+    [shader("compute")]
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 threadId : SV_DispatchThreadId) {
+        int bufferSize = 0;
+        int stride = 0;
+        gOutputBuffer.GetDimensions(bufferSize, stride);
+
+        if (threadId.x >= bufferSize) {
+            return;
+        }
+
+        gOutputBuffer[threadId.x] = threadId.x; // Write thread Id value into output buffer
+    }
+    )";
+
     RHI::GPUComputePipelineDesc pipelineDesc{};
     pipelineDesc.computeShader = {}; // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
     pipelineDesc.entrypoint = "CSMain";
@@ -179,7 +223,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
     commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
-    commands->Dispatch(1, 1, 1);
+    commands->Dispatch(32, 1, 1); // Linear dispatch of 32 workgroups
     commands->Finish();
 
     EXPECT_EQ(_gpu->Submit(RHI::GPUQueueType_Compute, &commands, 1), RHI::GraphicsDeviceResult_Ok);
@@ -190,7 +234,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_EQ(_gpu->MapBuffer(outBuffer, 0, sizeof(uint32) * 32, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
     EXPECT_NE(bufferData, nullptr);
     for (uint32 i = 0; i < 32; i++) {
-        EXPECT_EQ(bufferData[i], UINT32_MAX);
+        EXPECT_EQ(bufferData[i], i);
     }
 
     _gpu->UnmapBuffer(outBuffer);
