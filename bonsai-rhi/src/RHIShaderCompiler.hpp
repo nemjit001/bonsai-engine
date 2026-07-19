@@ -6,11 +6,15 @@
 
 namespace RHI
 {
+    struct ShaderBlob;
+
     /// @brief The RHIShaderCompiler interface implements an abstraction on top of low-level shader compilation for RHI backends.
     class BONSAI_RHI_EXPORT IRHIShaderCompiler
     {
     public:
         virtual ~IRHIShaderCompiler() = default;
+
+        [[nodiscard]] virtual bool CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const = 0;
     };
 
     /// @brief Create an RHI shader compiler.
