@@ -7,6 +7,7 @@ add_executable(BonsaiRHITests)
 target_sources(BonsaiRHITests
     PRIVATE
         src/BonsaiRHITests.cpp
+        src/RHIShaderCompilerTests.cpp
 )
 target_compile_features(BonsaiRHITests PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiRHITests)
