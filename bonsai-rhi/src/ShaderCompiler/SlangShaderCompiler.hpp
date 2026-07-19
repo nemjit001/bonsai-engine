@@ -19,7 +19,7 @@ namespace RHI
         /// @return A new Slang shader compiler, or nullptr on failure.
         static SlangShaderCompiler* TryCreate();
 
-        virtual bool CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const override final;
+        virtual bool CompileShaderSource(ShaderLang targetLanguage, char const* entrypoint, char const* source, ShaderBlob* outBlob) const override final;
 
     private:
         /// @brief Try to print diagnostics if the blob exists.

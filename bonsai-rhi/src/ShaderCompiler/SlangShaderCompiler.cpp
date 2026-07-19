@@ -1,7 +1,7 @@
 #include "SlangShaderCompiler.hpp"
 
-#include <BonsaiBase.hpp>
 #include <Containers/DynamicArray.hpp>
+#include <Containers/StaticArray.hpp>
 
 namespace RHI
 {
@@ -22,18 +22,42 @@ namespace RHI
         return new SlangShaderCompiler(std::move(globalSession));
     }
 
-    bool SlangShaderCompiler::CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const
+    bool SlangShaderCompiler::CompileShaderSource(ShaderLang targetLanguage, char const* entrypoint, char const* source, ShaderBlob* outBlob) const
     {
         BONSAI_ASSERT(source && "No shader source provided!");
         BONSAI_ASSERT(outBlob && "No output shader blob provided!");
 
+        // Set up compilation targets
+        // TODO(nemjit001): Set up individual IR targets.
+        slang::TargetDesc spirvTargetDesc{};
+        spirvTargetDesc.format = SLANG_SPIRV;
+        spirvTargetDesc.profile = _globalSession->findProfile("gl460");
+        spirvTargetDesc.forceGLSLScalarBufferLayout = true;
+
+        slang::TargetDesc dxilTargetDesc{};
+        dxilTargetDesc.format = SLANG_DXIL;
+        dxilTargetDesc.profile = _globalSession->findProfile("Shader Model 6.0");
+        dxilTargetDesc.forceGLSLScalarBufferLayout = true;
+
+        slang::TargetDesc wgslTargetDesc{};
+        wgslTargetDesc.format = SLANG_WGSL;
+        wgslTargetDesc.profile = SLANG_PROFILE_UNKNOWN;
+        wgslTargetDesc.forceGLSLScalarBufferLayout = true;
+
         // Set up local compilation session
-        // TODO(nemjit001): Set targets, search paths, preprocessor macros, etc.
+        // NOTE(nemjit001): This order is dependent on the ShaderLang enum
+        StaticArray<slang::TargetDesc, 3> const targets = {
+            spirvTargetDesc,    //< ShaderLang_SPIRV
+            dxilTargetDesc,     //< ShaderLang_DXIL
+            wgslTargetDesc,     //< ShaderLang_WGSL
+        };
+
+        // TODO(nemjit001): Set up search paths, preprocessor macros, etc.
         slang::SessionDesc sessionDesc{};
         sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_ROW_MAJOR;
         sessionDesc.fileSystem = nullptr;
-        sessionDesc.targets = 0;
-        sessionDesc.targets = nullptr;
+        sessionDesc.targetCount = targets.size();
+        sessionDesc.targets = targets.data();
         sessionDesc.searchPathCount = 0;
         sessionDesc.searchPaths = nullptr;
         sessionDesc.preprocessorMacroCount = 0;
@@ -108,7 +132,13 @@ namespace RHI
         Slang::ComPtr<slang::IBlob> outShaderCode = nullptr;
         {
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
-            SlangResult const result = linkedProgram->getEntryPointCode(0 /* entrypoint index */, 0 /* target index */, outShaderCode.writeRef(), diagnostics.writeRef());
+            SlangResult const result = linkedProgram->getEntryPointCode(
+                0 /* entrypoint index */,
+                static_cast<SlangInt32>(targetLanguage),
+                outShaderCode.writeRef(),
+                diagnostics.writeRef()
+            );
+
             TryPrintDiagnostics(diagnostics);
 
             if (SLANG_FAILED(result)) {
