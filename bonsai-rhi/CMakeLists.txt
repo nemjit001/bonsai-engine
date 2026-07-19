@@ -16,12 +16,16 @@ target_sources(BonsaiRHI
     PRIVATE
         src/BonsaiRHI.cpp
         src/BonsaiRHITypes.hpp
+        src/RHIShaderCompiler.cpp
+        src/ShaderCompiler/SlangShaderCompiler.cpp
+        src/ShaderCompiler/SlangShaderCompiler.hpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src/
     FILES
         src/BonsaiRHI.hpp
         src/BonsaiRHIExport.hpp
+        src/RHIShaderCompiler.hpp
 )
 target_compile_features(BonsaiRHI PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiRHI)
