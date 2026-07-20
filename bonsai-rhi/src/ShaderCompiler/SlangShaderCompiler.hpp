@@ -19,7 +19,9 @@ namespace RHI
         /// @return A new Slang shader compiler, or nullptr on failure.
         static SlangShaderCompiler* TryCreate();
 
-        virtual bool CompileShaderSource(ShaderLang targetLanguage, char const* entrypoint, char const* source, ShaderBlob* outBlob) const override final;
+        virtual void SetTargetLanguage(ShaderLang targetLanguage) override final;
+
+        virtual bool CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const override final;
 
     private:
         /// @brief Try to print diagnostics if the blob exists.
@@ -27,6 +29,7 @@ namespace RHI
         void TryPrintDiagnostics(Slang::ComPtr<slang::IBlob> const& diagnostics) const;
 
     private:
+        ShaderLang _activeShaderLanguage = ShaderLang_SPIRV;
         Slang::ComPtr<slang::IGlobalSession> _globalSession = nullptr;
     };
 } // namespace RHI

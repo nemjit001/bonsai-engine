@@ -10,6 +10,9 @@ protected:
     {
         _shaderCompiler = RHI::CreateShaderCompiler();
         ASSERT_NE(_shaderCompiler, nullptr);
+
+        // Set target language to SPIR-V, which is always supported.
+        _shaderCompiler->SetTargetLanguage(RHI::ShaderLang_SPIRV);
     }
 
     static void TearDownTestCase()
@@ -19,7 +22,6 @@ protected:
     }
 
 protected:
-    inline static constexpr RHI::ShaderLang COMPILE_TARGET_LANG = RHI::ShaderLang_SPIRV; // SPIR-V is always supported on all target platforms.
     inline static RHI::IRHIShaderCompiler* _shaderCompiler = nullptr;
 };
 
@@ -34,7 +36,7 @@ TEST_F(RHIShaderCompilerTests, TestCompileShaderSourceString)
     )";
 
     RHI::ShaderBlob shaderBlob{};
-    EXPECT_TRUE(_shaderCompiler->CompileShaderSource(COMPILE_TARGET_LANG, "CSMain", SHADER_SOURCE, &shaderBlob));
+    EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_SOURCE, &shaderBlob));
     EXPECT_NE(shaderBlob.code, nullptr);
     EXPECT_GT(shaderBlob.size, 0);
 }

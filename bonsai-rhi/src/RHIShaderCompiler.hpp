@@ -23,13 +23,16 @@ namespace RHI
     public:
         virtual ~IRHIShaderCompiler() = default;
 
-        /// @brief Compile a shader source string into an intermediate shader language representation.
+        /// @brief Set the target shader language for compilation.
         /// @param targetLanguage Target language for compilation.
+        virtual void SetTargetLanguage(ShaderLang targetLanguage) = 0;
+
+        /// @brief Compile a shader source string into an intermediate shader language representation.
         /// @param entrypoint Shader entrypoint name.
         /// @param source Shader source string.
         /// @param outBlob Output shader blob.
         /// @return A boolean indicating successful compilation.
-        [[nodiscard]] virtual bool CompileShaderSource(ShaderLang targetLanguage, char const* entrypoint, char const* source, ShaderBlob* outBlob) const = 0;
+        [[nodiscard]] virtual bool CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const = 0;
     };
 
     /// @brief Create an RHI shader compiler.

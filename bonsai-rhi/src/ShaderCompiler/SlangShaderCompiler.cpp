@@ -22,7 +22,12 @@ namespace RHI
         return new SlangShaderCompiler(std::move(globalSession));
     }
 
-    bool SlangShaderCompiler::CompileShaderSource(ShaderLang targetLanguage, char const* entrypoint, char const* source, ShaderBlob* outBlob) const
+    void SlangShaderCompiler::SetTargetLanguage(ShaderLang targetLanguage)
+    {
+        _activeShaderLanguage = targetLanguage;
+    }
+
+    bool SlangShaderCompiler::CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const
     {
         BONSAI_ASSERT(source && "No shader source provided!");
         BONSAI_ASSERT(outBlob && "No output shader blob provided!");
@@ -134,7 +139,7 @@ namespace RHI
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
             SlangResult const result = linkedProgram->getEntryPointCode(
                 0 /* entrypoint index */,
-                static_cast<SlangInt32>(targetLanguage),
+                static_cast<SlangInt32>(_activeShaderLanguage),
                 outShaderCode.writeRef(),
                 diagnostics.writeRef()
             );
