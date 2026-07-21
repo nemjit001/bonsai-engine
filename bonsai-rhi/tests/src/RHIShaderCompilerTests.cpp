@@ -43,10 +43,20 @@ TEST_F(RHIShaderCompilerTests, TestCompileShaderSourceString)
 
 TEST_F(RHIShaderCompilerTests, TestCompileShaderFile)
 {
-    //
+    fs::Path const shaderPath = fs::GetProgramDirectory()/"test_assets/shaders/minimal_shader.slang";
+
+    RHI::ShaderBlob shaderBlob{};
+    EXPECT_TRUE(_shaderCompiler->CompileShaderFile("CSMain", shaderPath, &shaderBlob));
+    EXPECT_NE(shaderBlob.code, nullptr);
+    EXPECT_GT(shaderBlob.size, 0);
 }
 
 TEST_F(RHIShaderCompilerTests, TestCompileShaderFileResolveIncludes)
 {
-    //
+    fs::Path const shaderPath = fs::GetProgramDirectory()/"test_assets/shaders/shader_with_imports.slang";
+
+    RHI::ShaderBlob shaderBlob{};
+    EXPECT_TRUE(_shaderCompiler->CompileShaderFile("CSMain", shaderPath, &shaderBlob));
+    EXPECT_NE(shaderBlob.code, nullptr);
+    EXPECT_GT(shaderBlob.size, 0);
 }
