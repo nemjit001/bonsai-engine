@@ -28,11 +28,18 @@ namespace RHI
         virtual void SetTargetLanguage(ShaderLang targetLanguage) = 0;
 
         /// @brief Compile a shader source string into an intermediate shader language representation.
-        /// @param entrypoint Shader entrypoint name.
+        /// @param entrypoint Optional shader entrypoint name, may be null.
         /// @param source Shader source string.
         /// @param outBlob Output shader blob.
         /// @return A boolean indicating successful compilation.
         [[nodiscard]] virtual bool CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const = 0;
+
+        /// @brief Compile a shader file from disk into an intermediate shader language representation.
+        /// @param entrypoint Optional shader entrypoint name, may be null.
+        /// @param path Shader file path, can be relative or absolute.
+        /// @param outBlob Output shader blob.
+        /// @return A booleain indicating successful compilation.
+        [[nodiscard]] virtual bool CompileShaderFile(char const* entrypoint, fs::Path const& path, ShaderBlob* outBlob) const = 0;
     };
 
     /// @brief Create an RHI shader compiler.

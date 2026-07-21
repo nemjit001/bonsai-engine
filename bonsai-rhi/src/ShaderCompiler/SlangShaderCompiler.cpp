@@ -7,19 +7,27 @@ namespace RHI
 {
     SlangShaderCompiler::SlangShaderCompiler(Slang::ComPtr<slang::IGlobalSession>&& globalSession)
         :
-        _globalSession(globalSession)
+        _globalSession(globalSession),
+        _activeSession(nullptr)
     {
         //
     }
 
     SlangShaderCompiler* SlangShaderCompiler::TryCreate()
     {
+        // Create the global Slang session.
         Slang::ComPtr<slang::IGlobalSession> globalSession = nullptr;
         if (!SLANG_SUCCEEDED(slang::createGlobalSession(globalSession.writeRef()))) {
             return nullptr;
         }
 
-        return new SlangShaderCompiler(std::move(globalSession));
+        // Create the shader compiler and initialize the compiler with defaults.
+        auto shaderCompiler = std::unique_ptr<SlangShaderCompiler>(new SlangShaderCompiler(std::move(globalSession)));
+        if (!shaderCompiler->InitializeActiveSession()) {
+            return nullptr;
+        }
+
+        return shaderCompiler.release();
     }
 
     void SlangShaderCompiler::SetTargetLanguage(ShaderLang targetLanguage)
@@ -29,11 +37,57 @@ namespace RHI
 
     bool SlangShaderCompiler::CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const
     {
+        BONSAI_ASSERT(_activeSession && "No active Slang session found!");
         BONSAI_ASSERT(source && "No shader source provided!");
         BONSAI_ASSERT(outBlob && "No output shader blob provided!");
 
+        // Compile source string
+        Slang::ComPtr<slang::IModule> compilationModule = nullptr;
+        {
+            Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
+            compilationModule = _activeSession->loadModuleFromSourceString(nullptr, nullptr, source, diagnostics.writeRef());
+
+            TryPrintDiagnostics(diagnostics);
+            if (!compilationModule) {
+                return false;
+            }
+        }
+
+        return CompileShaderModule(entrypoint, compilationModule, outBlob);
+    }
+
+    bool SlangShaderCompiler::CompileShaderFile(char const* entrypoint, fs::Path const& path, ShaderBlob* outBlob) const
+    {
+        BONSAI_ASSERT(_activeSession && "No active Slang session found!");
+        BONSAI_ASSERT(outBlob && "No output shader blob provided!");
+
+        // Read source file from disk
+        // TODO(nemjit001)
+
+        // Compile source file
+        Slang::ComPtr<slang::IModule> compilationModule = nullptr;
+        {
+            // FIXME(nemjit001): Read source blob from disk.
+            Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
+            compilationModule = _activeSession->loadModuleFromSource(
+                nullptr,
+                path.string().c_str(),
+                nullptr,
+                diagnostics.writeRef()
+            );
+
+            TryPrintDiagnostics(diagnostics);
+            if (!compilationModule) {
+                return false;
+            }
+        }
+
+        return CompileShaderModule(entrypoint, compilationModule, outBlob);
+    }
+
+    bool SlangShaderCompiler::InitializeActiveSession()
+    {
         // Set up compilation targets
-        // TODO(nemjit001): Set up individual IR targets.
         slang::TargetDesc spirvTargetDesc{};
         spirvTargetDesc.format = SLANG_SPIRV;
         spirvTargetDesc.profile = _globalSession->findProfile("gl460");
@@ -70,23 +124,12 @@ namespace RHI
         sessionDesc.compilerOptionEntryCount = 0;
         sessionDesc.compilerOptionEntries = nullptr;
 
-        Slang::ComPtr<slang::ISession> session = nullptr;
-        if (SLANG_FAILED(_globalSession->createSession(sessionDesc, session.writeRef()))) {
-            return false;
-        }
+        _activeSession = nullptr;
+        return SLANG_SUCCEEDED(_globalSession->createSession(sessionDesc, _activeSession.writeRef()));
+    }
 
-        // Compile source string
-        Slang::ComPtr<slang::IModule> compilationModule = nullptr;
-        {
-            Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
-            compilationModule = session->loadModuleFromSourceString(nullptr, nullptr, source, diagnostics.writeRef());
-            TryPrintDiagnostics(diagnostics);
-
-            if (!compilationModule) {
-                return false;
-            }
-        }
-
+    bool SlangShaderCompiler::CompileShaderModule(char const* entrypoint, Slang::ComPtr<slang::IModule> const& compilationModule, ShaderBlob* outBlob) const
+    {
         // Query optional program entrypoint
         Slang::ComPtr<slang::IEntryPoint> compilationEntrypoint = nullptr;
         {
@@ -113,9 +156,14 @@ namespace RHI
         Slang::ComPtr<slang::IComponentType> composedProgram = nullptr;
         {
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
-            SlangResult const result = session->createCompositeComponentType(programComponents.data(), programComponents.size(), composedProgram.writeRef(), diagnostics.writeRef());
-            TryPrintDiagnostics(diagnostics);
+            SlangResult const result = _activeSession->createCompositeComponentType(
+                programComponents.data(),
+                programComponents.size(),
+                composedProgram.writeRef(),
+                diagnostics.writeRef()
+            );
 
+            TryPrintDiagnostics(diagnostics);
             if (SLANG_FAILED(result)) {
                 return false;
             }
@@ -125,9 +173,12 @@ namespace RHI
         Slang::ComPtr<slang::IComponentType> linkedProgram = nullptr;
         {
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
-            SlangResult const result = composedProgram->link(linkedProgram.writeRef(), diagnostics.writeRef());
-            TryPrintDiagnostics(diagnostics);
+            SlangResult const result = composedProgram->link(
+                linkedProgram.writeRef(),
+                diagnostics.writeRef()
+            );
 
+            TryPrintDiagnostics(diagnostics);
             if (SLANG_FAILED(result)) {
                 return false;
             }
@@ -137,15 +188,13 @@ namespace RHI
         Slang::ComPtr<slang::IBlob> outShaderCode = nullptr;
         {
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
-            SlangResult const result = linkedProgram->getEntryPointCode(
-                0 /* entrypoint index */,
+            SlangResult const result = linkedProgram->getTargetCode(
                 static_cast<SlangInt32>(_activeShaderLanguage),
                 outShaderCode.writeRef(),
                 diagnostics.writeRef()
             );
 
             TryPrintDiagnostics(diagnostics);
-
             if (SLANG_FAILED(result)) {
                 return false;
             }

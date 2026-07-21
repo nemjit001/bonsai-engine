@@ -16,6 +16,11 @@ target_link_libraries(BonsaiRHITests
         Bonsai::RHI
         GTest::gtest_main
 )
+target_copy_asset_files(BonsaiRHITests
+    test_assets/shaders/minimal_shader.slang
+    test_assets/shaders/shader_with_imports.slang
+    test_assets/shaders/test_module.slang
+)
 
 include(GoogleTest)
 gtest_discover_tests(BonsaiRHITests)
