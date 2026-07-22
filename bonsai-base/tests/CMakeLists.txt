@@ -7,6 +7,7 @@ add_executable(BonsaiBaseTests)
 target_sources(BonsaiBaseTests
     PRIVATE
         src/Base/AllocatorTests.cpp
+        src/Base/FileSystemTests.cpp
         src/Base/MemoryTests.cpp
 )
 target_compile_features(BonsaiBaseTests PRIVATE cxx_std_17)

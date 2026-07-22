@@ -6,7 +6,6 @@
 #include <new>
 #include "Assert.hpp"
 #include "DebugOutput.hpp"
-#include "PlatformDefines.hpp"
 
 /// @brief Enable this macro to print memory allocation traces. This WILL bloat logging output, so use sparingly!
 #define BONSAI_TRACE_ALLOCATIONS        0
