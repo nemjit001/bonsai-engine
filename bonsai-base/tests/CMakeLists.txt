@@ -17,6 +17,10 @@ target_link_libraries(BonsaiBaseTests
         Bonsai::Base
         GTest::gtest_main
 )
+target_copy_asset_files(BonsaiBaseTests
+    test_assets/test_files/deadbeef.bin
+    test_assets/test_files/lorem_ipsum.txt
+)
 
 include(GoogleTest)
 gtest_discover_tests(BonsaiBaseTests)

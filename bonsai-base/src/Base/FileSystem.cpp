@@ -1,5 +1,6 @@
 #include "FileSystem.hpp"
 
+#include <fstream>
 #include "PlatformDefines.hpp"
 
 #if     BONSAI_PLATFORM_WINDOWS
@@ -31,5 +32,47 @@ namespace fs
         }
 
         return {}; // Return an empty path when unknown
+    }
+
+    String ReadFile(Path const& path, IAllocator* allocator)
+    {
+        // Try to open file
+        std::ifstream file(path, std::ios::ate);
+        if (!file) {
+            return {};
+        }
+
+        // Size output string based on file contents
+        usize const numCharacters = file.tellg();
+        String contents(ResolveAllocator(allocator));
+        contents.resize(numCharacters, '\0');
+
+        // Read file contents into string
+        file.seekg(std::ios::beg);
+        file.read(&contents[0], numCharacters);
+
+        // Done
+        return contents;
+    }
+
+    DynamicArray<uint8> ReadBinaryFile(Path const& path, IAllocator* allocator)
+    {
+        // Try to open file
+        std::ifstream file(path, std::ios::ate | std::ios::binary);
+        if (!file) {
+            return {};
+        }
+
+        // Size output string based on file contents
+        usize const bytes = file.tellg();
+        DynamicArray<uint8> contents(ResolveAllocator(allocator));
+        contents.resize(bytes, '\0');
+
+        // Read file contents into string
+        file.seekg(std::ios::beg);
+        file.read(reinterpret_cast<char*>(&contents[0]), bytes);
+
+        // Done
+        return contents;
     }
 } // namespace fs
