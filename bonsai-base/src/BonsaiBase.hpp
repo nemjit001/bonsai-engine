@@ -11,6 +11,7 @@
 #include "Base/Allocator.hpp"
 #include "Base/Assert.hpp"
 #include "Base/DebugOutput.hpp"
+#include "Base/FileSystem.hpp"
 #include "Base/Memory.hpp"
 #include "Base/PlatformDefines.hpp"
 #include "Base/PlatformTypes.hpp"

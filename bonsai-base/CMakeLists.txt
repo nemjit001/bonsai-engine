@@ -11,6 +11,7 @@ target_sources(BonsaiBase
         src/Base/Allocator.cpp
         src/Base/Assert.cpp
         src/Base/DebugOutput.cpp
+        src/Base/FileSystem.cpp
         src/Base/Memory.cpp
         src/Base/Timer.cpp
     PUBLIC
@@ -21,6 +22,7 @@ target_sources(BonsaiBase
         src/Base/Allocator.hpp
         src/Base/Assert.hpp
         src/Base/DebugOutput.hpp
+        src/Base/FileSystem.hpp
         src/Base/Memory.hpp
         src/Base/PlatformDefines.hpp
         src/Base/PlatformTypes.hpp
