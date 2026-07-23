@@ -9,6 +9,37 @@
 
 namespace RHI
 {
+    /// @brief Virtual filesystem for the shader compiler.
+    class VirtualFileSystem : public ISlangFileSystem
+    {
+    public:
+        SLANG_NO_THROW SlangResult SLANG_MCALL loadFile(char const* path, ISlangBlob** outBlob) override final;
+
+        SLANG_NO_THROW uint32_t SLANG_MCALL addRef() override final
+        {
+            return _refcount.fetch_add(1, std::memory_order_acq_rel);
+        };
+
+        SLANG_NO_THROW uint32_t SLANG_MCALL release() override final
+        {
+            return _refcount.fetch_sub(1, std::memory_order_acq_rel);
+        };
+
+        SLANG_NO_THROW SlangResult SLANG_MCALL queryInterface(SlangUUID const&, void**) override final
+        {
+            return -1; // Always fails
+        };
+
+        SLANG_NO_THROW void* SLANG_MCALL castAs(const SlangUUID&) override final
+        {
+            return nullptr; // Always fails
+        };
+
+    private:
+        std::atomic<uint32_t> _refcount = 0;
+    };
+
+    /// @brief The SlangShaderCompiler is an implementation of the RHI shader compiler interface.
     class SlangShaderCompiler : public IRHIShaderCompiler
     {
     private:
@@ -41,6 +72,7 @@ namespace RHI
 
     private:
         ShaderLang _activeShaderLanguage = ShaderLang_SPIRV;
+        Slang::ComPtr<VirtualFileSystem> _filesystem = nullptr;
         Slang::ComPtr<slang::IGlobalSession> _globalSession = nullptr;
         Slang::ComPtr<slang::ISession> _activeSession = nullptr;
     };

@@ -5,8 +5,21 @@
 
 namespace RHI
 {
+    SlangResult VirtualFileSystem::loadFile(char const* path, ISlangBlob** outBlob)
+    {
+        BONSAI_ASSERT(outBlob && "Out blob is nullptr!");
+        String const contents = fs::ReadFile(path, nullptr);
+        if (contents.empty()) {
+            return -1;
+        }
+
+        *outBlob = slang_createBlob(contents.data(), contents.size());
+        return SLANG_OK;
+    }
+
     SlangShaderCompiler::SlangShaderCompiler(Slang::ComPtr<slang::IGlobalSession>&& globalSession)
         :
+        _filesystem(new VirtualFileSystem()),
         _globalSession(globalSession),
         _activeSession(nullptr)
     {
@@ -61,8 +74,17 @@ namespace RHI
         BONSAI_ASSERT(_activeSession && "No active Slang session found!");
         BONSAI_ASSERT(outBlob && "No output shader blob provided!");
 
+        // Get file path pointer
+        // FIXME(nemjit001): Replace this std::string with a String type.
+        std::string const filePath = path.string();
+
         // Read source file from disk
-        // TODO(nemjit001)
+        Slang::ComPtr<slang::IBlob> source = nullptr;
+        {
+            if (SLANG_FAILED(_filesystem->loadFile(filePath.c_str(), source.writeRef()))) {
+                return false;
+            }
+        }
 
         // Compile source file
         Slang::ComPtr<slang::IModule> compilationModule = nullptr;
@@ -71,8 +93,8 @@ namespace RHI
             Slang::ComPtr<slang::IBlob> diagnostics = nullptr;
             compilationModule = _activeSession->loadModuleFromSource(
                 nullptr,
-                path.string().c_str(),
-                nullptr,
+                filePath.c_str(),
+                source,
                 diagnostics.writeRef()
             );
 
@@ -114,7 +136,7 @@ namespace RHI
         // TODO(nemjit001): Set up search paths, preprocessor macros, etc.
         slang::SessionDesc sessionDesc{};
         sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_ROW_MAJOR;
-        sessionDesc.fileSystem = nullptr;
+        sessionDesc.fileSystem = _filesystem.get();
         sessionDesc.targetCount = targets.size();
         sessionDesc.targets = targets.data();
         sessionDesc.searchPathCount = 0;
