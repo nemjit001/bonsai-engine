@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <BonsaiRHI.hpp>
 #include <RHIShaderCompiler.hpp>
 
 /// @brief RHI shader compiler test fixture.
@@ -35,28 +34,31 @@ TEST_F(RHIShaderCompilerTests, TestCompileShaderSourceString)
     }
     )";
 
-    RHI::ShaderBlob shaderBlob{};
+    RHI::IShaderBlob* shaderBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_SOURCE, &shaderBlob));
-    EXPECT_NE(shaderBlob.code, nullptr);
-    EXPECT_GT(shaderBlob.size, 0);
+    EXPECT_NE(shaderBlob->GetBufferPointer(), nullptr);
+    EXPECT_GT(shaderBlob->GetBufferSize(), 0);
+    RHI::DestroyShaderBlob(shaderBlob);
 }
 
 TEST_F(RHIShaderCompilerTests, TestCompileShaderFile)
 {
     fs::Path const shaderPath = fs::GetProgramDirectory()/"test_assets/shaders/minimal_shader.slang";
 
-    RHI::ShaderBlob shaderBlob{};
+    RHI::IShaderBlob* shaderBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderFile("CSMain", shaderPath, &shaderBlob));
-    EXPECT_NE(shaderBlob.code, nullptr);
-    EXPECT_GT(shaderBlob.size, 0);
+    EXPECT_NE(shaderBlob->GetBufferPointer(), nullptr);
+    EXPECT_GT(shaderBlob->GetBufferSize(), 0);
+    RHI::DestroyShaderBlob(shaderBlob);
 }
 
 TEST_F(RHIShaderCompilerTests, TestCompileShaderFileResolveIncludes)
 {
     fs::Path const shaderPath = fs::GetProgramDirectory()/"test_assets/shaders/shader_with_imports.slang";
 
-    RHI::ShaderBlob shaderBlob{};
+    RHI::IShaderBlob* shaderBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderFile("CSMain", shaderPath, &shaderBlob));
-    EXPECT_NE(shaderBlob.code, nullptr);
-    EXPECT_GT(shaderBlob.size, 0);
+    EXPECT_NE(shaderBlob->GetBufferPointer(), nullptr);
+    EXPECT_GT(shaderBlob->GetBufferSize(), 0);
+    RHI::DestroyShaderBlob(shaderBlob);
 }

@@ -8,6 +8,8 @@ namespace RHI
     SlangResult VirtualFileSystem::loadFile(char const* path, ISlangBlob** outBlob)
     {
         BONSAI_ASSERT(outBlob && "Out blob is nullptr!");
+
+        // FIXME(nemjit001): Provide allocator to file reading funcs
         String const contents = fs::ReadFile(path, nullptr);
         if (contents.empty()) {
             return -1;
@@ -19,7 +21,6 @@ namespace RHI
 
     SlangShaderCompiler::SlangShaderCompiler(Slang::ComPtr<slang::IGlobalSession>&& globalSession)
         :
-        _filesystem(new VirtualFileSystem()),
         _globalSession(globalSession),
         _activeSession(nullptr)
     {
@@ -48,7 +49,7 @@ namespace RHI
         _activeShaderLanguage = targetLanguage;
     }
 
-    bool SlangShaderCompiler::CompileShaderSource(char const* entrypoint, char const* source, ShaderBlob* outBlob) const
+    bool SlangShaderCompiler::CompileShaderSource(char const* entrypoint, char const* source, IShaderBlob** outBlob)
     {
         BONSAI_ASSERT(_activeSession && "No active Slang session found!");
         BONSAI_ASSERT(source && "No shader source provided!");
@@ -69,7 +70,7 @@ namespace RHI
         return CompileShaderModule(entrypoint, compilationModule, outBlob);
     }
 
-    bool SlangShaderCompiler::CompileShaderFile(char const* entrypoint, fs::Path const& path, ShaderBlob* outBlob) const
+    bool SlangShaderCompiler::CompileShaderFile(char const* entrypoint, fs::Path const& path, IShaderBlob** outBlob)
     {
         BONSAI_ASSERT(_activeSession && "No active Slang session found!");
         BONSAI_ASSERT(outBlob && "No output shader blob provided!");
@@ -81,7 +82,7 @@ namespace RHI
         // Read source file from disk
         Slang::ComPtr<slang::IBlob> source = nullptr;
         {
-            if (SLANG_FAILED(_filesystem->loadFile(filePath.c_str(), source.writeRef()))) {
+            if (SLANG_FAILED(_filesystem.loadFile(filePath.c_str(), source.writeRef()))) {
                 return false;
             }
         }
@@ -136,7 +137,7 @@ namespace RHI
         // TODO(nemjit001): Set up search paths, preprocessor macros, etc.
         slang::SessionDesc sessionDesc{};
         sessionDesc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_ROW_MAJOR;
-        sessionDesc.fileSystem = _filesystem.get();
+        sessionDesc.fileSystem = &_filesystem;
         sessionDesc.targetCount = targets.size();
         sessionDesc.targets = targets.data();
         sessionDesc.searchPathCount = 0;
@@ -150,8 +151,11 @@ namespace RHI
         return SLANG_SUCCEEDED(_globalSession->createSession(sessionDesc, _activeSession.writeRef()));
     }
 
-    bool SlangShaderCompiler::CompileShaderModule(char const* entrypoint, Slang::ComPtr<slang::IModule> const& compilationModule, ShaderBlob* outBlob) const
+    bool SlangShaderCompiler::CompileShaderModule(char const* entrypoint, Slang::ComPtr<slang::IModule> const& compilationModule, IShaderBlob** outBlob) const
     {
+        BONSAI_ASSERT(compilationModule && "No compilation module provided!");
+        BONSAI_ASSERT(outBlob && "No output shader blob provided!");
+
         // Query optional program entrypoint
         Slang::ComPtr<slang::IEntryPoint> compilationEntrypoint = nullptr;
         {
@@ -222,8 +226,8 @@ namespace RHI
             }
         }
 
-        // TODO(nemjit001): Copy output shader code to shader blob
-        return true;
+        *outBlob = CreateShaderBlob(outShaderCode->getBufferPointer(), outShaderCode->getBufferSize());
+        return *outBlob != nullptr;
     }
 
     void SlangShaderCompiler::TryPrintDiagnostics(Slang::ComPtr<slang::IBlob> const& diagnostics) const

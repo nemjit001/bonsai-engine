@@ -18,6 +18,8 @@ target_sources(BonsaiRHI
         src/BonsaiRHI.cpp
         src/BonsaiRHITypes.hpp
         src/RHIShaderCompiler.cpp
+        src/ShaderCompiler/ShaderBlob.cpp
+        src/ShaderCompiler/ShaderBlob.hpp
         src/ShaderCompiler/SlangShaderCompiler.cpp
         src/ShaderCompiler/SlangShaderCompiler.hpp
     PUBLIC
