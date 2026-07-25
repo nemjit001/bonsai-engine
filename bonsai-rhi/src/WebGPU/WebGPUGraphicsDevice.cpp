@@ -645,7 +645,7 @@ namespace RHI
                 outAdapter = adapter;
             }
             else {
-                PrintDebugString("WebGPU error: %*.s", message.data, message.length);
+                PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
             }
         };
 
@@ -680,7 +680,7 @@ namespace RHI
                 outDevice = device;
             }
             else {
-                PrintDebugString("WebGPU error: %*.s", message.data, message.length);
+                PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
             }
         };
 
@@ -691,6 +691,11 @@ namespace RHI
         }
 
         return new WebGPUGraphicsDevice(instance, adapter, device);
+    }
+
+    ShaderLang WebGPUGraphicsDevice::GetTargetShaderLanguage() const
+    {
+        return ShaderLang_WGSL;
     }
 
     GPUBuffer* WebGPUGraphicsDevice::CreateBuffer(GPUBufferDesc* bufferDesc)
@@ -925,8 +930,9 @@ namespace RHI
             shaderSource.code.length = pipelineDesc->vertexShader->size;
 
             WGPUShaderModuleDescriptor shaderModuleDesc{};
-            shaderModuleDesc.nextInChain = nullptr;
+            shaderModuleDesc.nextInChain = &shaderSource.chain;
             shaderModuleDesc.label = {};
+            
             vertexShaderModule = wgpuDeviceCreateShaderModule(_device, &shaderModuleDesc);
 
             renderPipelineDesc.vertex.nextInChain = nullptr;
@@ -950,8 +956,9 @@ namespace RHI
             shaderSource.code.length = pipelineDesc->pixelShader->size;
 
             WGPUShaderModuleDescriptor shaderModuleDesc{};
-            shaderModuleDesc.nextInChain = nullptr;
+            shaderModuleDesc.nextInChain = &shaderSource.chain;
             shaderModuleDesc.label = {};
+
             fragmentShaderModule = wgpuDeviceCreateShaderModule(_device, &shaderModuleDesc);
 
             fragmentState.nextInChain = nullptr;
@@ -1100,7 +1107,7 @@ namespace RHI
                 outMapSuccessful = true;
             }
             else {
-                PrintDebugString("WebGPU Error: %*.s", message.data, message.length);
+                PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
             }
         };
 

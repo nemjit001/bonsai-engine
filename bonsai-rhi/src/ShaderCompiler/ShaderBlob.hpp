@@ -16,8 +16,8 @@ namespace RHI
         ShaderBlob(ShaderBlob const&) = delete;
         ShaderBlob& operator=(ShaderBlob const&) = delete;
 
-        virtual void const* GetBufferPointer() const override final { return _data; }
-        virtual usize GetBufferSize() const override final { return _size; }
+        virtual void* GetBufferPointer() override final { return _data; }
+        virtual usize GetBufferSize() override final { return _size; }
 
     private:
         void* _data = nullptr;

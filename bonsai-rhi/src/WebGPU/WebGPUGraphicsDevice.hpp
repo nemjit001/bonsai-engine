@@ -78,6 +78,8 @@ namespace RHI
         /// @return A new WebGPUGraphicsDevice, or nullptr on failure.
         static IGraphicsDevice* TryCreate(GraphicsDeviceDesc const& graphicsDeviceDesc);
 
+        virtual ShaderLang GetTargetShaderLanguage() const override final;
+
         virtual GPUBuffer* CreateBuffer(GPUBufferDesc* bufferDesc) override final;
         virtual void DestroyBuffer(GPUBuffer* buffer) override final;
 

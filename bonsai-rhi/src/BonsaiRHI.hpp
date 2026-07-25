@@ -4,6 +4,7 @@
 
 #include <BonsaiBase.hpp>
 #include "BonsaiRHIExport.hpp"
+#include "RHIShaderCompiler.hpp"
 
 /// @brief Bonsai RHI.
 namespace RHI
@@ -618,6 +619,10 @@ namespace RHI
     {
     public:
         virtual ~IGraphicsDevice() = default;
+
+        /// @brief Get the target shader language for the graphics device.
+        /// @return The target shader language.
+        [[nodiscard]] virtual ShaderLang GetTargetShaderLanguage() const = 0;
 
         /// @brief Create a GPU buffer.
         /// @param bufferDesc Buffer description.

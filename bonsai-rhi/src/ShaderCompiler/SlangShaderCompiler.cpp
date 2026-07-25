@@ -5,6 +5,8 @@
 
 namespace RHI
 {
+    static constexpr char const* TARGET_SHADER_PROFILE = "sm_6_1";
+
     SlangResult VirtualFileSystem::loadFile(char const* path, ISlangBlob** outBlob)
     {
         BONSAI_ASSERT(outBlob && "Out blob is nullptr!");
@@ -113,17 +115,17 @@ namespace RHI
         // Set up compilation targets
         slang::TargetDesc spirvTargetDesc{};
         spirvTargetDesc.format = SLANG_SPIRV;
-        spirvTargetDesc.profile = _globalSession->findProfile("gl460");
+        spirvTargetDesc.profile = _globalSession->findProfile(TARGET_SHADER_PROFILE);
         spirvTargetDesc.forceGLSLScalarBufferLayout = true;
 
         slang::TargetDesc dxilTargetDesc{};
         dxilTargetDesc.format = SLANG_DXIL;
-        dxilTargetDesc.profile = _globalSession->findProfile("Shader Model 6.0");
+        dxilTargetDesc.profile = _globalSession->findProfile(TARGET_SHADER_PROFILE);
         dxilTargetDesc.forceGLSLScalarBufferLayout = true;
 
         slang::TargetDesc wgslTargetDesc{};
         wgslTargetDesc.format = SLANG_WGSL;
-        wgslTargetDesc.profile = SLANG_PROFILE_UNKNOWN;
+        wgslTargetDesc.profile = _globalSession->findProfile(TARGET_SHADER_PROFILE);
         wgslTargetDesc.forceGLSLScalarBufferLayout = true;
 
         // Set up local compilation session

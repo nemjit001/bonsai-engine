@@ -23,11 +23,11 @@ namespace RHI
 
         /// @brief Get the stored buffer pointer.
         /// @return Data pointer for the buffer.
-        virtual void const* GetBufferPointer() const = 0;
+        virtual void* GetBufferPointer() = 0;
 
         /// @brief Get the stored buffer size.
         /// @return Size of the buffer.
-        virtual usize GetBufferSize() const = 0;
+        virtual usize GetBufferSize() = 0;
     };
 
     /// @brief The RHIShaderCompiler interface implements an abstraction on top of low-level shader compilation for RHI backends.

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <BonsaiRHI.hpp>
+#include <RHIShaderCompiler.hpp>
 
 /// @brief Bonsai RHI test fixture.
 class BonsaiRHITests : public testing::Test
@@ -7,18 +8,28 @@ class BonsaiRHITests : public testing::Test
 public:
     static void SetUpTestSuite()
     {
+        // Create a shader compiler
+        _shaderCompiler = RHI::CreateShaderCompiler();
+        ASSERT_NE(_shaderCompiler, nullptr);
+
+        // Create the graphics device
         RHI::GraphicsDeviceDesc gpuDesc{};
         _gpu = RHI::CreateGraphicsDevice(&gpuDesc);
         ASSERT_NE(_gpu, nullptr);
+
+        // Set the target shader language used by the graphics device
+        _shaderCompiler->SetTargetLanguage(_gpu->GetTargetShaderLanguage());
     }
 
     static void TearDownTestSuite()
     {
         _gpu->WaitIdle();
         RHI::DestroyGraphicsDevice(_gpu);
+        RHI::DestroyShaderCompiler(_shaderCompiler);
     }
 
 protected:
+    inline static RHI::IRHIShaderCompiler* _shaderCompiler = nullptr;
     inline static RHI::IGraphicsDevice* _gpu = nullptr;
 };
 
@@ -101,8 +112,14 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
     }
     )";
 
-    // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
-    RHI::ShaderBlob shaderBlob = {};
+    RHI::IShaderBlob* shaderSourceBlob = nullptr;
+    EXPECT_TRUE(_shaderCompiler->CompileShaderSource(nullptr, SHADER_CODE, &shaderSourceBlob));
+    ASSERT_NE(shaderSourceBlob, nullptr);
+
+    RHI::ShaderBlob shaderBlob = {
+        shaderSourceBlob->GetBufferPointer(),
+        static_cast<uint32>(shaderSourceBlob->GetBufferSize()),
+    };
 
     RHI::GPUGraphicsPipelineDesc pipelineDesc{};
     pipelineDesc.vertexShader = &shaderBlob;
@@ -110,8 +127,8 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
     pipelineDesc.vertexShaderEntrypoint = "VSMain";
     pipelineDesc.pixelShaderEntrypoint = "PSMain";
     pipelineDesc.renderTargetCount = 1;
-    pipelineDesc.renderTargetFormats[0] = RHI::TextureFormat_Unknown;
-    pipelineDesc.depthStencilFormat = RHI::TextureFormat_RGBA8_UNormSRGB;
+    pipelineDesc.renderTargetFormats[0] = RHI::TextureFormat_RGBA8_UNormSRGB;
+    pipelineDesc.depthStencilFormat = RHI::TextureFormat_Unknown;
     pipelineDesc.rasterState.polygonMode = RHI::PolygonMode_Fill;
     pipelineDesc.rasterState.primitiveTopology = RHI::PrimitiveTopology_TriangleList;
     pipelineDesc.rasterState.cullMode = RHI::CullMode_None;
@@ -124,8 +141,9 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 
     RHI::GPUPipeline* pipeline = _gpu->CreateGraphicsPipeline(&pipelineDesc);
     EXPECT_NE(pipeline, nullptr);
-
+    
     _gpu->DestroyPipeline(pipeline);
+    RHI::DestroyShaderBlob(shaderSourceBlob);
 }
 
 TEST_F(BonsaiRHITests, TestCreateComputePipeline)
@@ -138,14 +156,19 @@ TEST_F(BonsaiRHITests, TestCreateComputePipeline)
     }
     )";
 
+    RHI::IShaderBlob* shaderSourceBlob = nullptr;
+    EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_CODE, &shaderSourceBlob));
+    ASSERT_NE(shaderSourceBlob, nullptr);
+
     RHI::GPUComputePipelineDesc pipelineDesc{};
-    pipelineDesc.computeShader = {}; // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
+    pipelineDesc.computeShader = { shaderSourceBlob->GetBufferPointer(), static_cast<uint32>(shaderSourceBlob->GetBufferSize()) };
     pipelineDesc.entrypoint = "CSMain";
 
     RHI::GPUPipeline* pipeline = _gpu->CreateComputePipeline(&pipelineDesc);
     EXPECT_NE(pipeline, nullptr);
 
     _gpu->DestroyPipeline(pipeline);
+    RHI::DestroyShaderBlob(shaderSourceBlob);
 }
 
 TEST_F(BonsaiRHITests, TestMapBufferRegion)
@@ -206,18 +229,25 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     }
     )";
 
+    RHI::IShaderBlob* shaderSourceBlob = nullptr;
+    EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_CODE, &shaderSourceBlob));
+    ASSERT_NE(shaderSourceBlob, nullptr);
+
     RHI::GPUComputePipelineDesc pipelineDesc{};
-    pipelineDesc.computeShader = {}; // FIXME(nemjit001): Implement shader compilation to req IR for gfx device
+    pipelineDesc.computeShader =  { shaderSourceBlob->GetBufferPointer(), static_cast<uint32>(shaderSourceBlob->GetBufferSize()) };
     pipelineDesc.entrypoint = "CSMain";
 
     // Set up compute pipeline
     RHI::GPUPipeline* pipeline = _gpu->CreateComputePipeline(&pipelineDesc);
     EXPECT_NE(pipeline, nullptr);
+    RHI::DestroyShaderBlob(shaderSourceBlob);
 
     // Create output buffer
     RHI::GPUBufferDesc outBufferDesc{};
+    outBufferDesc.heapType = RHI::GPUHeapType_Readback;
     outBufferDesc.size = sizeof(uint32) * NUM_BUFFER_ENTRIES;
     outBufferDesc.usage = RHI::BufferUsage_StorageBuffer;
+
     RHI::GPUBuffer* outBuffer = _gpu->CreateBuffer(&outBufferDesc);
     EXPECT_NE(outBuffer, nullptr);
 
