@@ -242,19 +242,27 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_NE(pipeline, nullptr);
     RHI::DestroyShaderBlob(shaderSourceBlob);
 
-    // Create output buffer
+    // Create output buffer and readback buffer
     RHI::GPUBufferDesc outBufferDesc{};
-    outBufferDesc.heapType = RHI::GPUHeapType_Readback;
+    outBufferDesc.heapType = RHI::GPUHeapType_DeviceLocal;
     outBufferDesc.size = sizeof(uint32) * NUM_BUFFER_ENTRIES;
-    outBufferDesc.usage = RHI::BufferUsage_StorageBuffer;
+    outBufferDesc.usage = RHI::BufferUsage_StorageBuffer | RHI::BufferUsage_TransferSrc;
+
+    RHI::GPUBufferDesc readbackBufferDesc{};
+    readbackBufferDesc.heapType = RHI::GPUHeapType_Readback;
+    readbackBufferDesc.size = outBufferDesc.size;
+    readbackBufferDesc.usage = RHI::BufferUsage_TransferDst;
 
     RHI::GPUBuffer* outBuffer = _gpu->CreateBuffer(&outBufferDesc);
+    RHI::GPUBuffer* readbackBuffer = _gpu->CreateBuffer(&readbackBufferDesc);
     EXPECT_NE(outBuffer, nullptr);
+    EXPECT_NE(readbackBuffer, nullptr);
 
     // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
     commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
     commands->Dispatch(NUM_BUFFER_ENTRIES, 1, 1); // Linear dispatch of N workgroups
+    commands->CopyBufferToBuffer(outBuffer, readbackBuffer, RHI::WHOLE_SIZE, 0, 0);
     commands->Finish();
 
     EXPECT_EQ(_gpu->Submit(RHI::GPUQueueType_Compute, &commands, 1), RHI::GraphicsDeviceResult_Ok);
@@ -262,13 +270,15 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 
     // Validate buffer contents
     uint32* bufferData = nullptr;
-    EXPECT_EQ(_gpu->MapBuffer(outBuffer, 0, RHI::WHOLE_SIZE, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
+    EXPECT_EQ(_gpu->MapBuffer(readbackBuffer, 0, RHI::WHOLE_SIZE, reinterpret_cast<void**>(&bufferData)), RHI::GraphicsDeviceResult_Ok);
     EXPECT_NE(bufferData, nullptr);
     for (uint32 i = 0; i < NUM_BUFFER_ENTRIES; i++) {
         EXPECT_EQ(bufferData[i], i);
     }
+    _gpu->UnmapBuffer(readbackBuffer);
 
-    _gpu->UnmapBuffer(outBuffer);
+    // Clean up resources
+    _gpu->DestroyBuffer(readbackBuffer);
     _gpu->DestroyBuffer(outBuffer);
     _gpu->DestroyPipeline(pipeline);
 }
