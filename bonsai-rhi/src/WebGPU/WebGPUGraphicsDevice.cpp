@@ -321,6 +321,8 @@ namespace RHI
 
     void WebGPUCommandBuffer::CopyBufferToBuffer(GPUBuffer* src, GPUBuffer* dest, uint64 size, int64 srcOffset, int64 destOffset)
     {
+        BONSAI_ASSERT(_activeRenderPass == nullptr && "Render pass active during copy!");
+        BONSAI_ASSERT(_activeComputePass == nullptr && "Compute pass active during copy!");
         BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
@@ -335,6 +337,8 @@ namespace RHI
         Extent3D extent
     )
     {
+        BONSAI_ASSERT(_activeRenderPass == nullptr && "Render pass active during copy!");
+        BONSAI_ASSERT(_activeComputePass == nullptr && "Compute pass active during copy!");
         BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
@@ -362,6 +366,8 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
+        BONSAI_ASSERT(_activeRenderPass == nullptr && "Render pass active during copy!");
+        BONSAI_ASSERT(_activeComputePass == nullptr && "Compute pass active during copy!");
         BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
@@ -389,6 +395,8 @@ namespace RHI
         TextureSubresource subresource, Offset3D textureOffset, Extent3D textureExtent
     )
     {
+        BONSAI_ASSERT(_activeRenderPass == nullptr && "Render pass active during copy!");
+        BONSAI_ASSERT(_activeComputePass == nullptr && "Compute pass active during copy!");
         BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
         WebGPUTexture const* internalSrc = static_cast<WebGPUTexture const*>(src);
@@ -431,12 +439,12 @@ namespace RHI
         }
     }
 
-    void WebGPUCommandBuffer::SetDepthStencilState(DepthStencilState* depthStencilState)
+    void WebGPUCommandBuffer::SetDepthStencilState([[maybe_unused]] DepthStencilState* depthStencilState)
     {
         BONSAI_ASSERT(false && "Setting dynamic depth/stencil state is unsupported!");
     }
 
-    void WebGPUCommandBuffer::SetBlendState(BlendState* blendState)
+    void WebGPUCommandBuffer::SetBlendState([[maybe_unused]] BlendState* blendState)
     {
         BONSAI_ASSERT(false && "Setting dynamic blend state is unsupported!");
     }
@@ -522,6 +530,24 @@ namespace RHI
         wgpuRenderPassEncoderEnd(_activeRenderPass);
         wgpuRenderPassEncoderRelease(_activeRenderPass);
         _activeRenderPass = nullptr;
+    }
+
+    void WebGPUCommandBuffer::BeginComputePass()
+    {
+        WGPUComputePassDescriptor internalComputePassDesc{};
+        internalComputePassDesc.nextInChain = nullptr;
+        internalComputePassDesc.label = {};
+        internalComputePassDesc.timestampWrites = nullptr;
+
+        _activeComputePass = wgpuCommandEncoderBeginComputePass(_commandEncoder, &internalComputePassDesc);
+    }
+
+    void WebGPUCommandBuffer::EndComputePass()
+    {
+        BONSAI_ASSERT(_activeComputePass && "No active compute pass to end!");
+        wgpuComputePassEncoderEnd(_activeComputePass);
+        wgpuComputePassEncoderRelease(_activeComputePass);
+        _activeComputePass = nullptr;
     }
 
     void WebGPUCommandBuffer::Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ)

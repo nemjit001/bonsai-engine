@@ -601,6 +601,9 @@ namespace RHI
         virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) = 0;
         virtual void EndRenderPass() = 0;
 
+        virtual void BeginComputePass() = 0;
+        virtual void EndComputePass() = 0;
+
         virtual void Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ) = 0;
         virtual void DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset) = 0;
 

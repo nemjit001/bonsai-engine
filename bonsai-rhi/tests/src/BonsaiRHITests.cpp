@@ -260,8 +260,10 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 
     // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
+    commands->BeginComputePass();
     commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
     commands->Dispatch(NUM_BUFFER_ENTRIES, 1, 1); // Linear dispatch of N workgroups
+    commands->EndComputePass();
     commands->CopyBufferToBuffer(outBuffer, readbackBuffer, RHI::WHOLE_SIZE, 0, 0);
     commands->Finish();
 

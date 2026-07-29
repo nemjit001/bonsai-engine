@@ -41,6 +41,9 @@ namespace RHI
         virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) override final;
         virtual void EndRenderPass() override final;
 
+        virtual void BeginComputePass() override final;
+        virtual void EndComputePass() override final;
+
         virtual void Dispatch(uint32 sizeX, uint32 sizeY, uint32 sizeZ) override final;
         virtual void DispatchIndirect(GPUBuffer* dispatchCommands, int64 offset) override final;
 
