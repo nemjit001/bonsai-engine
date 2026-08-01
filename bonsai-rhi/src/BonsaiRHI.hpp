@@ -23,9 +23,10 @@ namespace RHI
     static constexpr uint64 WHOLE_SIZE              = (~0ull);
     static constexpr float  LOD_CLAMP_NONE          = 1'000.0F;
 
-    static constexpr uint32 MAX_RENDER_TARGETS      = 8u;
-    static constexpr uint32 MAX_DESCRIPTOR_SETS     = 4u;
-    static constexpr uint32 MAX_DESCRIPTOR_BINDINGS = 32u;
+    static constexpr uint32 MAX_RENDER_TARGETS              = 8u;
+    static constexpr uint32 MAX_DESCRIPTOR_SETS             = 4u;
+    static constexpr uint32 MAX_DESCRIPTOR_BINDINGS         = 32u;
+    static constexpr uint32 MAX_COMMAND_BUFFER_SUBMISSIONS  = 128u;
 
     /// @brief Enumeration of GraphicsDevice result codes.
     enum GraphicsDeviceResult : uint32
@@ -156,9 +157,9 @@ namespace RHI
         DescriptorType_SampledImage         = 2,
         DescriptorType_StorageImage         = 3,
         DescriptorType_UniformBuffer        = 4,
-        DescriptorType_StorageImageDynamic  = 5,
+        DescriptorType_StorageBuffer        = 5,
         DescriptorType_UniformBufferDynamic = 6,
-        DescriptorType_StorageBuffer        = 7,
+        DescriptorType_StorageBufferDynamic = 7,
     };
 
     /// @brief Enumeration of polygon raster modes.
@@ -430,11 +431,11 @@ namespace RHI
         uint64 range;
     };
 
-    /// @brief The DescriptorBindingImageInfo contains binding information for image descriptors.
-    struct DescriptorBindingImageInfo
+    /// @brief The DescriptorBindingTextureInfo contains binding information for texure descriptors.
+    struct DescriptorBindingTextureInfo
     {
         GPUSampler* sampler;
-        GPUTexture* view;
+        GPUTexture* texture;
     };
 
     /// @brief A DescriptorSetBinding contains a resource binding for a descriptor set.
@@ -445,7 +446,7 @@ namespace RHI
         uint32 descriptorCount;
         DescriptorType descriptorType;
         DescriptorBindingBufferInfo* bufferBindingInfo;
-        DescriptorBindingImageInfo* imageBindingInfo;
+        DescriptorBindingTextureInfo* textureBindingInfo;
     };
 
     /// @brief A ShaderBlob contains compiled shader IR code.

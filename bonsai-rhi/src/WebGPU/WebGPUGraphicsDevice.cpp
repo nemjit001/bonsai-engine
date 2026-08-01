@@ -1,7 +1,7 @@
 #include "WebGPUGraphicsDevice.hpp"
 #if BONSAI_RHI_WEBGPU_SUPPORT
 
-#include <Containers/DynamicArray.hpp>
+#include <Containers/StaticArray.hpp>
 #include "WebGPUTypes.hpp"
 
 namespace RHI
@@ -325,8 +325,13 @@ namespace RHI
         BONSAI_ASSERT(_activeComputePass == nullptr && "Compute pass active during copy!");
         BONSAI_ASSERT(src && dest && "Source and destination must be provided!");
         BONSAI_ASSERT(src->GetBackendAPI() == BackendAPI_WebGPU && dest->GetBackendAPI() == BackendAPI_WebGPU);
+
         WebGPUBuffer const* internalSrc = static_cast<WebGPUBuffer const*>(src);
         WebGPUBuffer const* internalDest = static_cast<WebGPUBuffer const*>(dest);
+        if (size == RHI::WHOLE_SIZE) {
+            size = wgpuBufferGetSize(internalSrc->GetBuffer());
+        }
+
         wgpuCommandEncoderCopyBufferToBuffer(_commandEncoder, internalSrc->GetBuffer(), static_cast<uint64>(srcOffset), internalDest->GetBuffer(), static_cast<uint64>(destOffset), size);
     }
 
@@ -482,7 +487,7 @@ namespace RHI
         BONSAI_ASSERT(renderPassDesc && "The render pass desc must not be null!");
 
         // Set up color attachments
-        DynamicArray<WGPURenderPassColorAttachment> colorAttachments(renderPassDesc->colorTargetCount); // FIXME(nemjit001): Use internal allocator (e.g. arena internal to command buffer)
+        StaticArray<WGPURenderPassColorAttachment, RHI::MAX_RENDER_TARGETS> colorAttachments;
         for (uint32 i = 0; i < renderPassDesc->colorTargetCount; i++)
         {
             RenderPassTargetDesc const& target = renderPassDesc->colorTargets[i];
@@ -512,8 +517,6 @@ namespace RHI
                 WebGPUTexture const* resolveTarget = static_cast<WebGPUTexture const*>(target.resolveTarget);
                 colorAttachment.resolveTarget = resolveTarget->GetTextureView();
             }
-
-            colorAttachments.push_back(colorAttachment);
         }
 
         // Set up render pass desc
@@ -681,22 +684,27 @@ namespace RHI
         }
 
         // Request adapter
+        struct AdapterRequestData
+        {
+            bool complete = false;
+            WGPUAdapter adapter = nullptr;
+        } adapterRequestData;
+
         WGPURequestAdapterOptions adapterOpts{};
         adapterOpts.nextInChain = nullptr;
         adapterOpts.featureLevel = WGPUFeatureLevel_Core;
         adapterOpts.powerPreference = WGPUPowerPreference_HighPerformance;
 
-        WGPUAdapter adapter = nullptr;
         WGPURequestAdapterCallbackInfo requestAdapterCallbackInfo{};
         requestAdapterCallbackInfo.nextInChain = nullptr;
         requestAdapterCallbackInfo.mode = WGPUCallbackMode_AllowProcessEvents;
-        requestAdapterCallbackInfo.userdata1 = &adapter;
+        requestAdapterCallbackInfo.userdata1 = &adapterRequestData;
         requestAdapterCallbackInfo.userdata2 = nullptr;
         requestAdapterCallbackInfo.callback = [](WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void* ud1, void*) {
-            WGPUAdapter& outAdapter = *static_cast<WGPUAdapter*>(ud1);
-            outAdapter = nullptr;
+            AdapterRequestData& outRequestData = *static_cast<AdapterRequestData*>(ud1);
+            outRequestData.complete = true;
             if (status == WGPURequestAdapterStatus_Success) {
-                outAdapter = adapter;
+                outRequestData.adapter = adapter;
             }
             else {
                 PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
@@ -704,12 +712,23 @@ namespace RHI
         };
 
         wgpuInstanceRequestAdapter(instance, &adapterOpts, requestAdapterCallbackInfo);
-        wgpuInstanceProcessEvents(instance);
-        if (!adapter) {
+        while (!adapterRequestData.complete) {
+            wgpuInstanceProcessEvents(instance);
+        }
+
+        if (!adapterRequestData.adapter)
+        {
+            wgpuInstanceRelease(instance);
             return nullptr;
         }
 
         // Request device
+        struct DeviceRequestData
+        {
+            bool complete = false;
+            WGPUDevice device = nullptr;
+        } deviceRequestData;
+
         WGPUDeviceDescriptor deviceDesc{};
         deviceDesc.nextInChain = nullptr;
         deviceDesc.label = WGPUStringView{ "WebGPU Device", WGPU_STRLEN };
@@ -721,30 +740,35 @@ namespace RHI
         deviceDesc.deviceLostCallbackInfo = {};
         deviceDesc.uncapturedErrorCallbackInfo = {};
 
-        WGPUDevice device = nullptr;
         WGPURequestDeviceCallbackInfo requestDeviceCallbackInfo{};
         requestDeviceCallbackInfo.nextInChain = nullptr;
         requestDeviceCallbackInfo.mode = WGPUCallbackMode_AllowProcessEvents;
-        requestDeviceCallbackInfo.userdata1 = &device;
+        requestDeviceCallbackInfo.userdata1 = &deviceRequestData;
         requestDeviceCallbackInfo.userdata2 = nullptr;
         requestDeviceCallbackInfo.callback = [](WGPURequestDeviceStatus status, WGPUDevice device, WGPUStringView message, void* ud1, void*) {
-            WGPUDevice& outDevice = *static_cast<WGPUDevice*>(ud1);
-            outDevice = nullptr;
+            DeviceRequestData& outRequestData = *static_cast<DeviceRequestData*>(ud1);
+            outRequestData.complete = true;
             if (status == WGPURequestDeviceStatus_Success) {
-                outDevice = device;
+                outRequestData.device = device;
             }
             else {
                 PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
             }
         };
 
-        wgpuAdapterRequestDevice(adapter, &deviceDesc, requestDeviceCallbackInfo);
-        wgpuInstanceProcessEvents(instance);
-        if (!device) {
+        wgpuAdapterRequestDevice(adapterRequestData.adapter, &deviceDesc, requestDeviceCallbackInfo);
+        while (!deviceRequestData.complete) {
+            wgpuInstanceProcessEvents(instance);
+        }
+
+        if (!deviceRequestData.device)
+        {
+            wgpuAdapterRelease(adapterRequestData.adapter);
+            wgpuInstanceRelease(instance);
             return nullptr;
         }
 
-        return new WebGPUGraphicsDevice(instance, adapter, device);
+        return new WebGPUGraphicsDevice(instance, adapterRequestData.adapter, deviceRequestData.device);
     }
 
     ShaderLang WebGPUGraphicsDevice::GetTargetShaderLanguage() const
@@ -770,14 +794,14 @@ namespace RHI
             usage |= WGPUBufferUsage_MapRead; // host read only supported
         }
     
-        WGPUBufferDescriptor wgpuBufferDesc{};
-        wgpuBufferDesc.nextInChain = nullptr;
-        wgpuBufferDesc.label = {};
-        wgpuBufferDesc.usage = usage;
-        wgpuBufferDesc.size = bufferDesc->size;
-        wgpuBufferDesc.mappedAtCreation = false;
+        WGPUBufferDescriptor internalBufferDesc{};
+        internalBufferDesc.nextInChain = nullptr;
+        internalBufferDesc.label = {};
+        internalBufferDesc.usage = usage;
+        internalBufferDesc.size = bufferDesc->size;
+        internalBufferDesc.mappedAtCreation = false;
 
-        WGPUBuffer buffer = wgpuDeviceCreateBuffer(_device, &wgpuBufferDesc);
+        WGPUBuffer buffer = wgpuDeviceCreateBuffer(_device, &internalBufferDesc);
         if (!buffer) {
             return nullptr;
         }
@@ -796,19 +820,19 @@ namespace RHI
             return nullptr;
         }
 
-        WGPUTextureDescriptor wgpuTextureDesc{};
-        wgpuTextureDesc.nextInChain = nullptr;
-        wgpuTextureDesc.label = {};
-        wgpuTextureDesc.usage = GetTextureUsage(textureDesc->usage);
-        wgpuTextureDesc.dimension = gTextureDimensionLUT[textureDesc->textureType];
-        wgpuTextureDesc.size = { textureDesc->size.width, textureDesc->size.height, std::max(textureDesc->size.depth, textureDesc->arrayLayers) }; // dpeth or array layers is interpreted as max value, kinda sneaky but should work OK
-        wgpuTextureDesc.format = gTextureFormatLUT[textureDesc->format];
-        wgpuTextureDesc.mipLevelCount = textureDesc->mipLevels;
-        wgpuTextureDesc.sampleCount = textureDesc->sampleCount;
-        wgpuTextureDesc.viewFormatCount = 0;
-        wgpuTextureDesc.viewFormats = nullptr;
+        WGPUTextureDescriptor internalTextureDesc{};
+        internalTextureDesc.nextInChain = nullptr;
+        internalTextureDesc.label = {};
+        internalTextureDesc.usage = GetTextureUsage(textureDesc->usage);
+        internalTextureDesc.dimension = gTextureDimensionLUT[textureDesc->textureType];
+        internalTextureDesc.size = { textureDesc->size.width, textureDesc->size.height, std::max(textureDesc->size.depth, textureDesc->arrayLayers) }; // dpeth or array layers is interpreted as max value, kinda sneaky but should work OK
+        internalTextureDesc.format = gTextureFormatLUT[textureDesc->format];
+        internalTextureDesc.mipLevelCount = textureDesc->mipLevels;
+        internalTextureDesc.sampleCount = textureDesc->sampleCount;
+        internalTextureDesc.viewFormatCount = 0;
+        internalTextureDesc.viewFormats = nullptr;
 
-        WGPUTexture texture = wgpuDeviceCreateTexture(_device, &wgpuTextureDesc);
+        WGPUTexture texture = wgpuDeviceCreateTexture(_device, &internalTextureDesc);
         if (!texture) {
             return nullptr;
         }
@@ -834,19 +858,19 @@ namespace RHI
         }
 
         WebGPUTexture* texture = static_cast<WebGPUTexture*>(textureViewDesc->texture);
-        WGPUTextureViewDescriptor wgpuTextureViewDesc{};
-        wgpuTextureViewDesc.nextInChain = nullptr;
-        wgpuTextureViewDesc.label = {};
-        wgpuTextureViewDesc.format = gTextureFormatLUT[textureViewDesc->format];
-        wgpuTextureViewDesc.dimension = gTextureViewDimensionsLUT[textureViewDesc->viewType];
-        wgpuTextureViewDesc.baseMipLevel = textureViewDesc->subresourceRange.baseMipLevel;
-        wgpuTextureViewDesc.mipLevelCount = textureViewDesc->subresourceRange.levelCount;
-        wgpuTextureViewDesc.baseArrayLayer = textureViewDesc->subresourceRange.baseArrayLayer;
-        wgpuTextureViewDesc.arrayLayerCount = textureViewDesc->subresourceRange.layerCount;
-        wgpuTextureViewDesc.aspect = GetTextureAspect(textureViewDesc->subresourceRange.aspectMask);
-        wgpuTextureViewDesc.usage = wgpuTextureGetUsage(texture->GetTexture());
+        WGPUTextureViewDescriptor internalTextureViewDesc{};
+        internalTextureViewDesc.nextInChain = nullptr;
+        internalTextureViewDesc.label = {};
+        internalTextureViewDesc.format = gTextureFormatLUT[textureViewDesc->format];
+        internalTextureViewDesc.dimension = gTextureViewDimensionsLUT[textureViewDesc->viewType];
+        internalTextureViewDesc.baseMipLevel = textureViewDesc->subresourceRange.baseMipLevel;
+        internalTextureViewDesc.mipLevelCount = textureViewDesc->subresourceRange.levelCount;
+        internalTextureViewDesc.baseArrayLayer = textureViewDesc->subresourceRange.baseArrayLayer;
+        internalTextureViewDesc.arrayLayerCount = textureViewDesc->subresourceRange.layerCount;
+        internalTextureViewDesc.aspect = GetTextureAspect(textureViewDesc->subresourceRange.aspectMask);
+        internalTextureViewDesc.usage = wgpuTextureGetUsage(texture->GetTexture());
 
-        WGPUTextureView view = wgpuTextureCreateView(texture->GetTexture(), &wgpuTextureViewDesc);
+        WGPUTextureView view = wgpuTextureCreateView(texture->GetTexture(), &internalTextureViewDesc);
         if (!view) {
             return nullptr;
         }
@@ -865,21 +889,21 @@ namespace RHI
             return nullptr;
         }
 
-        WGPUSamplerDescriptor wgpuSamplerDesc{};
-        wgpuSamplerDesc.nextInChain = nullptr;
-        wgpuSamplerDesc.label = {};
-        wgpuSamplerDesc.addressModeU = gAddressModeLUT[samplerDesc->addressModeU];
-        wgpuSamplerDesc.addressModeV = gAddressModeLUT[samplerDesc->addressModeV];
-        wgpuSamplerDesc.addressModeW = gAddressModeLUT[samplerDesc->addressModeW];
-        wgpuSamplerDesc.magFilter = gFilterModeLUT[samplerDesc->magFilter];
-        wgpuSamplerDesc.minFilter = gFilterModeLUT[samplerDesc->minFilter];
-        wgpuSamplerDesc.mipmapFilter = gMipmapFilterModeLUT[samplerDesc->mipmapMode];
-        wgpuSamplerDesc.lodMinClamp = samplerDesc->minLOD;
-        wgpuSamplerDesc.lodMaxClamp = samplerDesc->maxLOD;
-        wgpuSamplerDesc.compare = samplerDesc->enableCompareOp ? gCompareFunctionLUT[samplerDesc->compareOp] : WGPUCompareFunction_Undefined;
-        wgpuSamplerDesc.maxAnisotropy = std::clamp(samplerDesc->maxAnisotropy, 1u, 16u); // Force the anisotropy to be in range [1, 16]
+        WGPUSamplerDescriptor internalSamplerDesc{};
+        internalSamplerDesc.nextInChain = nullptr;
+        internalSamplerDesc.label = {};
+        internalSamplerDesc.addressModeU = gAddressModeLUT[samplerDesc->addressModeU];
+        internalSamplerDesc.addressModeV = gAddressModeLUT[samplerDesc->addressModeV];
+        internalSamplerDesc.addressModeW = gAddressModeLUT[samplerDesc->addressModeW];
+        internalSamplerDesc.magFilter = gFilterModeLUT[samplerDesc->magFilter];
+        internalSamplerDesc.minFilter = gFilterModeLUT[samplerDesc->minFilter];
+        internalSamplerDesc.mipmapFilter = gMipmapFilterModeLUT[samplerDesc->mipmapMode];
+        internalSamplerDesc.lodMinClamp = samplerDesc->minLOD;
+        internalSamplerDesc.lodMaxClamp = samplerDesc->maxLOD;
+        internalSamplerDesc.compare = samplerDesc->enableCompareOp ? gCompareFunctionLUT[samplerDesc->compareOp] : WGPUCompareFunction_Undefined;
+        internalSamplerDesc.maxAnisotropy = std::clamp(samplerDesc->maxAnisotropy, 1u, 16u); // Force the anisotropy to be in range [1, 16]
 
-        WGPUSampler sampler = wgpuDeviceCreateSampler(_device, &wgpuSamplerDesc);
+        WGPUSampler sampler = wgpuDeviceCreateSampler(_device, &internalSamplerDesc);
         if (!sampler) {
             return nullptr;
         }
@@ -894,8 +918,87 @@ namespace RHI
 
     GPUDescriptorSetLayout* WebGPUGraphicsDevice::CreateDescriptorSetLayout(GPUDescriptorSetLayoutDesc* setLayoutDesc)
     {
-        BONSAI_ASSERT(false && "NYI");
-        return new WebGPUDescriptorSetLayout(nullptr);
+        if (!setLayoutDesc) {
+            return nullptr;
+        }
+
+        BONSAI_ASSERT(setLayoutDesc->bindingCount <= RHI::MAX_DESCRIPTOR_BINDINGS && "Descriptor set layout binding count exceed maximum allowed binding count!");
+        StaticArray<WGPUBindGroupLayoutEntry, RHI::MAX_DESCRIPTOR_BINDINGS> bindGroupLayoutEntries;
+        for (uint32 i = 0; i < setLayoutDesc->bindingCount; i++)
+        {
+            DescriptorSetLayoutBinding const& currentBinding = setLayoutDesc->bindings[i];
+
+            WGPUBindGroupLayoutEntry& bindGroupLayoutEntry = bindGroupLayoutEntries[i];
+            bindGroupLayoutEntry.nextInChain = nullptr;
+            bindGroupLayoutEntry.binding = currentBinding.binding;
+            bindGroupLayoutEntry.visibility = GetShaderStage(currentBinding.shaderStages);
+            bindGroupLayoutEntry.buffer = {};
+            bindGroupLayoutEntry.sampler = {};
+            bindGroupLayoutEntry.texture = {};
+            bindGroupLayoutEntry.storageTexture = {};
+
+            // Set layout info based on descriptor type
+            // FIXME(nemjit001): Handle unknown information somehow in this statement
+            if (currentBinding.descriptorType == DescriptorType_Sampler)
+            {
+                bindGroupLayoutEntry.sampler.nextInChain = nullptr;
+                bindGroupLayoutEntry.sampler.type = WGPUSamplerBindingType_Undefined;
+            }
+            else if (currentBinding.descriptorType == DescriptorType_CombinedImageSampler
+                || currentBinding.descriptorType == DescriptorType_SampledImage
+            )
+            {
+                bindGroupLayoutEntry.texture.nextInChain = nullptr;
+                bindGroupLayoutEntry.texture.sampleType = WGPUTextureSampleType_Undefined;
+                bindGroupLayoutEntry.texture.viewDimension = WGPUTextureViewDimension_Undefined;
+                bindGroupLayoutEntry.texture.multisampled = false;
+            }
+            else if (currentBinding.descriptorType == DescriptorType_StorageImage)
+            {
+                bindGroupLayoutEntry.storageTexture.nextInChain = nullptr;
+                bindGroupLayoutEntry.storageTexture.access = WGPUStorageTextureAccess_Undefined;
+                bindGroupLayoutEntry.storageTexture.format = WGPUTextureFormat_Undefined;
+                bindGroupLayoutEntry.storageTexture.viewDimension = WGPUTextureViewDimension_Undefined;
+            }
+            else if (currentBinding.descriptorType == DescriptorType_UniformBuffer
+                || currentBinding.descriptorType == DescriptorType_StorageBuffer
+                || currentBinding.descriptorType == DescriptorType_UniformBufferDynamic
+                || currentBinding.descriptorCount == DescriptorType_StorageBufferDynamic
+            )
+            {
+                bindGroupLayoutEntry.buffer.nextInChain = nullptr;
+                bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Undefined;
+                bindGroupLayoutEntry.buffer.hasDynamicOffset = false;
+                bindGroupLayoutEntry.buffer.minBindingSize = 0; // Assume the whole buffer will be bound
+
+                if (currentBinding.descriptorType == DescriptorType_UniformBuffer
+                    || currentBinding.descriptorType == DescriptorType_UniformBufferDynamic)
+                {
+                    bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
+                    bindGroupLayoutEntry.buffer.hasDynamicOffset = (currentBinding.descriptorType == DescriptorType_UniformBufferDynamic);
+                }
+
+                if (currentBinding.descriptorType == DescriptorType_StorageBuffer
+                    || currentBinding.descriptorType == DescriptorType_StorageBufferDynamic)
+                {
+                    bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Storage;
+                    bindGroupLayoutEntry.buffer.hasDynamicOffset = (currentBinding.descriptorType == DescriptorType_StorageBufferDynamic);
+                }
+            }
+        }
+
+        WGPUBindGroupLayoutDescriptor internalBindGroupLayoutDesc{};
+        internalBindGroupLayoutDesc.nextInChain = nullptr;
+        internalBindGroupLayoutDesc.label = {};
+        internalBindGroupLayoutDesc.entryCount = setLayoutDesc->bindingCount;
+        internalBindGroupLayoutDesc.entries = bindGroupLayoutEntries.data();
+        
+        WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(_device, &internalBindGroupLayoutDesc);
+        if (!bindGroupLayout) {
+            return nullptr;
+        }
+
+        return new WebGPUDescriptorSetLayout(bindGroupLayout);
     }
 
     void WebGPUGraphicsDevice::DestroyDescriptorSetLayout(GPUDescriptorSetLayout* setLayout)
@@ -905,8 +1008,66 @@ namespace RHI
 
     GPUDescriptorSet* WebGPUGraphicsDevice::CreateDescriptorSet(GPUDescriptorSetDesc* descriptorSetDesc)
     {
-        BONSAI_ASSERT(false && "NYI");
-        return new WebGPUDescriptorSet(nullptr);
+        if (!descriptorSetDesc) {
+            return nullptr;
+        }
+
+        BONSAI_ASSERT(descriptorSetDesc->bindingCount <= RHI::MAX_DESCRIPTOR_BINDINGS && "Descriptor set binding count exceed maximum allowed binding count!");
+        StaticArray<WGPUBindGroupEntry, RHI::MAX_DESCRIPTOR_BINDINGS> bindGroupEntries;
+        for (uint32 i = 0; i < descriptorSetDesc->bindingCount; i++)
+        {
+            DescriptorSetBinding const& currentBinding = descriptorSetDesc->bindings[i];
+            WGPUBindGroupEntry& bindGroupEntry = bindGroupEntries[i];
+            bindGroupEntry.nextInChain = nullptr;
+            bindGroupEntry.binding = currentBinding.binding;
+
+            // Set buffer binding info
+            if (currentBinding.bufferBindingInfo)
+            {
+                BONSAI_ASSERT(currentBinding.bufferBindingInfo->buffer && "Buffer in buffer binding must not be null!");
+                BONSAI_ASSERT(currentBinding.bufferBindingInfo->buffer->GetBackendAPI() == BackendAPI_WebGPU);
+                WebGPUBuffer const* buffer = static_cast<WebGPUBuffer const*>(currentBinding.bufferBindingInfo->buffer);
+                bindGroupEntry.buffer = buffer->GetBuffer();
+                bindGroupEntry.offset = currentBinding.bufferBindingInfo->offset;
+                bindGroupEntry.size = currentBinding.bufferBindingInfo->range;
+            }
+
+            // Set texture binding info
+            if (currentBinding.textureBindingInfo)
+            {
+                if (currentBinding.textureBindingInfo->texture)
+                {
+                    BONSAI_ASSERT(currentBinding.textureBindingInfo->texture->GetBackendAPI() == BackendAPI_WebGPU);
+                    WebGPUTexture const* texture = static_cast<WebGPUTexture const*>(currentBinding.textureBindingInfo->texture);
+                    bindGroupEntry.textureView = texture->GetTextureView();
+                }
+
+                if (currentBinding.textureBindingInfo->sampler)
+                {
+                    BONSAI_ASSERT(currentBinding.textureBindingInfo->sampler->GetBackendAPI() == BackendAPI_WebGPU);
+                    WebGPUSampler const* sampler = static_cast<WebGPUSampler const*>(currentBinding.textureBindingInfo->sampler);
+                    bindGroupEntry.sampler = sampler->GetSampler();                    
+                }
+            }
+        }
+
+        BONSAI_ASSERT(descriptorSetDesc->setLayout && "Descriptor set layout must not be null!");
+        BONSAI_ASSERT(descriptorSetDesc->setLayout->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUDescriptorSetLayout const* descriptorSetLayout = static_cast<WebGPUDescriptorSetLayout const*>(descriptorSetDesc->setLayout);
+
+        WGPUBindGroupDescriptor internalBindGroupDesc{};
+        internalBindGroupDesc.nextInChain = nullptr;
+        internalBindGroupDesc.label = {};
+        internalBindGroupDesc.layout = descriptorSetLayout->GetBindGroupLayout();
+        internalBindGroupDesc.entryCount = descriptorSetDesc->bindingCount;
+        internalBindGroupDesc.entries = bindGroupEntries.data();
+
+        WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(_device, &internalBindGroupDesc);
+        if (!bindGroup) {
+            return nullptr;
+        }
+
+        return new WebGPUDescriptorSet(bindGroup);
     }
 
     void WebGPUGraphicsDevice::DestroyDescriptorSet(GPUDescriptorSet* descriptorSet)
@@ -916,8 +1077,33 @@ namespace RHI
 
     GPUPipelineLayout* WebGPUGraphicsDevice::CreatePipelineLayout(GPUPipelineLayoutDesc* pipelineLayoutDesc)
     {
-        BONSAI_ASSERT(false && "NYI");
-        return new WebGPUPipelineLayout(nullptr);
+        if (!pipelineLayoutDesc) {
+            return nullptr;
+        }
+
+        BONSAI_ASSERT(pipelineLayoutDesc->setLayoutCount <= RHI::MAX_DESCRIPTOR_SETS
+            && "Pipeline layout set layout count exceed maximum allowed set layout count!");
+        StaticArray<WGPUBindGroupLayout, RHI::MAX_DESCRIPTOR_SETS> bindGroupLayouts;
+        for (uint32 i = 0; i < pipelineLayoutDesc->setLayoutCount; i++)
+        {
+            BONSAI_ASSERT(pipelineLayoutDesc->setLayouts[i] != nullptr);
+            BONSAI_ASSERT(pipelineLayoutDesc->setLayouts[i]->GetBackendAPI() == BackendAPI_WebGPU);
+            WebGPUDescriptorSetLayout const* descriptorSetLayout = static_cast<WebGPUDescriptorSetLayout const*>(pipelineLayoutDesc->setLayouts[i]);
+            bindGroupLayouts[i] = descriptorSetLayout->GetBindGroupLayout();
+        }
+
+        WGPUPipelineLayoutDescriptor internalPipelineLayoutDesc{};
+        internalPipelineLayoutDesc.nextInChain = nullptr;
+        internalPipelineLayoutDesc.label = {};
+        internalPipelineLayoutDesc.bindGroupLayoutCount = pipelineLayoutDesc->setLayoutCount;
+        internalPipelineLayoutDesc.bindGroupLayouts = bindGroupLayouts.data();
+
+        WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(_device, &internalPipelineLayoutDesc);
+        if (!pipelineLayout) {
+            return nullptr;
+        }
+
+        return new WebGPUPipelineLayout(pipelineLayout);
     }
 
     void WebGPUGraphicsDevice::DestroyPipelineLayout(GPUPipelineLayout* pipelineLayout)
@@ -931,10 +1117,14 @@ namespace RHI
             return nullptr;
         }
 
+        BONSAI_ASSERT(pipelineDesc->pipelineLayout != nullptr && "Pipeline layout may not be null!");
+        BONSAI_ASSERT(pipelineDesc->pipelineLayout->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUPipelineLayout const* pipelineLayout = static_cast<WebGPUPipelineLayout const*>(pipelineDesc->pipelineLayout);
+
         WGPURenderPipelineDescriptor renderPipelineDesc{};
         renderPipelineDesc.nextInChain = nullptr;
         renderPipelineDesc.label = {};
-        renderPipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
+        renderPipelineDesc.layout = pipelineLayout->GetPipelineLayout();
         renderPipelineDesc.vertex = {}; // Initialization is only done if a vertex shader is present.
         renderPipelineDesc.fragment = nullptr; // Initialization is only done if a pixel shader is present.
         renderPipelineDesc.primitive.nextInChain = nullptr;
@@ -950,7 +1140,7 @@ namespace RHI
         renderPipelineDesc.depthStencil = nullptr;
 
         // Set up color target state
-        DynamicArray<WGPUColorTargetState> colorTargets(pipelineDesc->renderTargetCount); // FIXME(nemjit001): Use internal allocator
+        StaticArray<WGPUColorTargetState, RHI::MAX_RENDER_TARGETS> colorTargets;
         for (uint32 i = 0; i < pipelineDesc->renderTargetCount; i++)
         {
             WGPUColorTargetState& target = colorTargets[i];
@@ -982,12 +1172,10 @@ namespace RHI
         }
 
         // Set up color target blend state
-        DynamicArray<WGPUBlendState> targetBlendStates; // FIXME(nemjit001): Use internal allocator
+        StaticArray<WGPUBlendState, RHI::MAX_RENDER_TARGETS> targetBlendStates;
         if (pipelineDesc->blendState)
         {
             BlendState const& pipelineBlendState = *pipelineDesc->blendState;
-            targetBlendStates.resize(pipelineDesc->renderTargetCount);
-
             for (uint32 i = 0; i < pipelineDesc->renderTargetCount; i++)
             {
                 RenderTargetBlendState const& currentBlendState = pipelineBlendState.blendTargets[i];
@@ -1081,6 +1269,10 @@ namespace RHI
             return nullptr;
         }
 
+        BONSAI_ASSERT(pipelineDesc->pipelineLayout != nullptr && "Pipeline layout may not be null!");
+        BONSAI_ASSERT(pipelineDesc->pipelineLayout->GetBackendAPI() == BackendAPI_WebGPU);
+        WebGPUPipelineLayout const* pipelineLayout = static_cast<WebGPUPipelineLayout const*>(pipelineDesc->pipelineLayout);
+
         WGPUShaderSourceWGSL computeShaderSource{};
         computeShaderSource.chain.sType = WGPUSType_ShaderSourceWGSL;
         computeShaderSource.chain.next = nullptr;
@@ -1099,7 +1291,7 @@ namespace RHI
         WGPUComputePipelineDescriptor computePipelineDesc{};
         computePipelineDesc.nextInChain = nullptr;
         computePipelineDesc.label = {};
-        computePipelineDesc.layout = nullptr; // TODO(nemjit001): Add support for pipeline layout
+        computePipelineDesc.layout = pipelineLayout->GetPipelineLayout();
         computePipelineDesc.compute.nextInChain = nullptr;
         computePipelineDesc.compute.module = computeShader;
         computePipelineDesc.compute.entryPoint = WGPUStringView{ pipelineDesc->entrypoint, WGPU_STRLEN };
@@ -1142,8 +1334,8 @@ namespace RHI
 
     GraphicsDeviceResult WebGPUGraphicsDevice::Submit([[maybe_unused]] GPUQueueType queue, IGPUCommandBuffer** commandBuffers, uint32 commandBufferCount)
     {
-        DynamicArray<WGPUCommandBuffer> submissions; // FIXME(nemjit001): Use internal allocator
-        submissions.reserve(commandBufferCount);
+        BONSAI_ASSERT(commandBufferCount <= RHI::MAX_COMMAND_BUFFER_SUBMISSIONS && "Command buffer count exceeds maximum allowed submission count!");
+        StaticArray<WGPUCommandBuffer, RHI::MAX_COMMAND_BUFFER_SUBMISSIONS> submissions;
         for (uint32 i = 0; i < commandBufferCount; i++)
         {
             if (commandBuffers[i]->GetBackendAPI() != BackendAPI_WebGPU) {
@@ -1151,12 +1343,10 @@ namespace RHI
             }
 
             WebGPUCommandBuffer const* commandBuffer = static_cast<WebGPUCommandBuffer const*>(commandBuffers[i]);
-            WGPUCommandBuffer submission = commandBuffer->GetCommandBuffer();
-            if (!submission) {
+            submissions[i] = commandBuffer->GetCommandBuffer();
+            if (submissions[i] == nullptr) {
                 return GraphicsDeviceResult_BadSubmit;
             }
-
-            submissions.push_back(submission);
         }
 
         wgpuQueueSubmit(_queue, commandBufferCount, submissions.data());
@@ -1171,6 +1361,11 @@ namespace RHI
         WebGPUBuffer const* internalBuffer = static_cast<WebGPUBuffer const*>(buffer);
         *outData = nullptr;
 
+        // Determine map size
+        if (size == RHI::WHOLE_SIZE) {
+            size = wgpuBufferGetSize(internalBuffer->GetBuffer());
+        }
+
         // Determine map mode based on usage flags
         WGPUMapMode bufferMapMode = WGPUMapMode_None;
         WGPUBufferUsage const usage = wgpuBufferGetUsage(internalBuffer->GetBuffer());
@@ -1182,16 +1377,16 @@ namespace RHI
         }
 
         // Set up map callback
-        bool mapSuccessful = false;
+        bool mapComplete = false;
         WGPUBufferMapCallbackInfo mapCallbackInfo{};
         mapCallbackInfo.nextInChain = nullptr;
         mapCallbackInfo.mode = WGPUCallbackMode_AllowProcessEvents;
-        mapCallbackInfo.userdata1 = &mapSuccessful;
+        mapCallbackInfo.userdata1 = &mapComplete;
         mapCallbackInfo.userdata2 = nullptr;
         mapCallbackInfo.callback = [](WGPUMapAsyncStatus status, WGPUStringView message, void* ud1, void*) {
-            bool& outMapSuccessful = *static_cast<bool*>(ud1);
+            bool& outMapComplete = *static_cast<bool*>(ud1);
             if (status == WGPUMapAsyncStatus_Success) {
-                outMapSuccessful = true;
+                outMapComplete = true;
             }
             else {
                 PrintDebugString("[WebGPUGraphicsDevice]: %*.s", message.data, message.length);
@@ -1200,9 +1395,8 @@ namespace RHI
 
         // Actually map buffer
         wgpuBufferMapAsync(internalBuffer->GetBuffer(), bufferMapMode, offset, size, mapCallbackInfo);
-        wgpuInstanceProcessEvents(_instance);
-        if (!mapSuccessful) {
-            return GraphicsDeviceResult_BadMap;
+        while (!mapComplete) {
+            wgpuInstanceProcessEvents(_instance);
         }
 
         *outData = wgpuBufferGetMappedRange(internalBuffer->GetBuffer(), offset, size);
