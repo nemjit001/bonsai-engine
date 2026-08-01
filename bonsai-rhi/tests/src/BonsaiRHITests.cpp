@@ -350,6 +350,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
 
     EXPECT_EQ(_gpu->Submit(RHI::GPUQueueType_Compute, &commands, 1), RHI::GraphicsDeviceResult_Ok);
     _gpu->DestroyCommandBuffer(commands);
+    _gpu->WaitIdle();
 
     // Validate buffer contents
     uint32* bufferData = nullptr;
