@@ -9,10 +9,14 @@
 /// @brief Bonsai RHI.
 namespace RHI
 {
-    class GPUBuffer;    //< Opaque GPU buffer handle.
-    class GPUTexture;   //< Opaque GPU texture handle.
-    class GPUSampler;   //< Opaque GPU sampler handle.
-    class GPUPipeline;  //< Opaque GPU pipeline handle.
+    class GPUResource;              //< Opaque GPU resource handle.
+    class GPUBuffer;                //< Opaque GPU buffer handle.
+    class GPUTexture;               //< Opaque GPU texture handle.
+    class GPUSampler;               //< Opaque GPU sampler handle.
+    class GPUDescriptorSetLayout;   //< Opaque GPU descriptor set layout handle.
+    class GPUDescriptorSet;         //< Opaque GPU descriptor set handle.
+    class GPUPipelineLayout;        //< Opaque GPU pipeline layout handle.
+    class GPUPipeline;              //< Opaque GPU pipeline handle.
 
     static constexpr uint32 ALL_REMAINING_MIPS      = (~0u);
     static constexpr uint32 ALL_REMAINING_LAYERS    = (~0u);
@@ -20,6 +24,8 @@ namespace RHI
     static constexpr float  LOD_CLAMP_NONE          = 1'000.0F;
 
     static constexpr uint32 MAX_RENDER_TARGETS      = 8u;
+    static constexpr uint32 MAX_DESCRIPTOR_SETS     = 4u;
+    static constexpr uint32 MAX_DESCRIPTOR_BINDINGS = 32u;
 
     /// @brief Enumeration of GraphicsDevice result codes.
     enum GraphicsDeviceResult : uint32
@@ -140,6 +146,19 @@ namespace RHI
         SamplerAddressMode_MirroredRepeat   = 1,
         SamplerAddressMode_ClampToEdge      = 2,
         SamplerAddressMode_ClampToBorder    = 3,
+    };
+
+    /// @brief Enumeration of descriptor types.
+    enum DescriptorType : uint32
+    {
+        DescriptorType_Sampler              = 0,
+        DescriptorType_CombinedImageSampler = 1,
+        DescriptorType_SampledImage         = 2,
+        DescriptorType_StorageImage         = 3,
+        DescriptorType_UniformBuffer        = 4,
+        DescriptorType_StorageImageDynamic  = 5,
+        DescriptorType_UniformBufferDynamic = 6,
+        DescriptorType_StorageBuffer        = 7,
     };
 
     /// @brief Enumeration of polygon raster modes.
@@ -394,6 +413,41 @@ namespace RHI
         uint32 sizeZ;
     };
 
+    /// @brief A DescriptorSetLayoutBinding contains binding layout data for a resource descriptor.
+    struct DescriptorSetLayoutBinding
+    {
+        uint32 binding;
+        uint32 descriptorCount;
+        DescriptorType descriptorType;
+        ShaderStageFlags shaderStages;
+    };
+
+    /// @brief The DescriptorBindingBufferInfo contains binding information for buffer descriptors.
+    struct DescriptorBindingBufferInfo
+    {
+        GPUBuffer* buffer;
+        uint64 offset;
+        uint64 range;
+    };
+
+    /// @brief The DescriptorBindingImageInfo contains binding information for image descriptors.
+    struct DescriptorBindingImageInfo
+    {
+        GPUSampler* sampler;
+        GPUTexture* view;
+    };
+
+    /// @brief A DescriptorSetBinding contains a resource binding for a descriptor set.
+    struct DescriptorSetBinding
+    {
+        uint32 binding;
+        uint32 arrayElementIdx;
+        uint32 descriptorCount;
+        DescriptorType descriptorType;
+        DescriptorBindingBufferInfo* bufferBindingInfo;
+        DescriptorBindingImageInfo* imageBindingInfo;
+    };
+
     /// @brief A ShaderBlob contains compiled shader IR code.
     struct ShaderBlob
     {
@@ -508,9 +562,31 @@ namespace RHI
         float maxLOD = LOD_CLAMP_NONE;
     };
 
+    /// @brief A GPUDescriptorSetLayoutDesc is used to create GPUDescriptorSetLayouts.
+    struct GPUDescriptorSetLayoutDesc
+    {
+        uint32 bindingCount = 0;
+        DescriptorSetLayoutBinding* bindings = nullptr;
+    };
+
+    struct GPUDescriptorSetDesc
+    {
+        GPUDescriptorSetLayout* setLayout = nullptr;
+        uint32 bindingCount = 0;
+        DescriptorSetBinding* bindings = nullptr;
+    };
+
+    /// @brief A GPUPipelineLayoutDesc is used to create GPUPipelineLayouts.
+    struct GPUPipelineLayoutDesc
+    {
+        uint32 setLayoutCount = 0;
+        GPUDescriptorSetLayout** setLayouts = nullptr;
+    };
+
     /// @brief A GPUGraphicsPipelineDesc is used to create raster GPUPipelines.
     struct GPUGraphicsPipelineDesc
     {
+        GPUPipelineLayout* pipelineLayout = nullptr;
         ShaderBlob* vertexShader = nullptr;
         ShaderBlob* pixelShader = nullptr;
         char const* vertexShaderEntrypoint = "main";
@@ -526,6 +602,7 @@ namespace RHI
     /// @brief A GPUComputePipelineDesc is used to create compute GPUPipelines.
     struct GPUComputePipelineDesc
     {
+        GPUPipelineLayout* pipelineLayout = nullptr;
         ShaderBlob computeShader = {};
         char const* entrypoint = "main";
     };
@@ -598,6 +675,12 @@ namespace RHI
         virtual void SetDepthStencilState(DepthStencilState* depthStencilState) = 0;
         virtual void SetBlendState(BlendState* blendState) = 0;
 
+        virtual void BindDescriptorSets(
+            GPUPipelineLayout* layout,
+            uint32 firstSet, uint32 setCount, GPUDescriptorSet** descriptorSets,
+            uint32 dynamicOffsetCount, uint64* dynamicOffsets
+        ) = 0;
+
         virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) = 0;
         virtual void EndRenderPass() = 0;
 
@@ -658,6 +741,33 @@ namespace RHI
         /// @brief Destroy a GPUSampler.
         /// @param sampler 
         virtual void DestroySampler(GPUSampler* sampler) = 0;
+
+        /// @brief Create a GPUDescriptorSetLayout.
+        /// @param setLayoutDesc Descriptor set layout desc.
+        /// @return A new GPUDescriptorSetLayout, or nullptr on failure.
+        [[nodiscard]]virtual GPUDescriptorSetLayout* CreateDescriptorSetLayout(GPUDescriptorSetLayoutDesc* setLayoutDesc) = 0;
+
+        /// @brief Destroy a GPUDescriptorSetLayout.
+        /// @param setLayout 
+        virtual void DestroyDescriptorSetLayout(GPUDescriptorSetLayout* setLayout) = 0;
+
+        /// @brief Create a GPUDescriptorSet.
+        /// @param descriptorSetDesc Descriptor set desc.
+        /// @return A new GPUDescriptorSet, or nullptr on failure.
+        [[nodiscard]] virtual GPUDescriptorSet* CreateDescriptorSet(GPUDescriptorSetDesc* descriptorSetDesc) = 0;
+
+        /// @brief Destroy a GPUDescriptorSet.
+        /// @param descriptorSet 
+        virtual void DestroyDescriptorSet(GPUDescriptorSet* descriptorSet) = 0;
+
+        /// @brief Create a GPUPipelineLayout.
+        /// @param pipelineLayoutDesc Pipeline layout description.
+        /// @return A new GPUPipelineLayout, or nullptr on failure.
+        [[nodiscard]] virtual GPUPipelineLayout* CreatePipelineLayout(GPUPipelineLayoutDesc* pipelineLayoutDesc) = 0;
+
+        /// @brief Destroy a GPUPipelineLayout.
+        /// @param pipelineLayout 
+        virtual void DestroyPipelineLayout(GPUPipelineLayout* pipelineLayout) = 0;
 
         /// @brief Create a GPUPipeline for raster workloads.
         /// @param pipelineDesc Graphics pipeline description.

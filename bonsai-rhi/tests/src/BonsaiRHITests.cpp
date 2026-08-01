@@ -91,6 +91,24 @@ TEST_F(BonsaiRHITests, TestCreateSampler)
     _gpu->DestroySampler(sampler);
 }
 
+TEST_F(BonsaiRHITests, TestCreateDescriptorSetLayout)
+{
+    RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{}; // Create an empty descriptor set
+    RHI::GPUDescriptorSetLayout* setLayout = _gpu->CreateDescriptorSetLayout(&setLayoutDesc);
+    EXPECT_NE(setLayout, nullptr);
+
+    _gpu->DestroyDescriptorSetLayout(setLayout);
+}
+
+TEST_F(BonsaiRHITests, TestCreatePipelineLayout)
+{
+    RHI::GPUPipelineLayoutDesc pipelineLayoutDesc{}; // Create an empty pipeline layout
+    RHI::GPUPipelineLayout* pipelineLayout = _gpu->CreatePipelineLayout(&pipelineLayoutDesc);
+    EXPECT_NE(pipelineLayout, nullptr);
+
+    _gpu->DestroyPipelineLayout(pipelineLayout);
+}
+
 TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
 {
     constexpr char const* SHADER_CODE = R"(
@@ -112,6 +130,13 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
     }
     )";
 
+    RHI::GPUPipelineLayoutDesc pipelineLayoutDesc{};
+    pipelineLayoutDesc.setLayoutCount = 0;
+    pipelineLayoutDesc.setLayouts = nullptr;
+
+    RHI::GPUPipelineLayout* pipelineLayout = _gpu->CreatePipelineLayout(&pipelineLayoutDesc);
+    EXPECT_NE(pipelineLayout, nullptr);
+
     RHI::IShaderBlob* shaderSourceBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderSource(nullptr, SHADER_CODE, &shaderSourceBlob));
     ASSERT_NE(shaderSourceBlob, nullptr);
@@ -122,6 +147,7 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
     };
 
     RHI::GPUGraphicsPipelineDesc pipelineDesc{};
+    pipelineDesc.pipelineLayout = pipelineLayout;
     pipelineDesc.vertexShader = &shaderBlob;
     pipelineDesc.pixelShader = &shaderBlob;
     pipelineDesc.vertexShaderEntrypoint = "VSMain";
@@ -143,6 +169,7 @@ TEST_F(BonsaiRHITests, TestCreateGraphicsPipeline)
     EXPECT_NE(pipeline, nullptr);
     
     _gpu->DestroyPipeline(pipeline);
+    _gpu->DestroyPipelineLayout(pipelineLayout);
     RHI::DestroyShaderBlob(shaderSourceBlob);
 }
 
@@ -156,11 +183,19 @@ TEST_F(BonsaiRHITests, TestCreateComputePipeline)
     }
     )";
 
+    RHI::GPUPipelineLayoutDesc pipelineLayoutDesc{};
+    pipelineLayoutDesc.setLayoutCount = 0;
+    pipelineLayoutDesc.setLayouts = nullptr;
+
+    RHI::GPUPipelineLayout* pipelineLayout = _gpu->CreatePipelineLayout(&pipelineLayoutDesc);
+    EXPECT_NE(pipelineLayout, nullptr);
+
     RHI::IShaderBlob* shaderSourceBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_CODE, &shaderSourceBlob));
     ASSERT_NE(shaderSourceBlob, nullptr);
 
     RHI::GPUComputePipelineDesc pipelineDesc{};
+    pipelineDesc.pipelineLayout = pipelineLayout;
     pipelineDesc.computeShader = { shaderSourceBlob->GetBufferPointer(), static_cast<uint32>(shaderSourceBlob->GetBufferSize()) };
     pipelineDesc.entrypoint = "CSMain";
 
@@ -168,6 +203,7 @@ TEST_F(BonsaiRHITests, TestCreateComputePipeline)
     EXPECT_NE(pipeline, nullptr);
 
     _gpu->DestroyPipeline(pipeline);
+    _gpu->DestroyPipelineLayout(pipelineLayout);
     RHI::DestroyShaderBlob(shaderSourceBlob);
 }
 
@@ -229,15 +265,38 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     }
     )";
 
+    // Set up descriptor set layout
+    RHI::DescriptorSetLayoutBinding storageBufferLayoutBinding{};
+    storageBufferLayoutBinding.binding = 0;
+    storageBufferLayoutBinding.descriptorCount = 1;
+    storageBufferLayoutBinding.descriptorType = RHI::DescriptorType_StorageBuffer;
+    storageBufferLayoutBinding.shaderStages = RHI::ShaderStage_Compute;
+
+    RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{};
+    setLayoutDesc.bindingCount = 1;
+    setLayoutDesc.bindings = &storageBufferLayoutBinding;
+
+    RHI::GPUDescriptorSetLayout* setLayout = _gpu->CreateDescriptorSetLayout(&setLayoutDesc);
+    EXPECT_NE(setLayout, nullptr);
+
+    // Set up pipeline layout
+    RHI::GPUPipelineLayoutDesc pipelineLayoutDesc{};
+    pipelineLayoutDesc.setLayoutCount = 1;
+    pipelineLayoutDesc.setLayouts = &setLayout;
+
+    RHI::GPUPipelineLayout* pipelineLayout = _gpu->CreatePipelineLayout(&pipelineLayoutDesc);
+    EXPECT_NE(pipelineLayout, nullptr);
+
+    // Set up compute pipeline
     RHI::IShaderBlob* shaderSourceBlob = nullptr;
     EXPECT_TRUE(_shaderCompiler->CompileShaderSource("CSMain", SHADER_CODE, &shaderSourceBlob));
     ASSERT_NE(shaderSourceBlob, nullptr);
 
     RHI::GPUComputePipelineDesc pipelineDesc{};
+    pipelineDesc.pipelineLayout = pipelineLayout;
     pipelineDesc.computeShader =  { shaderSourceBlob->GetBufferPointer(), static_cast<uint32>(shaderSourceBlob->GetBufferSize()) };
     pipelineDesc.entrypoint = "CSMain";
 
-    // Set up compute pipeline
     RHI::GPUPipeline* pipeline = _gpu->CreateComputePipeline(&pipelineDesc);
     EXPECT_NE(pipeline, nullptr);
     RHI::DestroyShaderBlob(shaderSourceBlob);
@@ -258,10 +317,32 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_NE(outBuffer, nullptr);
     EXPECT_NE(readbackBuffer, nullptr);
 
+    // Set up descriptor set
+    RHI::DescriptorBindingBufferInfo storageBufferBindingInfo{};
+    storageBufferBindingInfo.buffer = outBuffer;
+    storageBufferBindingInfo.offset = 0;
+    storageBufferBindingInfo.range = RHI::WHOLE_SIZE;
+
+    RHI::DescriptorSetBinding storageBufferBinding{};
+    storageBufferBinding.binding = 0;
+    storageBufferBinding.arrayElementIdx = 0;
+    storageBufferBinding.descriptorCount = 1;
+    storageBufferBinding.descriptorType = RHI::DescriptorType_StorageBuffer;
+    storageBufferBinding.bufferBindingInfo = &storageBufferBindingInfo;
+
+    RHI::GPUDescriptorSetDesc descriptorSetDesc{};
+    descriptorSetDesc.setLayout = setLayout;
+    descriptorSetDesc.bindingCount = 1;
+    descriptorSetDesc.bindings = &storageBufferBinding;
+
+    RHI::GPUDescriptorSet* descriptorSet = _gpu->CreateDescriptorSet(&descriptorSetDesc);
+    EXPECT_NE(descriptorSet, nullptr);
+
     // Record compute pass & submit
     RHI::IGPUCommandBuffer* commands = _gpu->CreateCommandBuffer(RHI::GPUQueueType_Compute);
     commands->BeginComputePass();
-    commands->SetPipeline(pipeline); // TODO(nemjit001): bind params some way or another
+    commands->SetPipeline(pipeline);
+    commands->BindDescriptorSets(pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
     commands->Dispatch(NUM_BUFFER_ENTRIES, 1, 1); // Linear dispatch of N workgroups
     commands->EndComputePass();
     commands->CopyBufferToBuffer(outBuffer, readbackBuffer, RHI::WHOLE_SIZE, 0, 0);
@@ -280,7 +361,10 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     _gpu->UnmapBuffer(readbackBuffer);
 
     // Clean up resources
+    _gpu->DestroyDescriptorSet(descriptorSet);
     _gpu->DestroyBuffer(readbackBuffer);
     _gpu->DestroyBuffer(outBuffer);
     _gpu->DestroyPipeline(pipeline);
+    _gpu->DestroyPipelineLayout(pipelineLayout);
+    _gpu->DestroyDescriptorSetLayout(setLayout);
 }

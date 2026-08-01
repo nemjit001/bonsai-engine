@@ -43,6 +43,27 @@ namespace RHI
             : GPUResource(backendAPI) {}
     };
 
+    class GPUDescriptorSetLayout : public GPUResource
+    {
+    public:
+        explicit constexpr GPUDescriptorSetLayout(BackendAPI backendAPI)
+            : GPUResource(backendAPI) {}
+    };
+
+    class GPUDescriptorSet : public GPUResource
+    {
+    public:
+        explicit constexpr GPUDescriptorSet(BackendAPI backendAPI)
+            : GPUResource(backendAPI) {}
+    };
+
+    class GPUPipelineLayout : public GPUResource
+    {
+    public:
+        explicit constexpr GPUPipelineLayout(BackendAPI backendAPI)
+            : GPUResource(backendAPI) {}
+    };
+
     class GPUPipeline : public GPUResource
     {
     public:
