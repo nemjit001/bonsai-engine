@@ -38,6 +38,12 @@ namespace RHI
         virtual void SetDepthStencilState(DepthStencilState* depthStencilState) override final;
         virtual void SetBlendState(BlendState* blendState) override final;
 
+        virtual void BindDescriptorSets(
+            GPUPipelineLayout* layout,
+            uint32 firstSet, uint32 setCount, GPUDescriptorSet** descriptorSets,
+            uint32 dynamicOffsetCount, uint64* dynamicOffsets
+        ) override final;
+
         virtual void BeginRenderPass(RenderPassDesc* renderPassDesc) override final;
         virtual void EndRenderPass() override final;
 
@@ -92,6 +98,15 @@ namespace RHI
 
         virtual GPUSampler* CreateSampler(GPUSamplerDesc* samplerDesc) override final;
         virtual void DestroySampler(GPUSampler* sampler) override final;
+
+        virtual GPUDescriptorSetLayout* CreateDescriptorSetLayout(GPUDescriptorSetLayoutDesc* setLayoutDesc) override final;
+        virtual void DestroyDescriptorSetLayout(GPUDescriptorSetLayout* setLayout) override final;
+
+        GPUDescriptorSet* CreateDescriptorSet(GPUDescriptorSetDesc* descriptorSetDesc) override final;
+        virtual void DestroyDescriptorSet(GPUDescriptorSet* descriptorSet) override final;
+
+        virtual GPUPipelineLayout* CreatePipelineLayout(GPUPipelineLayoutDesc* pipelineLayoutDesc) override final;
+        virtual void DestroyPipelineLayout(GPUPipelineLayout* pipelineLayout) override final;
 
         virtual GPUPipeline* CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc) override final;
         virtual GPUPipeline* CreateComputePipeline(GPUComputePipelineDesc* pipelineDesc) override final;

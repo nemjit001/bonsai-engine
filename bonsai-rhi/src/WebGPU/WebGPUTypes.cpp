@@ -28,6 +28,27 @@ namespace RHI
         }
     }
 
+    WebGPUDescriptorSetLayout::~WebGPUDescriptorSetLayout()
+    {
+        if (_bindGroupLayout) {
+            wgpuBindGroupLayoutRelease(_bindGroupLayout);
+        }
+    }
+
+    WebGPUDescriptorSet::~WebGPUDescriptorSet()
+    {
+        if (_bindGroup) {
+            wgpuBindGroupRelease(_bindGroup);
+        }
+    }
+
+    WebGPUPipelineLayout::~WebGPUPipelineLayout()
+    {
+        if (_pipelineLayout) {
+            wgpuPipelineLayoutRelease(_pipelineLayout);
+        }
+    }
+
     WebGPUPipeline::~WebGPUPipeline()
     {
         if (_type == PipelineType_RenderPipeline && _pso.renderPipeline) {

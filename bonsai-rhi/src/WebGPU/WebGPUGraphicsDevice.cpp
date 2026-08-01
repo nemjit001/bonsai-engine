@@ -449,6 +449,34 @@ namespace RHI
         BONSAI_ASSERT(false && "Setting dynamic blend state is unsupported!");
     }
 
+    void WebGPUCommandBuffer::BindDescriptorSets(
+        GPUPipelineLayout* layout,
+        uint32 firstSet, uint32 setCount, GPUDescriptorSet** descriptorSets,
+        uint32 dynamicOffsetCount, uint64* dynamicOffsets
+    )
+    {
+        BONSAI_ASSERT(layout && "A pipeline layout must be provided!");
+        BONSAI_ASSERT(layout->GetBackendAPI() == BackendAPI_WebGPU);
+
+        for (uint32 i = 0; i < setCount; i++)
+        {
+            GPUDescriptorSet const* descriptorSet = descriptorSets[i];
+            BONSAI_ASSERT(descriptorSet->GetBackendAPI() == BackendAPI_WebGPU);
+
+            uint32 const groupIndex = firstSet + i;
+            WebGPUDescriptorSet const* internalDescriptorSet = static_cast<WebGPUDescriptorSet const*>(descriptorSet);
+
+            // TODO(nemjit001): Provide dynamic offsets, consume all per descriptor set?
+            if (_activeRenderPass) {
+                wgpuRenderPassEncoderSetBindGroup(_activeRenderPass, groupIndex, internalDescriptorSet->GetBindGroup(), 0, nullptr);
+            }
+
+            if (_activeComputePass) {
+                wgpuComputePassEncoderSetBindGroup(_activeComputePass, groupIndex, internalDescriptorSet->GetBindGroup(), 0, nullptr);
+            }
+        }
+    }
+
     void WebGPUCommandBuffer::BeginRenderPass(RenderPassDesc* renderPassDesc)
     {
         BONSAI_ASSERT(renderPassDesc && "The render pass desc must not be null!");
@@ -862,6 +890,39 @@ namespace RHI
     void WebGPUGraphicsDevice::DestroySampler(GPUSampler* sampler)
     {
         delete sampler;
+    }
+
+    GPUDescriptorSetLayout* WebGPUGraphicsDevice::CreateDescriptorSetLayout(GPUDescriptorSetLayoutDesc* setLayoutDesc)
+    {
+        BONSAI_ASSERT(false && "NYI");
+        return new WebGPUDescriptorSetLayout(nullptr);
+    }
+
+    void WebGPUGraphicsDevice::DestroyDescriptorSetLayout(GPUDescriptorSetLayout* setLayout)
+    {
+        delete setLayout;
+    }
+
+    GPUDescriptorSet* WebGPUGraphicsDevice::CreateDescriptorSet(GPUDescriptorSetDesc* descriptorSetDesc)
+    {
+        BONSAI_ASSERT(false && "NYI");
+        return new WebGPUDescriptorSet(nullptr);
+    }
+
+    void WebGPUGraphicsDevice::DestroyDescriptorSet(GPUDescriptorSet* descriptorSet)
+    {
+        delete descriptorSet;
+    }
+
+    GPUPipelineLayout* WebGPUGraphicsDevice::CreatePipelineLayout(GPUPipelineLayoutDesc* pipelineLayoutDesc)
+    {
+        BONSAI_ASSERT(false && "NYI");
+        return new WebGPUPipelineLayout(nullptr);
+    }
+
+    void WebGPUGraphicsDevice::DestroyPipelineLayout(GPUPipelineLayout* pipelineLayout)
+    {
+        delete pipelineLayout;
     }
 
     GPUPipeline* WebGPUGraphicsDevice::CreateGraphicsPipeline(GPUGraphicsPipelineDesc* pipelineDesc)

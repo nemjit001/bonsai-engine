@@ -62,6 +62,54 @@ namespace RHI
         WGPUSampler _sampler = nullptr;
     };
 
+    /// @brief WebGPU GPU descriptor set layout implementation.
+    class WebGPUDescriptorSetLayout : public GPUDescriptorSetLayout
+    {
+    public:
+        constexpr WebGPUDescriptorSetLayout(WGPUBindGroupLayout bindGroupLayout)
+            : GPUDescriptorSetLayout(BackendAPI_WebGPU), _bindGroupLayout(bindGroupLayout) {}
+        ~WebGPUDescriptorSetLayout() override;
+
+        /// @brief Get the internal bind group layout handle.
+        /// @return 
+        WGPUBindGroupLayout GetBindGroupLayout() const { return _bindGroupLayout; }
+
+    private:
+        WGPUBindGroupLayout _bindGroupLayout = nullptr;
+    };
+
+    /// @brief WebGPU GPU descriptor set implementation.
+    class WebGPUDescriptorSet : public GPUDescriptorSet
+    {
+    public:
+        constexpr WebGPUDescriptorSet(WGPUBindGroup bindGroup)
+            : GPUDescriptorSet(BackendAPI_WebGPU), _bindGroup(bindGroup) {}
+        ~WebGPUDescriptorSet() override;
+
+        /// @brief Get the internal bind group handle.
+        /// @return 
+        WGPUBindGroup GetBindGroup() const { return _bindGroup; }
+
+    private:
+        WGPUBindGroup _bindGroup = nullptr;
+    };
+
+    /// @brief WebGPU GPU pipeline layout implementation.
+    class WebGPUPipelineLayout : public GPUPipelineLayout
+    {
+    public:
+        constexpr WebGPUPipelineLayout(WGPUPipelineLayout pipelineLayout)
+            : GPUPipelineLayout(BackendAPI_WebGPU), _pipelineLayout(pipelineLayout) {}
+        ~WebGPUPipelineLayout() override;
+
+        /// @brief Get the internal pipeline layout handle.
+        /// @return 
+        WGPUPipelineLayout GetPipelineLayout() const { return _pipelineLayout; }
+
+    private:
+        WGPUPipelineLayout _pipelineLayout = nullptr;
+    };
+
     /// @brief WebGPU GPU pipeline implementation.
     class WebGPUPipeline : public GPUPipeline
     {
