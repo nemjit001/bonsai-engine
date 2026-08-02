@@ -426,7 +426,7 @@ namespace RHI
     };
 
     /// @brief The DescriptorBindingBufferInfo contains binding information for buffer descriptors.
-    struct DescriptorBindingBufferInfo
+    struct DescriptorSetBindingBufferInfo
     {
         GPUBuffer* buffer;
         uint64 offset;
@@ -434,7 +434,7 @@ namespace RHI
     };
 
     /// @brief The DescriptorBindingTextureInfo contains binding information for texure descriptors.
-    struct DescriptorBindingTextureInfo
+    struct DescriptorSetBindingTextureInfo
     {
         GPUSampler* sampler;
         GPUTexture* texture;
@@ -447,8 +447,8 @@ namespace RHI
         uint32 arrayElementIdx;
         uint32 descriptorCount;
         DescriptorType descriptorType;
-        DescriptorBindingBufferInfo* bufferBindingInfo;
-        DescriptorBindingTextureInfo* textureBindingInfo;
+        DescriptorSetBindingBufferInfo* bufferBindingInfo;
+        DescriptorSetBindingTextureInfo* textureBindingInfo;
     };
 
     /// @brief A ShaderBlob contains compiled shader IR code.
@@ -485,12 +485,12 @@ namespace RHI
     struct RenderTargetBlendState
     {
         bool blendEnable = false;
-        BlendFactor srcColorBlendFactor;
-        BlendFactor destColorBlendFactor;
-        BlendOp colorBlendOp;
-        BlendFactor srcAlphaBlendFactor;
-        BlendFactor destAlphaBlendFactor;
-        BlendOp alphaBlendOp;
+        BlendFactor srcColorBlendFactor = BlendFactor_Zero;
+        BlendFactor destColorBlendFactor = BlendFactor_One;
+        BlendOp colorBlendOp = BlendOp_Add;
+        BlendFactor srcAlphaBlendFactor = BlendFactor_Zero;
+        BlendFactor destAlphaBlendFactor = BlendFactor_One;
+        BlendOp alphaBlendOp = BlendOp_Add;
         ColorComponentFlags colorWriteMask = ColorComponent_All;
     };
 

@@ -14,7 +14,7 @@ namespace RHI
     };
 
     /// @brief Texture view dims LUT.
-    static constexpr WGPUTextureViewDimension gTextureViewDimensionsLUT[] = {
+    static constexpr WGPUTextureViewDimension gTextureViewDimensionLUT[] = {
         WGPUTextureViewDimension_1D,
         WGPUTextureViewDimension_2D,
         WGPUTextureViewDimension_3D,
@@ -890,7 +890,7 @@ namespace RHI
         internalTextureViewDesc.nextInChain = nullptr;
         internalTextureViewDesc.label = {};
         internalTextureViewDesc.format = gTextureFormatLUT[textureViewDesc->format];
-        internalTextureViewDesc.dimension = gTextureViewDimensionsLUT[textureViewDesc->viewType];
+        internalTextureViewDesc.dimension = gTextureViewDimensionLUT[textureViewDesc->viewType];
         internalTextureViewDesc.baseMipLevel = textureViewDesc->subresourceRange.baseMipLevel;
         internalTextureViewDesc.mipLevelCount = textureViewDesc->subresourceRange.levelCount;
         internalTextureViewDesc.baseArrayLayer = textureViewDesc->subresourceRange.baseArrayLayer;

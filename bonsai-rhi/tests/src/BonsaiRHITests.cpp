@@ -103,14 +103,14 @@ TEST_F(BonsaiRHITests, TestCreateEmptyDescriptorSetLayout)
 TEST_F(BonsaiRHITests, TestCreateDescriptorSetLayoutWithEverything)
 {
     RHI::DescriptorSetLayoutBinding allBindings[] = {
-        RHI::DescriptorSetLayoutBinding{ 0, 1, RHI::DescriptorType_Sampler, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 1, 1, RHI::DescriptorType_CombinedImageSampler, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 2, 1, RHI::DescriptorType_SampledImage, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 3, 1, RHI::DescriptorType_StorageImage, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 4, 1, RHI::DescriptorType_UniformBuffer, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 5, 1, RHI::DescriptorType_StorageBuffer, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 6, 1, RHI::DescriptorType_UniformBufferDynamic, RHI::ShaderStage_AllStages },
-        RHI::DescriptorSetLayoutBinding{ 7, 1, RHI::DescriptorType_StorageBufferDynamic, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 0, 1, RHI::DescriptorType_Sampler, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 1, 1, RHI::DescriptorType_CombinedImageSampler, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 2, 1, RHI::DescriptorType_SampledImage, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 3, 1, RHI::DescriptorType_StorageImage, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 4, 1, RHI::DescriptorType_UniformBuffer, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 5, 1, RHI::DescriptorType_UniformBufferDynamic, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 6, 1, RHI::DescriptorType_StorageBuffer, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 7, 1, RHI::DescriptorType_StorageBufferDynamic, RHI::ShaderStage_AllStages, },
     };
 
     RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{};
@@ -341,7 +341,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     EXPECT_NE(readbackBuffer, nullptr);
 
     // Set up descriptor set
-    RHI::DescriptorBindingBufferInfo storageBufferBindingInfo{};
+    RHI::DescriptorSetBindingBufferInfo storageBufferBindingInfo{};
     storageBufferBindingInfo.buffer = outBuffer;
     storageBufferBindingInfo.offset = 0;
     storageBufferBindingInfo.range = RHI::WHOLE_SIZE;
