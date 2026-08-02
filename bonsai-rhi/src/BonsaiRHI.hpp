@@ -303,6 +303,8 @@ namespace RHI
         ShaderStage_Vertex      = 0x00000001,
         ShaderStage_Pixel       = 0x00000002,
         ShaderStage_Compute     = 0x00000004,
+        ShaderStage_AllGraphics = ShaderStage_Vertex | ShaderStage_Pixel,
+        ShaderStage_AllStages   = ShaderStage_AllGraphics | ShaderStage_Compute,
     };
     typedef uint32 ShaderStageFlags;
 

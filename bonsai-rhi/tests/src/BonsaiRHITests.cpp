@@ -91,9 +91,32 @@ TEST_F(BonsaiRHITests, TestCreateSampler)
     _gpu->DestroySampler(sampler);
 }
 
-TEST_F(BonsaiRHITests, TestCreateDescriptorSetLayout)
+TEST_F(BonsaiRHITests, TestCreateEmptyDescriptorSetLayout)
 {
     RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{}; // Create an empty descriptor set
+    RHI::GPUDescriptorSetLayout* setLayout = _gpu->CreateDescriptorSetLayout(&setLayoutDesc);
+    EXPECT_NE(setLayout, nullptr);
+
+    _gpu->DestroyDescriptorSetLayout(setLayout);
+}
+
+TEST_F(BonsaiRHITests, TestCreateDescriptorSetLayoutWithEverything)
+{
+    RHI::DescriptorSetLayoutBinding allBindings[] = {
+        RHI::DescriptorSetLayoutBinding{ 0, 1, RHI::DescriptorType_Sampler, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 1, 1, RHI::DescriptorType_CombinedImageSampler, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 2, 1, RHI::DescriptorType_SampledImage, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 3, 1, RHI::DescriptorType_StorageImage, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 4, 1, RHI::DescriptorType_UniformBuffer, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 5, 1, RHI::DescriptorType_StorageBuffer, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 6, 1, RHI::DescriptorType_UniformBufferDynamic, RHI::ShaderStage_AllStages },
+        RHI::DescriptorSetLayoutBinding{ 7, 1, RHI::DescriptorType_StorageBufferDynamic, RHI::ShaderStage_AllStages },
+    };
+
+    RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{};
+    setLayoutDesc.bindingCount = std::size(allBindings);
+    setLayoutDesc.bindings = allBindings;
+
     RHI::GPUDescriptorSetLayout* setLayout = _gpu->CreateDescriptorSetLayout(&setLayoutDesc);
     EXPECT_NE(setLayout, nullptr);
 

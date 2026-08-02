@@ -99,6 +99,18 @@ namespace RHI
         WGPUAddressMode_ClampToEdge, // Address mode clamp to border unsupported
     };
 
+    /// @brief Buffer binding type LUT for translating descriptor type.
+    static constexpr WGPUBufferBindingType gBufferBindingTypeLUT[] = {
+        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
+        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
+        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
+        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
+        WGPUBufferBindingType_Uniform,
+        WGPUBufferBindingType_Storage,
+        WGPUBufferBindingType_Uniform,
+        WGPUBufferBindingType_Storage,
+    };
+
     /// @brief Cull mode LUT.
     static constexpr WGPUCullMode gCullModeLUT[] = {
         WGPUCullMode_None,
@@ -462,7 +474,15 @@ namespace RHI
     {
         BONSAI_ASSERT(layout && "A pipeline layout must be provided!");
         BONSAI_ASSERT(layout->GetBackendAPI() == BackendAPI_WebGPU);
+        BONSAI_ASSERT(dynamicOffsetCount <= RHI::MAX_DESCRIPTOR_BINDINGS && "Dynamic offset count must respect the maximum bound descriptor sets!");
 
+        // Set up dynamic offsets how WebGPU expects them
+        StaticArray<uint32, RHI::MAX_DESCRIPTOR_BINDINGS> internalDynamicOffsets;
+        for (uint32 i = 0; i < dynamicOffsetCount; i++) {
+            internalDynamicOffsets[i] = static_cast<uint32>(dynamicOffsets[i]);
+        }
+
+        // Set bind groups
         for (uint32 i = 0; i < setCount; i++)
         {
             GPUDescriptorSet const* descriptorSet = descriptorSets[i];
@@ -471,13 +491,12 @@ namespace RHI
             uint32 const groupIndex = firstSet + i;
             WebGPUDescriptorSet const* internalDescriptorSet = static_cast<WebGPUDescriptorSet const*>(descriptorSet);
 
-            // TODO(nemjit001): Provide dynamic offsets, consume all per descriptor set?
             if (_activeRenderPass) {
-                wgpuRenderPassEncoderSetBindGroup(_activeRenderPass, groupIndex, internalDescriptorSet->GetBindGroup(), 0, nullptr);
+                wgpuRenderPassEncoderSetBindGroup(_activeRenderPass, groupIndex, internalDescriptorSet->GetBindGroup(), dynamicOffsetCount, internalDynamicOffsets.data());
             }
 
             if (_activeComputePass) {
-                wgpuComputePassEncoderSetBindGroup(_activeComputePass, groupIndex, internalDescriptorSet->GetBindGroup(), 0, nullptr);
+                wgpuComputePassEncoderSetBindGroup(_activeComputePass, groupIndex, internalDescriptorSet->GetBindGroup(), dynamicOffsetCount, internalDynamicOffsets.data());
             }
         }
     }
@@ -967,22 +986,13 @@ namespace RHI
             )
             {
                 bindGroupLayoutEntry.buffer.nextInChain = nullptr;
-                bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Undefined;
+                bindGroupLayoutEntry.buffer.type = gBufferBindingTypeLUT[currentBinding.descriptorType];
                 bindGroupLayoutEntry.buffer.hasDynamicOffset = false;
                 bindGroupLayoutEntry.buffer.minBindingSize = 0; // Assume the whole buffer will be bound
 
-                if (currentBinding.descriptorType == DescriptorType_UniformBuffer
-                    || currentBinding.descriptorType == DescriptorType_UniformBufferDynamic)
-                {
-                    bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
-                    bindGroupLayoutEntry.buffer.hasDynamicOffset = (currentBinding.descriptorType == DescriptorType_UniformBufferDynamic);
-                }
-
-                if (currentBinding.descriptorType == DescriptorType_StorageBuffer
-                    || currentBinding.descriptorType == DescriptorType_StorageBufferDynamic)
-                {
-                    bindGroupLayoutEntry.buffer.type = WGPUBufferBindingType_Storage;
-                    bindGroupLayoutEntry.buffer.hasDynamicOffset = (currentBinding.descriptorType == DescriptorType_StorageBufferDynamic);
+                if (currentBinding.descriptorType == DescriptorType_UniformBufferDynamic
+                    || currentBinding.descriptorType == DescriptorType_StorageBufferDynamic) {
+                    bindGroupLayoutEntry.buffer.hasDynamicOffset = true;
                 }
             }
         }
