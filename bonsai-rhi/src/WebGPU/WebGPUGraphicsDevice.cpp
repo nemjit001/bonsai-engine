@@ -522,10 +522,10 @@ namespace RHI
             colorAttachment.loadOp = gLoadOpLUT[target.loadOp];
             colorAttachment.storeOp = gStoreOpLUT[target.storeOp];
             colorAttachment.clearValue = {
-                target.clearValue.color.float32[0],
-                target.clearValue.color.float32[1],
-                target.clearValue.color.float32[2],
-                target.clearValue.color.float32[3],
+                target.clearValue.color.f32[0],
+                target.clearValue.color.f32[1],
+                target.clearValue.color.f32[2],
+                target.clearValue.color.f32[3],
             };
             colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
 
@@ -748,11 +748,20 @@ namespace RHI
             WGPUDevice device = nullptr;
         } deviceRequestData;
 
+        WGPUFeatureName requiredDeviceFeatures[] = {
+            WGPUFeatureName_Depth32FloatStencil8,
+            WGPUFeatureName_TimestampQuery,
+            WGPUFeatureName_IndirectFirstInstance,
+            WGPUFeatureName_Float32Filterable,
+            WGPUFeatureName_Float32Blendable,
+            WGPUFeatureName_DualSourceBlending,
+        };
+
         WGPUDeviceDescriptor deviceDesc{};
         deviceDesc.nextInChain = nullptr;
         deviceDesc.label = WGPUStringView{ "WebGPU Device", WGPU_STRLEN };
-        deviceDesc.requiredFeatureCount = 0;
-        deviceDesc.requiredFeatures = nullptr;
+        deviceDesc.requiredFeatureCount = std::size(requiredDeviceFeatures);
+        deviceDesc.requiredFeatures = requiredDeviceFeatures;
         deviceDesc.requiredLimits = nullptr;
         deviceDesc.defaultQueue.nextInChain = nullptr;
         deviceDesc.defaultQueue.label = WGPUStringView{ "WebGPU Queue", WGPU_STRLEN };

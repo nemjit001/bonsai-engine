@@ -379,9 +379,9 @@ namespace RHI
     /// @brief Clear value for color targets.
     struct ClearColorValue
     {
-        float float32[4];
-        int32 int32[4];
-        uint32 uint32[4];
+        float f32[4];
+        int32 i32[4];
+        uint32 u32[4];
     };
 
     /// @brief Clear value for depth/stencil targets.

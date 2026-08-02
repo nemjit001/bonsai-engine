@@ -38,6 +38,9 @@ target_sources(BonsaiBase
 )
 target_compile_features(BonsaiBase PRIVATE cxx_std_17)
 target_enable_extended_warnings(BonsaiBase)
+set_target_properties(BonsaiBase PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
 
 if (BUILD_TESTS)
     add_subdirectory(tests)

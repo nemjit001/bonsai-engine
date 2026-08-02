@@ -47,7 +47,6 @@ target_link_libraries(BonsaiRHI
     PUBLIC
         Bonsai::Base
         SDL3::SDL3
-        slang::slang
 )
 
 # Configure supported backend APIs
