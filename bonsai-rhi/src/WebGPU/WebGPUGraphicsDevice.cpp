@@ -2,6 +2,7 @@
 #if BONSAI_RHI_WEBGPU_SUPPORT
 
 #include <Containers/StaticArray.hpp>
+#include <webgpu/wgpu.h>
 #include "WebGPUTypes.hpp"
 
 namespace RHI
@@ -101,14 +102,39 @@ namespace RHI
 
     /// @brief Buffer binding type LUT for translating descriptor type.
     static constexpr WGPUBufferBindingType gBufferBindingTypeLUT[] = {
-        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
-        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
-        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
-        WGPUBufferBindingType_Undefined, // Not buffer descriptor types
+        WGPUBufferBindingType_Undefined, // Not a buffer descriptor type
+        WGPUBufferBindingType_Undefined, // Not a buffer descriptor type
+        WGPUBufferBindingType_Undefined, // Not a buffer descriptor type
+        WGPUBufferBindingType_Undefined, // Not a buffer descriptor type
         WGPUBufferBindingType_Uniform,
         WGPUBufferBindingType_Storage,
         WGPUBufferBindingType_Uniform,
         WGPUBufferBindingType_Storage,
+    };
+
+    /// @brief Sampler binding type LUT.
+    static constexpr WGPUSamplerBindingType gSamplerBindingTypeLUT[] = {
+        WGPUSamplerBindingType_Undefined,
+        WGPUSamplerBindingType_Filtering,
+        WGPUSamplerBindingType_NonFiltering,
+        WGPUSamplerBindingType_Comparison,
+    };
+
+    /// @brief Texture sample type LUT.
+    static constexpr WGPUTextureSampleType gTextureSampleTypeLUT[] = {
+        WGPUTextureSampleType_Undefined,
+        WGPUTextureSampleType_Float,
+        WGPUTextureSampleType_UnfilterableFloat,
+        WGPUTextureSampleType_Sint,
+        WGPUTextureSampleType_Uint,
+    };
+
+    /// @brief Storage texture access LUT.
+    static constexpr WGPUStorageTextureAccess gStorageTextureAccessLUT[] = {
+        WGPUStorageTextureAccess_Undefined,
+        WGPUStorageTextureAccess_ReadOnly,
+        WGPUStorageTextureAccess_WriteOnly,
+        WGPUStorageTextureAccess_ReadWrite,
     };
 
     /// @brief Cull mode LUT.
@@ -749,12 +775,16 @@ namespace RHI
         } deviceRequestData;
 
         WGPUFeatureName requiredDeviceFeatures[] = {
+            /* WGPU features */
             WGPUFeatureName_Depth32FloatStencil8,
             WGPUFeatureName_TimestampQuery,
             WGPUFeatureName_IndirectFirstInstance,
             WGPUFeatureName_Float32Filterable,
             WGPUFeatureName_Float32Blendable,
             WGPUFeatureName_DualSourceBlending,
+            /* WGPU native features */
+            static_cast<WGPUFeatureName>(WGPUNativeFeature_TextureAdapterSpecificFormatFeatures),
+            static_cast<WGPUFeatureName>(WGPUNativeFeature_MappablePrimaryBuffers),
         };
 
         WGPUDeviceDescriptor deviceDesc{};
@@ -966,27 +996,29 @@ namespace RHI
             bindGroupLayoutEntry.storageTexture = {};
 
             // Set layout info based on descriptor type
-            // FIXME(nemjit001): Handle unknown information somehow in this statement
             if (currentBinding.descriptorType == DescriptorType_Sampler)
             {
+                BONSAI_ASSERT(currentBinding.textureBindingInfo && "Texture binding info must be provided for a sampler descriptor!");
                 bindGroupLayoutEntry.sampler.nextInChain = nullptr;
-                bindGroupLayoutEntry.sampler.type = WGPUSamplerBindingType_Undefined;
+                bindGroupLayoutEntry.sampler.type = gSamplerBindingTypeLUT[currentBinding.textureBindingInfo->samplerType];
             }
             else if (currentBinding.descriptorType == DescriptorType_CombinedImageSampler
                 || currentBinding.descriptorType == DescriptorType_SampledImage
             )
             {
+                BONSAI_ASSERT(currentBinding.textureBindingInfo && "Texture binding info must be provided for a combined image sampler or sampled image descriptor!");
                 bindGroupLayoutEntry.texture.nextInChain = nullptr;
-                bindGroupLayoutEntry.texture.sampleType = WGPUTextureSampleType_Undefined;
-                bindGroupLayoutEntry.texture.viewDimension = WGPUTextureViewDimension_Undefined;
-                bindGroupLayoutEntry.texture.multisampled = false;
+                bindGroupLayoutEntry.texture.sampleType = gTextureSampleTypeLUT[currentBinding.textureBindingInfo->textureSampleType];
+                bindGroupLayoutEntry.texture.viewDimension = gTextureViewDimensionLUT[currentBinding.textureBindingInfo->textureViewType];
+                bindGroupLayoutEntry.texture.multisampled = currentBinding.textureBindingInfo->multisampled;
             }
             else if (currentBinding.descriptorType == DescriptorType_StorageImage)
             {
+                BONSAI_ASSERT(currentBinding.textureBindingInfo && "Texture binding info must be provided for a storage image descriptor!");
                 bindGroupLayoutEntry.storageTexture.nextInChain = nullptr;
-                bindGroupLayoutEntry.storageTexture.access = WGPUStorageTextureAccess_Undefined;
-                bindGroupLayoutEntry.storageTexture.format = WGPUTextureFormat_Undefined;
-                bindGroupLayoutEntry.storageTexture.viewDimension = WGPUTextureViewDimension_Undefined;
+                bindGroupLayoutEntry.storageTexture.access = gStorageTextureAccessLUT[currentBinding.textureBindingInfo->access];
+                bindGroupLayoutEntry.storageTexture.format = gTextureFormatLUT[currentBinding.textureBindingInfo->textureFormat];
+                bindGroupLayoutEntry.storageTexture.viewDimension = gTextureViewDimensionLUT[currentBinding.textureBindingInfo->textureViewType];
             }
             else if (currentBinding.descriptorType == DescriptorType_UniformBuffer
                 || currentBinding.descriptorType == DescriptorType_StorageBuffer

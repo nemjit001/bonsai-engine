@@ -102,15 +102,23 @@ TEST_F(BonsaiRHITests, TestCreateEmptyDescriptorSetLayout)
 
 TEST_F(BonsaiRHITests, TestCreateDescriptorSetLayoutWithEverything)
 {
+    RHI::DescriptorSetLayoutBindingTextureInfo textureBindingInfo{};
+    textureBindingInfo.samplerType = RHI::DescriptorSamplerType_Filtering;
+    textureBindingInfo.textureSampleType = RHI::DescriptorTextureSampleType_Float;
+    textureBindingInfo.textureViewType = RHI::TextureViewType_2D;
+    textureBindingInfo.textureFormat = RHI::TextureFormat_RGBA32_SFloat;
+    textureBindingInfo.access = RHI::DescriptorAccess_ReadWrite;
+    textureBindingInfo.multisampled = false;
+
     RHI::DescriptorSetLayoutBinding allBindings[] = {
-        RHI::DescriptorSetLayoutBinding{ 0, 1, RHI::DescriptorType_Sampler, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 1, 1, RHI::DescriptorType_CombinedImageSampler, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 2, 1, RHI::DescriptorType_SampledImage, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 3, 1, RHI::DescriptorType_StorageImage, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 4, 1, RHI::DescriptorType_UniformBuffer, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 5, 1, RHI::DescriptorType_UniformBufferDynamic, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 6, 1, RHI::DescriptorType_StorageBuffer, RHI::ShaderStage_AllStages, },
-        RHI::DescriptorSetLayoutBinding{ 7, 1, RHI::DescriptorType_StorageBufferDynamic, RHI::ShaderStage_AllStages, },
+        RHI::DescriptorSetLayoutBinding{ 0, 1, RHI::DescriptorType_Sampler, RHI::ShaderStage_Compute, &textureBindingInfo },
+        RHI::DescriptorSetLayoutBinding{ 1, 1, RHI::DescriptorType_CombinedImageSampler, RHI::ShaderStage_Compute, &textureBindingInfo },
+        RHI::DescriptorSetLayoutBinding{ 2, 1, RHI::DescriptorType_SampledImage, RHI::ShaderStage_Compute, &textureBindingInfo },
+        RHI::DescriptorSetLayoutBinding{ 3, 1, RHI::DescriptorType_StorageImage, RHI::ShaderStage_Compute, &textureBindingInfo },
+        RHI::DescriptorSetLayoutBinding{ 4, 1, RHI::DescriptorType_UniformBuffer, RHI::ShaderStage_Compute, nullptr },
+        RHI::DescriptorSetLayoutBinding{ 5, 1, RHI::DescriptorType_StorageBuffer, RHI::ShaderStage_Compute, nullptr },
+        RHI::DescriptorSetLayoutBinding{ 6, 1, RHI::DescriptorType_UniformBufferDynamic, RHI::ShaderStage_Compute, nullptr },
+        // RHI::DescriptorSetLayoutBinding{ 7, 1, RHI::DescriptorType_StorageBufferDynamic, RHI::ShaderStage_Compute, nullptr }, // NOTE(nemjit001): Currently unsupported on WGPU
     };
 
     RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{};
@@ -294,6 +302,7 @@ TEST_F(BonsaiRHITests, TestDoOffscreenComputeSubmit)
     storageBufferLayoutBinding.descriptorCount = 1;
     storageBufferLayoutBinding.descriptorType = RHI::DescriptorType_StorageBuffer;
     storageBufferLayoutBinding.shaderStages = RHI::ShaderStage_Compute;
+    storageBufferLayoutBinding.textureBindingInfo = nullptr;
 
     RHI::GPUDescriptorSetLayoutDesc setLayoutDesc{};
     setLayoutDesc.bindingCount = 1;

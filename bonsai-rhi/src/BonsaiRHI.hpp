@@ -162,6 +162,34 @@ namespace RHI
         DescriptorType_StorageBufferDynamic = 7,
     };
 
+    /// @brief Enumeration of descriptor sampler types.
+    enum DescriptorSamplerType : uint32
+    {
+        DescriptorSamplerType_Undefined     = 0,
+        DescriptorSamplerType_Filtering     = 1,
+        DescriptorSamplerType_NonFiltering  = 2,
+        DescriptorSamplerType_Comparison    = 3,
+    };
+
+    enum DescriptorTextureSampleType : uint32
+    {
+        DescriptorTextureSampleType_Undefined           = 0,
+        DescriptorTextureSampleType_Float               = 1,
+        DescriptorTextureSampleType_UnfilterableFloat   = 2,
+        DescriptorTextureSampleType_Depth               = 3,
+        DescriptorTextureSampleType_SInt                = 4,
+        DescriptorTextureSampleType_UInt                = 5,
+    };
+
+    /// @brief Enumeration of descriptor access modes.
+    enum DescriptorAccess : uint32
+    {
+        DescriptorAccess_Undefined  = 0,
+        DescriptorAccess_Read       = 1,
+        DescriptorAccess_Write      = 2,
+        DescriptorAccess_ReadWrite  = 3,
+    };
+
     /// @brief Enumeration of polygon raster modes.
     enum PolygonMode : uint32
     {
@@ -416,6 +444,18 @@ namespace RHI
         uint32 sizeZ;
     };
 
+    /// @brief The DescriptorSetLayoutBindingTextureInfo is used to provide additional binding information for
+    /// texture and sampler descriptor types.
+    struct DescriptorSetLayoutBindingTextureInfo
+    {
+        DescriptorSamplerType samplerType;              //< Used only by sampler descriptors.
+        DescriptorTextureSampleType textureSampleType;  //< Used by combined image sampler and sampled image descriptors.
+        TextureViewType textureViewType;                //< Used by combined image sampler, sampled image, and storage image descriptors.
+        TextureFormat textureFormat;                    //< Used by combined image sampler, sampled image, and storage image descriptors.
+        DescriptorAccess access;                        //< Used by storage image descriptors.
+        bool multisampled;                              //< Used by combined image sampler and sampled image descriptors.
+    };
+
     /// @brief A DescriptorSetLayoutBinding contains binding layout data for a resource descriptor.
     struct DescriptorSetLayoutBinding
     {
@@ -423,6 +463,7 @@ namespace RHI
         uint32 descriptorCount;
         DescriptorType descriptorType;
         ShaderStageFlags shaderStages;
+        DescriptorSetLayoutBindingTextureInfo* textureBindingInfo;
     };
 
     /// @brief The DescriptorBindingBufferInfo contains binding information for buffer descriptors.
