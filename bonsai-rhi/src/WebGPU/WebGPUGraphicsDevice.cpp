@@ -1,6 +1,7 @@
 #include "WebGPUGraphicsDevice.hpp"
 #if BONSAI_RHI_WEBGPU_SUPPORT
 
+#include <Containers/DynamicArray.hpp>
 #include <Containers/StaticArray.hpp>
 #include <webgpu/wgpu.h>
 #include "WebGPUTypes.hpp"
@@ -767,6 +768,46 @@ namespace RHI
             return nullptr;
         }
 
+        // Check for device feature support
+        WGPUSupportedFeatures supportedFeatures{};
+        DynamicArray<WGPUFeatureName> requiredFeatures{};
+        wgpuAdapterGetFeatures(adapterRequestData.adapter, &supportedFeatures);
+
+        auto const AddOptionalFeature = [&](WGPUFeatureName featureName) -> bool {
+            if (wgpuAdapterHasFeature(adapterRequestData.adapter, featureName))
+            {
+                requiredFeatures.push_back(featureName);
+                return true;
+            }
+
+            PrintDebugString("[WebGPUGraphicsDevice]: Requested feature not available (%d)", featureName);
+            return false;
+        };
+
+        // Add required WGPU baseline features
+        if (!AddOptionalFeature(WGPUFeatureName_Depth32FloatStencil8)
+            || !AddOptionalFeature(WGPUFeatureName_TimestampQuery)
+            || !AddOptionalFeature(WGPUFeatureName_IndirectFirstInstance)
+            || !AddOptionalFeature(WGPUFeatureName_Float32Filterable)
+            || !AddOptionalFeature(WGPUFeatureName_DualSourceBlending)
+        )
+        {
+            wgpuAdapterRelease(adapterRequestData.adapter);
+            wgpuInstanceRelease(instance);
+            return nullptr;
+        }
+
+        // Add required WGPU native features
+        if (!AddOptionalFeature(static_cast<WGPUFeatureName>(WGPUNativeFeature_TextureAdapterSpecificFormatFeatures))
+            || !AddOptionalFeature(static_cast<WGPUFeatureName>(WGPUNativeFeature_MappablePrimaryBuffers))
+        )
+        {
+            wgpuAdapterRelease(adapterRequestData.adapter);
+            wgpuInstanceRelease(instance);
+            return nullptr;
+        }
+        wgpuSupportedFeaturesFreeMembers(supportedFeatures);
+
         // Request device
         struct DeviceRequestData
         {
@@ -774,24 +815,11 @@ namespace RHI
             WGPUDevice device = nullptr;
         } deviceRequestData;
 
-        WGPUFeatureName requiredDeviceFeatures[] = {
-            /* WGPU features */
-            WGPUFeatureName_Depth32FloatStencil8,
-            WGPUFeatureName_TimestampQuery,
-            WGPUFeatureName_IndirectFirstInstance,
-            WGPUFeatureName_Float32Filterable,
-            WGPUFeatureName_Float32Blendable,
-            WGPUFeatureName_DualSourceBlending,
-            /* WGPU native features */
-            static_cast<WGPUFeatureName>(WGPUNativeFeature_TextureAdapterSpecificFormatFeatures),
-            static_cast<WGPUFeatureName>(WGPUNativeFeature_MappablePrimaryBuffers),
-        };
-
         WGPUDeviceDescriptor deviceDesc{};
         deviceDesc.nextInChain = nullptr;
         deviceDesc.label = WGPUStringView{ "WebGPU Device", WGPU_STRLEN };
-        deviceDesc.requiredFeatureCount = std::size(requiredDeviceFeatures);
-        deviceDesc.requiredFeatures = requiredDeviceFeatures;
+        deviceDesc.requiredFeatureCount = requiredFeatures.size();
+        deviceDesc.requiredFeatures = requiredFeatures.data();
         deviceDesc.requiredLimits = nullptr;
         deviceDesc.defaultQueue.nextInChain = nullptr;
         deviceDesc.defaultQueue.label = WGPUStringView{ "WebGPU Queue", WGPU_STRLEN };
