@@ -22,10 +22,19 @@ namespace Bonsai
         /// @brief Shut down the application.
         void Shutdown();
 
+        /// @brief Tick the application state.
+        void Tick();
+
+        /// @brief Render an application frame.
+        void Frame();
+
     public:
         /// @brief Run the application.
         /// @return 
         AppResult Run();
+
+    private:
+        bool _isRunning = false;
     };
 } // namespace Bonsai
 
