@@ -7,6 +7,7 @@ include(cmake/helpers.cmake)
 
 # Find dependencies
 find_package(SDL3 CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 # Set up targets
 add_executable(BonsaiEngine)
@@ -16,6 +17,9 @@ target_sources(BonsaiEngine
     PRIVATE
         src/Application.cpp
         src/Application.hpp
+        src/Logger.cpp
+        src/Logger.hpp
+        src/PlatformDefines.hpp
         src/main.cpp
 )
 target_compile_features(BonsaiEngine
@@ -25,4 +29,5 @@ target_compile_features(BonsaiEngine
 target_link_libraries(BonsaiEngine
     PRIVATE
         SDL3::SDL3
+        spdlog::spdlog
 )

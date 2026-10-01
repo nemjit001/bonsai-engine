@@ -1,0 +1,13 @@
+#pragma once
+#ifndef BONSAI_PLATFORM_DEFINES_HPP
+#define BONSAI_PLATFORM_DEFINES_HPP
+
+#ifndef NDEBUG
+    #define BONSAI_BUILD_TYPE_DEBUG     0
+    #define BONSAI_BUILD_TYPE_RELEASE   1
+#else
+    #define BONSAI_BUILD_TYPE_DEBUG     1
+    #define BONSAI_BUILD_TYPE_RELEASE   0
+#endif //NDEBUG
+
+#endif //BONSAI_PLATFORM_DEFINES_HPP
