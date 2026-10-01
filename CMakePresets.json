@@ -1,0 +1,40 @@
+{
+    "version": 8,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "clang-x64",
+            "inherits": "base",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "clang-x64-debug",
+            "configurePreset": "clang-x64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "clang-x64-release",
+            "configurePreset": "clang-x64",
+            "configuration": "Release"
+        }
+    ]
+}
