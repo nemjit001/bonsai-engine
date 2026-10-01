@@ -2,14 +2,14 @@
 #ifndef BONSAI_LOGGER_HPP
 #define BONSAI_LOGGER_HPP
 
-#include "PlatformDefines.hpp"
-
 // Determine compile time log level based on build type
+#include "PlatformDefines.hpp"
 #if     BONSAI_BUILD_TYPE_DEBUG
     #define SPDLOG_ACTIVE_LEVEL TRACE
 #elif   BONSAI_BUILD_TYPE_RELEASE
     #define SPDLOG_ACTIVE_LEVEL INFO
 #endif
+
 #include <spdlog/spdlog.h>
 
 namespace Bonsai
