@@ -2,6 +2,8 @@
 #ifndef BONSAI_APPLICATION_HPP
 #define BONSAI_APPLICATION_HPP
 
+#include <SDL3/SDL.h>
+
 namespace Bonsai
 {
     /// @brief Enumeration of return codes for the Application class.
@@ -21,6 +23,13 @@ namespace Bonsai
 
         /// @brief Shut down the application.
         void Shutdown();
+
+        /// @brief Pump the platform message loop.
+        void PumpMessages();
+        
+        /// @brief Handle a platform event in the application.
+        /// @param event 
+        void HandlePlatformEvent(SDL_Event const& event);
 
         /// @brief Tick the application state.
         void Tick();
