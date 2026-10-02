@@ -6,6 +6,7 @@ include(cmake/dependencies.cmake)
 include(cmake/helpers.cmake)
 
 # Find dependencies
+find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -28,6 +29,7 @@ target_compile_features(BonsaiEngine
 )
 target_link_libraries(BonsaiEngine
     PRIVATE
+        EnTT::EnTT
         SDL3::SDL3
         spdlog::spdlog
 )
