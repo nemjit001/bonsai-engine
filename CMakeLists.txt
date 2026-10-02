@@ -23,11 +23,13 @@ target_sources(BonsaiEngine
         src/Core/Logger.hpp
         src/Scene/ECSSystem.hpp
         src/Scene/Scene.hpp
+        src/Scene/SceneManager.hpp
         src/Scene/SystemRegistry.hpp
         src/Application.hpp
     PRIVATE
         src/Core/Logger.cpp
         src/Scene/Scene.cpp
+        src/Scene/SceneManager.cpp
         src/Scene/SystemRegistry.cpp
         src/Application.cpp
         src/main.cpp
