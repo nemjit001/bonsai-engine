@@ -27,6 +27,7 @@ target_sources(BonsaiEngine
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
         src/Scene/SystemRegistry.hpp
+        src/Components/ParentComponent.hpp
         src/Components/TransformComponent.hpp
         src/Application.hpp
     PRIVATE
@@ -34,6 +35,7 @@ target_sources(BonsaiEngine
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Scene/SystemRegistry.cpp
+        src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
         src/Application.cpp
         src/main.cpp
