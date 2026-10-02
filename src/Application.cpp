@@ -1,7 +1,7 @@
 #include "Application.hpp"
 
 #include <SDL3/SDL.h>
-#include "Logger.hpp"
+#include "Core/Logger.hpp"
 
 namespace Bonsai
 {

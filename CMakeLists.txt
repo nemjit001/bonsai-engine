@@ -16,11 +16,11 @@ target_copy_runtime_dlls(BonsaiEngine)
 target_extended_warnings(BonsaiEngine)
 target_sources(BonsaiEngine
     PRIVATE
+        src/Core/PlatformDefines.hpp
+        src/Core/Logger.cpp
+        src/Core/Logger.hpp
         src/Application.cpp
         src/Application.hpp
-        src/Logger.cpp
-        src/Logger.hpp
-        src/PlatformDefines.hpp
         src/main.cpp
 )
 target_compile_features(BonsaiEngine
