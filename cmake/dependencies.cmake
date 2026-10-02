@@ -1,5 +1,13 @@
 include(FetchContent)
 
+# EnTT
+FetchContent_Declare(EnTT
+    GIT_REPOSITORY  https://github.com/skypjack/entt.git
+    GIT_TAG         v4.0.0
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
 # SDL3
 FetchContent_Declare(SDL3
     GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
