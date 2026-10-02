@@ -4,11 +4,12 @@
 
 #include <memory>
 #include <vector>
-#include <entt/entt.hpp>
 #include "ECSSystem.hpp"
 
 namespace Bonsai
 {
+    class Scene;
+
     /// @brief The SystemRegistry manages a collection of ECS systems.
     class SystemRegistry
     {
@@ -18,15 +19,15 @@ namespace Bonsai
         template<typename SystemType, typename... Args>
         void AddSystem(Args&&... args);
 
-        /// @brief Run the registered ECS systems on a registry.
-        /// @param registry Registry to run systems on.
-        void RunSystems(entt::registry& registry);
+        /// @brief Run the registered ECS systems on a scene.
+        /// @param scene Scene to run systems on.
+        void RunSystems(Scene& scene);
     private:
         std::vector<std::unique_ptr<IECSSystem>> _systems{};
     };
 
     template<typename SystemType, typename... Args>
-    inline void SystemRegistry::AddSystem(Args&&... args)
+    void SystemRegistry::AddSystem(Args&&... args)
     {
         static_assert(std::is_base_of_v<IECSSystem, SystemType>, "SystemType must inherit from IECSSystem!");
         _systems.emplace_back(std::make_unique<SystemType>(std::forward(args)...));
