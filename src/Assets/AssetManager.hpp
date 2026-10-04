@@ -78,6 +78,13 @@ namespace Bonsai
         template<typename AssetType>
         std::shared_ptr<AssetType> GetAsset(AssetHandle<AssetType> const& handle) const;
 
+        /// @brief Check if an asset exists in the asset manager.
+        /// @tparam AssetType Type of the asset.
+        /// @param handle Handle to the asset to test.
+        /// @return `true` if the asset exists.
+        template<typename AssetType>
+        bool AssetExists(AssetHandle<AssetType> const& handle) const;
+
     private:
         /// @brief Allocate an asset handle for an asset pointer.
         /// @tparam AssetType Asset type of the handle.
@@ -105,7 +112,9 @@ namespace Bonsai
     template<typename AssetType>
     bool AssetHandle<AssetType>::IsValid() const
     {
-        return _id != INVALID_ASSET_ID && _owner != nullptr;
+        return _id != INVALID_ASSET_ID
+            && _owner != nullptr
+            && _owner->AssetExists(*this);
     }
 
     template<typename AssetType>
@@ -128,7 +137,7 @@ namespace Bonsai
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 
         // Create a new asset pointer and allocate a handle.
-        std::shared_ptr<IAssetType> const assetPtr = std::make_shared<AssetType>(std::forward(args)...);
+        std::shared_ptr<IAssetType> const assetPtr = std::make_shared<AssetType>(std::forward<Args>(args)...);
         return AllocateHandle<AssetType>(assetPtr);
     }
 
@@ -138,7 +147,7 @@ namespace Bonsai
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 
         // Cannot remove asset that does not exist
-        if (!_assets.contains(handle.GetAssetId())) {
+        if (!AssetExists(handle)) {
             return;
         }
 
@@ -153,13 +162,19 @@ namespace Bonsai
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 
         // Cannot get an asset that does not exist.
-        if (!_assets.contains(handle.GetAssetId())) {
+        if (!AssetExists(handle)) {
             return {};
         }
 
         // Return found asset, cast to base type.
         std::shared_ptr<IAssetType> const asset = _assets.at(handle.GetAssetId());
         return std::dynamic_pointer_cast<AssetType>(asset);
+    }
+
+    template<typename AssetType>
+    bool AssetManager::AssetExists(AssetHandle<AssetType> const& handle) const
+    {
+        return _assets.contains(handle.GetAssetId()) && _assets.at(handle.GetAssetId()) != nullptr;
     }
 
     template<typename AssetType>

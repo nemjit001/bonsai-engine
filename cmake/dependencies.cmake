@@ -18,6 +18,15 @@ FetchContent_Declare(glm
     OVERRIDE_FIND_PACKAGE
 )
 
+# GTest
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_Declare(GTest
+    GIT_REPOSITORY  https://github.com/google/googletest.git
+    GIT_TAG         v1.18.0
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
 # EnTT
 FetchContent_Declare(EnTT
     GIT_REPOSITORY  https://github.com/skypjack/entt.git

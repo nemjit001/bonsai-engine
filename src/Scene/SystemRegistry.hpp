@@ -30,7 +30,7 @@ namespace Bonsai
     void SystemRegistry::AddSystem(Args&&... args)
     {
         static_assert(std::is_base_of_v<IECSSystem, SystemType>, "SystemType must inherit from IECSSystem!");
-        _systems.emplace_back(std::make_unique<SystemType>(std::forward(args)...));
+        _systems.emplace_back(std::make_unique<SystemType>(std::forward<Args>(args)...));
     }
 } // namespace Bonsai
 
