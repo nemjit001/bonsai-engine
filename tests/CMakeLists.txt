@@ -10,6 +10,7 @@ target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
         src/Assets/AssetManagerTests.cpp
+        src/Scene/SystemRegistryTests.cpp
 )
 target_compile_features(BonsaiEngineTests
     PRIVATE
@@ -18,6 +19,7 @@ target_compile_features(BonsaiEngineTests
 target_link_libraries(BonsaiEngineTests
     PRIVATE
         GTest::gtest
+        GTest::gmock
         GTest::gtest_main
         BonsaiEngine::Lib
 )
