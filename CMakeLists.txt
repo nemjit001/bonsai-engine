@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 project("Bonsai Engine" VERSION 0.1.0)
+enable_testing()
+
+# Project options
+option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
 # Include cmake helpers
 include(cmake/dependencies.cmake)
@@ -12,12 +16,12 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
-# Set up targets
-add_executable(BonsaiEngine)
-target_copy_runtime_dlls(BonsaiEngine)
-target_extended_warnings(BonsaiEngine)
-target_sources(BonsaiEngine
-    PRIVATE
+# Set up bonsai library target
+add_library(BonsaiEngineLib STATIC)
+add_library(BonsaiEngine::Lib ALIAS BonsaiEngineLib)
+target_extended_warnings(BonsaiEngineLib)
+target_sources(BonsaiEngineLib
+    PUBLIC
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
@@ -44,6 +48,26 @@ target_sources(BonsaiEngine
         src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
         src/Application.cpp
+)
+target_compile_features(BonsaiEngineLib
+    PRIVATE
+        cxx_std_17
+)
+target_link_libraries(BonsaiEngineLib
+    PUBLIC
+        cereal::cereal
+        glm::glm
+        EnTT::EnTT
+        SDL3::SDL3
+        spdlog::spdlog
+)
+
+# Set up bonsai engine binary target
+add_executable(BonsaiEngine WIN32)
+target_copy_runtime_dlls(BonsaiEngine)
+target_extended_warnings(BonsaiEngine)
+target_sources(BonsaiEngine
+    PRIVATE
         src/main.cpp
 )
 target_compile_features(BonsaiEngine
@@ -52,9 +76,9 @@ target_compile_features(BonsaiEngine
 )
 target_link_libraries(BonsaiEngine
     PRIVATE
-        cereal::cereal
-        glm::glm
-        EnTT::EnTT
-        SDL3::SDL3
-        spdlog::spdlog
+        BonsaiEngineLib
 )
+
+if (BONSAI_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
