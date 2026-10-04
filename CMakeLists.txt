@@ -24,6 +24,7 @@ target_sources(BonsaiEngine
         src/Core/PlatformDefines.hpp
         src/Core/Logger.hpp
         src/Math/Math.hpp
+        src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
         src/Assets/AssetType.hpp
         src/Scene/ECSSystem.hpp
@@ -35,6 +36,7 @@ target_sources(BonsaiEngine
         src/Application.hpp
     PRIVATE
         src/Core/Logger.cpp
+        src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp

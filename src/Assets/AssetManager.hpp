@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <unordered_map>
+#include "AssetImporter.hpp"
 #include "AssetType.hpp"
 
 namespace Bonsai
@@ -18,22 +19,30 @@ namespace Bonsai
     class AssetHandle
     {
     public:
+        constexpr AssetHandle() = default;
         constexpr AssetHandle(uint32_t id, AssetManager* owner)
             : _id(id), _owner(owner) {}
-
-        /// @brief Get the asset ID.
-        /// @return The asset ID stored in the handle.
-        uint32_t const& GetAssetId() const;
 
         /// @brief Get the underlying asset.
         /// @return The asset pointer this handle points to.
         std::shared_ptr<AssetType> Get() const;
 
+        /// @brief Get the asset ID.
+        /// @return The asset ID stored in the handle.
+        uint32_t const& GetAssetId() const;
+
+        /// @brief Check if the asset handle is valid.
+        /// @return 
+        bool IsValid() const;
+
         bool operator==(AssetHandle<AssetType> const& rhs) const noexcept { return this->_id == rhs._id; }
         bool operator!=(AssetHandle<AssetType> const& rhs) const noexcept { return !(*this == rhs); }
 
+        /// @brief Invalid asset ID.
+        static constexpr uint32_t INVALID_ASSET_ID = (~0u);
+
     private:
-        uint32_t _id = 0;
+        uint32_t _id = INVALID_ASSET_ID;
         AssetManager* _owner = nullptr;
     };
 
@@ -82,15 +91,21 @@ namespace Bonsai
     };
 
     template<typename AssetType>
+    std::shared_ptr<AssetType> AssetHandle<AssetType>::Get() const
+    {
+        return _owner->GetAsset<AssetType>(*this);
+    }
+
+    template<typename AssetType>
     uint32_t const& AssetHandle<AssetType>::GetAssetId() const
     {
         return _id;
     }
 
     template<typename AssetType>
-    std::shared_ptr<AssetType> AssetHandle<AssetType>::Get() const
+    bool AssetHandle<AssetType>::IsValid() const
     {
-        return _owner->GetAsset<AssetType>(*this);
+        return _id != INVALID_ASSET_ID && _owner != nullptr;
     }
 
     template<typename AssetType>
@@ -98,8 +113,13 @@ namespace Bonsai
     {
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 
-        // FIXME(nemjit001): implement asset loader interface.
-        return AllocateHandle<AssetType>(nullptr);
+        // Import asset using templated asset importer.
+        std::shared_ptr<AssetType> assetPtr = AssetImporter<AssetType>::Import(path);
+        if (!assetPtr) {
+            return {};
+        }
+
+        return AllocateHandle<AssetType>(assetPtr);
     }
 
     template<typename AssetType, typename... Args>
