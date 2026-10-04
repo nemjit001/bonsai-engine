@@ -1,0 +1,36 @@
+name: CI Build
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        presets: [ clang-x64 ]
+        include:
+          - os: ubuntu-latest
+            preset: clang-x64
+            build-preset: clang-x64-release
+          - os: windows-latest
+            preset: clang-x64
+            build-preset: clang-x64-release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Install Linux dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: >
+          sudo apt-get update
+          && sudo apt-get upgrade
+          && sudo apt-get install cmake clang
+      - name: Configure CMake
+        run: |
+          cmake . --preset ${{ matrix.preset }} -DSDL_UNIX_CONSOLE_BUILD=ON
+      - name: Build
+        run: |
+          cmake --build --preset ${{ matrix.build-preset }}
