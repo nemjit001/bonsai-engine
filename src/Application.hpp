@@ -3,6 +3,7 @@
 #define BONSAI_APPLICATION_HPP
 
 #include <SDL3/SDL.h>
+#include "Assets/AssetManager.hpp"
 #include "Scene/SceneManager.hpp"
 
 namespace Bonsai
@@ -45,6 +46,7 @@ namespace Bonsai
 
     private:
         bool _isRunning = false;
+        AssetManager _assetManager{};
         SceneManager _sceneManager{};
     };
 } // namespace Bonsai
