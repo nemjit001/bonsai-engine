@@ -2,7 +2,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-#include "AssetImporter.hpp"
+#include "Assets/AssetImporter.hpp"
 
 namespace Bonsai
 {

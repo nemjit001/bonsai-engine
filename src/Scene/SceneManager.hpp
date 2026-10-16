@@ -2,8 +2,8 @@
 #ifndef BONSAI_SCENE_MANAGER_HPP
 #define BONSAI_SCENE_MANAGER_HPP
 
-#include "Scene.hpp"
-#include "SystemRegistry.hpp"
+#include "Scene/Scene.hpp"
+#include "Scene/SystemRegistry.hpp"
 
 namespace Bonsai
 {

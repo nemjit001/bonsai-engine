@@ -3,10 +3,10 @@
 #define BONSAI_ASSET_MANAGER_HPP
 
 #include <cstdint>
-#include <filesystem>
 #include <unordered_map>
-#include "AssetImporter.hpp"
-#include "AssetType.hpp"
+#include "Core/Filesystem.hpp"
+#include "Assets/AssetImporter.hpp"
+#include "Assets/AssetType.hpp"
 
 namespace Bonsai
 {
@@ -55,7 +55,7 @@ namespace Bonsai
         /// @param path Path to load asset from.
         /// @return An asset handle that refers to the asset type.
         template<typename AssetType>
-        AssetHandle<AssetType> Load(std::filesystem::path const& path);
+        AssetHandle<AssetType> Load(Filesystem::Path const& path);
 
         /// @brief Create an asset in the asset manager.
         /// @tparam AssetType Type of the asset to create.
@@ -118,7 +118,7 @@ namespace Bonsai
     }
 
     template<typename AssetType>
-    AssetHandle<AssetType> AssetManager::Load(std::filesystem::path const& path)
+    AssetHandle<AssetType> AssetManager::Load(Filesystem::Path const& path)
     {
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 

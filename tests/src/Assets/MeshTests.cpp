@@ -4,7 +4,7 @@
 
 TEST(MeshTests, TestLoadMeshFromFile)
 {
-    std::shared_ptr<Bonsai::Mesh> const mesh = Bonsai::AssetImporter<Bonsai::Mesh>::Import("resources/assets/cube.obj");
+    std::shared_ptr<Bonsai::Mesh> const mesh = Bonsai::AssetImporter<Bonsai::Mesh>::Import(Bonsai::Filesystem::GetProgramDirectory().append("resources/assets/cube.obj"));
     ASSERT_NE(mesh, nullptr);
 
     ASSERT_EQ(mesh->GetVertices().size(), 36);
@@ -13,6 +13,6 @@ TEST(MeshTests, TestLoadMeshFromFile)
 
 TEST(MeshTests, TestLoadMeshFromInvalidFilePath)
 {
-    std::shared_ptr<Bonsai::Mesh> const mesh = Bonsai::AssetImporter<Bonsai::Mesh>::Import("resources/assets/DOES_NOT_EXIST.obj");
+    std::shared_ptr<Bonsai::Mesh> const mesh = Bonsai::AssetImporter<Bonsai::Mesh>::Import(Bonsai::Filesystem::GetProgramDirectory().append("resources/assets/DOES_NOT_EXIST.obj"));
     ASSERT_EQ(mesh, nullptr);
 }

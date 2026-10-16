@@ -10,4 +10,10 @@
     #define BONSAI_BUILD_TYPE_RELEASE   1
 #endif //NDEBUG
 
+#if     defined(_WIN32)
+    #define BONSAI_PLATFORM_WINDOWS     1
+#elif   defined(__unix__)
+    #define BONSAI_PLATFORM_LINUX       1
+#endif
+
 #endif //BONSAI_PLATFORM_DEFINES_HPP

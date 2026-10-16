@@ -27,8 +27,9 @@ target_sources(BonsaiEngineLib
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
-        src/Core/PlatformDefines.hpp
+        src/Core/Filesystem.hpp
         src/Core/Logger.hpp
+        src/Core/PlatformDefines.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
@@ -42,6 +43,7 @@ target_sources(BonsaiEngineLib
         src/Components/TransformComponent.hpp
         src/Application.hpp
     PRIVATE
+        src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
