@@ -16,6 +16,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
 
 # Set up bonsai library target
 add_library(BonsaiEngineLib STATIC)
@@ -64,6 +65,7 @@ target_link_libraries(BonsaiEngineLib
         EnTT::EnTT
         SDL3::SDL3
         spdlog::spdlog
+        tinyobjloader
 )
 
 # Set up bonsai engine binary target

@@ -12,7 +12,7 @@ FetchContent_Declare(Cereal
 
 # cgltf
 FetchContent_Declare(cgltf
-    GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf
+    GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git
     GIT_TAG         v1.15
     GIT_SHALLOW     TRUE
     OVERRIDE_FIND_PACKAGE
@@ -55,6 +55,14 @@ FetchContent_Declare(SDL3
 FetchContent_Declare(spdlog
     GIT_REPOSITORY  https://github.com/gabime/spdlog.git
     GIT_TAG         v1.17.0
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
+# tinyobjloader
+FetchContent_Declare(tinyobjloader
+    GIT_REPOSITORY  https://github.com/tinyobjloader/tinyobjloader.git
+    GIT_TAG         release
     GIT_SHALLOW     TRUE
     OVERRIDE_FIND_PACKAGE
 )
