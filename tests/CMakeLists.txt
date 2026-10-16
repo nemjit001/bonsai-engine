@@ -10,6 +10,7 @@ target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
         src/Assets/AssetManagerTests.cpp
+        src/Assets/MeshTests.cpp
         src/Scene/SystemRegistryTests.cpp
 )
 target_compile_features(BonsaiEngineTests
@@ -22,6 +23,9 @@ target_link_libraries(BonsaiEngineTests
         GTest::gmock
         GTest::gtest_main
         BonsaiEngine::Lib
+)
+target_copy_resource_files(BonsaiEngineTests
+    resources/assets/cube.obj
 )
 
 # Discover tests
