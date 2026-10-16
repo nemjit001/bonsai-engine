@@ -26,12 +26,18 @@ namespace Bonsai
         // Read shapes into bonsai mesh data
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};
+        std::vector<SubMesh> subMeshes{};
         for (auto const& shape : shapes)
         {
-            // Track face base index for face data
-            uint32_t faceBaseIndex = 0;
+            // Start new sub mesh
+            SubMesh subMesh{};
+            subMesh.vertexOffset = static_cast<uint32_t>(vertices.size());
+            subMesh.indexOffset = static_cast<uint32_t>(indices.size());
+            subMesh.vertexCount = 0;
+            subMesh.indexCount = 0;
 
             // Read shape face data
+            uint32_t faceBaseIndex = 0;
             for (auto const& faceVertexCount : shape.mesh.num_face_vertices)
             {
                 // Parse face vertices
@@ -63,8 +69,24 @@ namespace Bonsai
                 // Increment base index for next face
                 faceBaseIndex += faceVertexCount;
             }
+
+            // Set vertex and index counts for sub mesh
+            subMesh.vertexCount = static_cast<uint32_t>(vertices.size()) - subMesh.vertexOffset;
+            subMesh.indexCount = static_cast<uint32_t>(indices.size()) - subMesh.indexOffset;
+
+            // Store sub mesh
+            subMeshes.push_back(subMesh);
         }
 
-        return std::make_shared<Mesh>(vertices, indices);
+        return std::make_shared<Mesh>(vertices, indices, subMeshes);
+    }
+
+    Mesh::Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<SubMesh> const& subMeshes)
+        :
+        _vertices(vertices),
+        _indices(indices),
+        _subMeshes(subMeshes)
+    {
+        //
     }
 } // namespace Bonsai

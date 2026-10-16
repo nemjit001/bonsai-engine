@@ -18,12 +18,21 @@ namespace Bonsai
         glm::vec2 texCoords;
     };
 
+    /// @brief The SubMesh represents a range of mesh data that represents a loose mesh part.
+    struct SubMesh
+    {
+        uint32_t vertexOffset;
+        uint32_t indexOffset;
+        uint32_t vertexCount;
+        uint32_t indexCount;
+    };
+
     /// @brief The Mesh class contains a host-side mesh data for rendering.
     class Mesh : public IAssetType
     {
     public:
         Mesh() = default;
-        Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices);
+        Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<SubMesh> const& subMeshes);
 
         /// @brief Get the mesh vertex buffer.
         /// @return The mesh vertices.
@@ -36,6 +45,7 @@ namespace Bonsai
     private:
         std::vector<Vertex> _vertices;
         std::vector<uint32_t> _indices;
+        std::vector<SubMesh> _subMeshes;
     };
 } // namespace Bonsai
 
