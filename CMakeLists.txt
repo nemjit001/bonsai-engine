@@ -11,6 +11,7 @@ include(cmake/helpers.cmake)
 
 # Find dependencies
 find_package(Cereal CONFIG REQUIRED)
+find_package(cgltf CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
@@ -58,6 +59,7 @@ target_compile_features(BonsaiEngineLib
 target_link_libraries(BonsaiEngineLib
     PUBLIC
         cereal::cereal
+        cgltf::cgltf
         glm::glm
         EnTT::EnTT
         SDL3::SDL3

@@ -25,8 +25,12 @@ namespace Bonsai
         Mesh() = default;
         Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices);
 
+        /// @brief Get the mesh vertex buffer.
+        /// @return The mesh vertices.
         std::vector<Vertex> const& GetVertices() const { return _vertices; }
 
+        /// @brief Get the mesh index buffer.
+        /// @return The mesh indices.
         std::vector<uint32_t> const& GetIndices() const { return _indices; }
 
     private:
