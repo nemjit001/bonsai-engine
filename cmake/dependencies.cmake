@@ -10,6 +10,14 @@ FetchContent_Declare(Cereal
     OVERRIDE_FIND_PACKAGE
 )
 
+# cgltf
+FetchContent_Declare(cgltf
+    GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git
+    GIT_TAG         v1.15
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
 # GLM
 FetchContent_Declare(glm
     GIT_REPOSITORY  https://github.com/g-truc/glm.git
@@ -50,3 +58,18 @@ FetchContent_Declare(spdlog
     GIT_SHALLOW     TRUE
     OVERRIDE_FIND_PACKAGE
 )
+
+# tinyobjloader
+FetchContent_Declare(tinyobjloader
+    GIT_REPOSITORY  https://github.com/tinyobjloader/tinyobjloader.git
+    GIT_TAG         release
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
+# Set up header-only lib targets
+FetchContent_MakeAvailable(cgltf)
+
+add_library(cgltf INTERFACE)
+add_library(cgltf::cgltf ALIAS cgltf)
+target_include_directories(cgltf INTERFACE ${cgltf_SOURCE_DIR})

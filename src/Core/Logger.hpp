@@ -3,7 +3,7 @@
 #define BONSAI_LOGGER_HPP
 
 // Determine compile time log level based on build type
-#include "PlatformDefines.hpp"
+#include "Core/PlatformDefines.hpp"
 #if     BONSAI_BUILD_TYPE_DEBUG
     #define SPDLOG_ACTIVE_LEVEL TRACE
 #elif   BONSAI_BUILD_TYPE_RELEASE

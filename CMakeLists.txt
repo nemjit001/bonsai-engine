@@ -11,10 +11,12 @@ include(cmake/helpers.cmake)
 
 # Find dependencies
 find_package(Cereal CONFIG REQUIRED)
+find_package(cgltf CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
 
 # Set up bonsai library target
 add_library(BonsaiEngineLib STATIC)
@@ -25,12 +27,14 @@ target_sources(BonsaiEngineLib
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
-        src/Core/PlatformDefines.hpp
+        src/Core/Filesystem.hpp
         src/Core/Logger.hpp
+        src/Core/PlatformDefines.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
         src/Assets/AssetType.hpp
+        src/Assets/Mesh.hpp
         src/Scene/ECSSystem.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
@@ -39,9 +43,11 @@ target_sources(BonsaiEngineLib
         src/Components/TransformComponent.hpp
         src/Application.hpp
     PRIVATE
+        src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
+        src/Assets/Mesh.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Scene/SystemRegistry.cpp
@@ -56,10 +62,12 @@ target_compile_features(BonsaiEngineLib
 target_link_libraries(BonsaiEngineLib
     PUBLIC
         cereal::cereal
+        cgltf::cgltf
         glm::glm
         EnTT::EnTT
         SDL3::SDL3
         spdlog::spdlog
+        tinyobjloader
 )
 
 # Set up bonsai engine binary target

@@ -3,8 +3,8 @@
 #define BONSAI_ASSET_IMPORTER_HPP
 
 #include <memory>
-#include <filesystem>
-#include "AssetType.hpp"
+#include "Core/Filesystem.hpp"
+#include "Assets/AssetType.hpp"
 
 namespace Bonsai
 {
@@ -20,7 +20,7 @@ namespace Bonsai
         /// @brief Import an asset type using this importer.
         /// @param path Path to the asset to import.
         /// @return A pointer to the imported asset.
-        static std::shared_ptr<AssetType> Import(std::filesystem::path const& path);
+        static std::shared_ptr<AssetType> Import(Filesystem::Path const& path);
     };
 } // namespace Bonsai
 
