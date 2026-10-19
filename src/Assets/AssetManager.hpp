@@ -35,7 +35,7 @@ namespace Bonsai
         /// @return 
         bool IsValid() const;
 
-        bool operator==(AssetHandle<AssetType> const& rhs) const noexcept { return this->_id == rhs._id; }
+        bool operator==(AssetHandle<AssetType> const& rhs) const noexcept { return this->_id == rhs._id && this->_owner == rhs._owner; }
         bool operator!=(AssetHandle<AssetType> const& rhs) const noexcept { return !(*this == rhs); }
 
         /// @brief Invalid asset ID.
@@ -94,6 +94,7 @@ namespace Bonsai
         AssetHandle<AssetType> AllocateHandle(std::shared_ptr<IAssetType> const& asset);
 
     private:
+        std::unordered_map<Filesystem::Path, uint32_t> _assetPaths;
         std::unordered_map<uint32_t, std::shared_ptr<IAssetType>> _assets;
     };
 
@@ -122,13 +123,23 @@ namespace Bonsai
     {
         static_assert(std::is_base_of_v<IAssetType, AssetType>, "AssetType must inherit from the IAssetType interface!");
 
+        // Check if asset already exists in the asset manager
+        if (_assetPaths.contains(path))
+        {
+            uint32_t const assetId = _assetPaths.at(path);
+            return AssetHandle<AssetType>(assetId, this);
+        }
+
         // Import asset using templated asset importer.
         std::shared_ptr<AssetType> assetPtr = AssetImporter<AssetType>::Import(path);
         if (!assetPtr) {
             return {};
         }
 
-        return AllocateHandle<AssetType>(assetPtr);
+        // Allocate new asset handle and cache asset path
+        AssetHandle<AssetType> const handle = AllocateHandle<AssetType>(assetPtr);
+        _assetPaths.insert(std::make_pair(path, handle.GetAssetId()));
+        return handle;
     }
 
     template<typename AssetType, typename... Args>
