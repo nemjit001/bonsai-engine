@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "Assets/AssetManager.hpp"
+#include "Assets/Mesh.hpp"
 
 class TestAsset : public Bonsai::IAssetType
 {
@@ -53,4 +54,17 @@ TEST(AssetManagerTests, TestTryFindInvalidAsset)
 {
     Bonsai::AssetManager assetManager{};
     ASSERT_EQ(assetManager.GetAsset(Bonsai::AssetHandle<TestAsset>()), nullptr);
+}
+
+TEST(AssetManagerTests, TestLoadSameAssetTwice)
+{
+    Bonsai::AssetManager assetManager{};
+    Bonsai::Filesystem::Path const assetPath = Bonsai::Filesystem::GetProgramDirectory().append("resources/assets/cube.obj");
+
+    Bonsai::AssetHandle<Bonsai::Mesh> const meshHandle = assetManager.Load<Bonsai::Mesh>(assetPath);
+    ASSERT_TRUE(meshHandle.IsValid());
+
+    Bonsai::AssetHandle<Bonsai::Mesh> const secondMeshHandle = assetManager.Load<Bonsai::Mesh>(assetPath);
+    ASSERT_TRUE(secondMeshHandle.IsValid());
+    ASSERT_EQ(meshHandle, secondMeshHandle);
 }
