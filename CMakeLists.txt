@@ -35,6 +35,7 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetManager.hpp
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
+        src/Camera/Camera.hpp
         src/Scene/ECSSystem.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
@@ -49,6 +50,7 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
+        src/Camera/Camera.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Scene/SystemRegistry.cpp
