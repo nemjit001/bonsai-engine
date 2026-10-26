@@ -40,6 +40,7 @@ target_sources(BonsaiEngineLib
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
         src/Scene/SystemRegistry.hpp
+        src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
         src/Components/TransformComponent.hpp
@@ -54,6 +55,7 @@ target_sources(BonsaiEngineLib
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Scene/SystemRegistry.cpp
+        src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
