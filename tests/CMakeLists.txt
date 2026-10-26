@@ -11,6 +11,7 @@ target_sources(BonsaiEngineTests
         src/SanityTests.cpp
         src/Assets/AssetManagerTests.cpp
         src/Assets/MeshTests.cpp
+        src/Camera/CameraTests.cpp
         src/Scene/SystemRegistryTests.cpp
 )
 target_compile_features(BonsaiEngineTests
