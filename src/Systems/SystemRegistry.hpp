@@ -4,13 +4,14 @@
 
 #include <memory>
 #include <vector>
-#include "Scene/ECSSystem.hpp"
+#include "Systems/ECSSystem.hpp"
 
 namespace Bonsai
 {
     class Scene;
 
-    /// @brief The SystemRegistry manages a collection of ECS systems.
+    /// @brief The SystemRegistry manages a collection of ECS systems and implements
+    /// system scheduling.
     class SystemRegistry
     {
     public:
@@ -19,9 +20,10 @@ namespace Bonsai
         template<typename SystemType, typename... Args>
         void AddSystem(Args&&... args);
 
-        /// @brief Run the registered ECS systems on a scene.
-        /// @param scene Scene to run systems on.
-        void RunSystems(Scene& scene);
+        /// @brief Run the registered ECS systems on a registry.
+        /// @param registry Registry to run the systems on.
+        void RunSystems(entt::registry& registry) const;
+
     private:
         std::vector<std::unique_ptr<IECSSystem>> _systems{};
     };

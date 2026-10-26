@@ -3,7 +3,6 @@
 #define BONSAI_SCENE_MANAGER_HPP
 
 #include "Scene/Scene.hpp"
-#include "Scene/SystemRegistry.hpp"
 
 namespace Bonsai
 {
@@ -11,16 +10,13 @@ namespace Bonsai
     class SceneManager
     {
     public:
-        /// @brief Tick the SceneManager, running the registered ECS systems on the scene.
-        void Tick();
-
-        /// @brief Get the ECS System Registry.
+        /// @brief Get the active scene from the scene manager.
         /// @return 
-        SystemRegistry& GetSystemRegistry() { return _systemRegistry; }
+        Scene& GetActiveScene() { return _activeScene; }
+        Scene const& GetActiveScene() const { return _activeScene; }
 
     private:
         Scene _activeScene{};
-        SystemRegistry _systemRegistry{};
     };
 } // namespace Bonsai
 

@@ -12,9 +12,9 @@ namespace Bonsai
     class Scene
     {
     public:
-        /// @brief Get the ECS registry for the sccene.
-        /// @return 
-        entt::registry& GetRegistry() { return _registry; }
+        /// @brief Tick the scene using a system registry.
+        /// @param systemRegistry System registry to use for scene updates.
+        void Tick(SystemRegistry const& systemRegistry);
 
         /// @brief Serialization function for scene data. Used with serialization archives.
         /// @tparam Archive 

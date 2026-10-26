@@ -54,8 +54,9 @@ namespace Bonsai
         // Pump platform message loop.
         PumpMessages();
 
-        // Tick application systems
-        _sceneManager.Tick();
+        // Tick the scene using the system registry
+        Scene& scene = _sceneManager.GetActiveScene();
+        scene.Tick(_systemRegistry);
     }
 
     void Application::Frame()
