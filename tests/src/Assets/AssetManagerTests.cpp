@@ -59,7 +59,7 @@ TEST(AssetManagerTests, TestTryFindInvalidAsset)
 TEST(AssetManagerTests, TestLoadSameAssetTwice)
 {
     Bonsai::AssetManager assetManager{};
-    Bonsai::Filesystem::Path const assetPath = Bonsai::Filesystem::GetProgramDirectory().append("resources/assets/cube.obj");
+    Bonsai::Filesystem::Path const assetPath = Bonsai::Filesystem::GetResourcePath("resources/assets/cube.obj");
 
     Bonsai::AssetHandle<Bonsai::Mesh> const meshHandle = assetManager.Load<Bonsai::Mesh>(assetPath);
     ASSERT_TRUE(meshHandle.IsValid());

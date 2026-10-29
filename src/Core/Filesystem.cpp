@@ -33,4 +33,10 @@ namespace Bonsai::Filesystem
         // Return parent path
         return location.parent_path();
     }
+
+    Path GetResourcePath(Path const& relativePath)
+    {
+        Path const completePath = GetProgramDirectory() / relativePath;
+        return std::filesystem::weakly_canonical(completePath);
+    }
 } // namespace Bonsai::Filesystem
