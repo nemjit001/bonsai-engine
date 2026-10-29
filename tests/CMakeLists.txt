@@ -12,7 +12,7 @@ target_sources(BonsaiEngineTests
         src/Assets/AssetManagerTests.cpp
         src/Assets/MeshTests.cpp
         src/Camera/CameraTests.cpp
-        src/Scene/SystemRegistryTests.cpp
+        src/Systems/SystemRegistryTests.cpp
 )
 target_compile_features(BonsaiEngineTests
     PRIVATE

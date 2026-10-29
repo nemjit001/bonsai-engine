@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "Scene/Scene.hpp"
-#include "Scene/SystemRegistry.hpp"
+#include "Systems/SystemRegistry.hpp"
 
 /// @brief Mocks ECS system interface.
 class MockSystem : public Bonsai::IECSSystem
@@ -37,7 +36,7 @@ TEST(SystemRegistryTests, TestAddSystem)
     Bonsai::SystemRegistry systemRegistry{};
     systemRegistry.AddSystem<ECSSystemWrapper>(&mockSystem);
 
-    // Run all systems
-    Bonsai::Scene emptyScene{};
-    systemRegistry.RunSystems(emptyScene);
+    // Run all systems using an empty registry
+    entt::registry emptyRegistry{};
+    systemRegistry.RunSystems(emptyRegistry);
 }

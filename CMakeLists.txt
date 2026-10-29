@@ -36,14 +36,14 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
-        src/Scene/ECSSystem.hpp
-        src/Scene/Scene.hpp
-        src/Scene/SceneManager.hpp
-        src/Scene/SystemRegistry.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
         src/Components/TransformComponent.hpp
+        src/Systems/ECSSystem.hpp
+        src/Systems/SystemRegistry.hpp
+        src/Scene/Scene.hpp
+        src/Scene/SceneManager.hpp
         src/Application.hpp
     PRIVATE
         src/Core/Filesystem.cpp
@@ -52,13 +52,13 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
-        src/Scene/Scene.cpp
-        src/Scene/SceneManager.cpp
-        src/Scene/SystemRegistry.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
+        src/Systems/SystemRegistry.cpp
+        src/Scene/Scene.cpp
+        src/Scene/SceneManager.cpp
         src/Application.cpp
 )
 target_compile_features(BonsaiEngineLib
