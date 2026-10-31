@@ -16,6 +16,7 @@ TEST(AssetManagerTests, TestCreateAsset)
     Bonsai::AssetManager assetManager{};
     Bonsai::AssetHandle<TestAsset> testAsset = assetManager.Create<TestAsset>(42);
     ASSERT_TRUE(testAsset.IsValid());
+    ASSERT_EQ(testAsset.GetAssetPath(), std::nullopt);
 
     auto testAssetPtr = testAsset.Get();
     ASSERT_NE(testAssetPtr, nullptr);
@@ -63,8 +64,10 @@ TEST(AssetManagerTests, TestLoadSameAssetTwice)
 
     Bonsai::AssetHandle<Bonsai::Mesh> const meshHandle = assetManager.Load<Bonsai::Mesh>(assetPath);
     ASSERT_TRUE(meshHandle.IsValid());
+    ASSERT_EQ(meshHandle.GetAssetPath(), assetPath);
 
     Bonsai::AssetHandle<Bonsai::Mesh> const secondMeshHandle = assetManager.Load<Bonsai::Mesh>(assetPath);
     ASSERT_TRUE(secondMeshHandle.IsValid());
+    ASSERT_EQ(secondMeshHandle.GetAssetPath(), assetPath);
     ASSERT_EQ(meshHandle, secondMeshHandle);
 }
