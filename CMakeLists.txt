@@ -36,6 +36,7 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
+        src/Renderer/RenderManager.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
@@ -52,6 +53,7 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
+        src/Renderer/RenderManager.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
