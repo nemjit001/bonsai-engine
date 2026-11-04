@@ -19,6 +19,14 @@ namespace Bonsai
             return false;
         }
 
+        // Initialize render manager
+        SPDLOG_TRACE("Initializing RenderManager");
+        if (!_renderManager.Initialize())
+        {
+            SPDLOG_ERROR("Failed to initialize RenderManager");
+            return false;
+        }
+
         // Initialized!
         SPDLOG_INFO("Initialized Bonsai!");
         _isRunning = true;
@@ -28,6 +36,7 @@ namespace Bonsai
     void Application::Shutdown()
     {
         _isRunning = false;
+        _renderManager.Shutdown();
         SDL_Quit();
         SPDLOG_INFO("Shutdown complete, goodbye!");
     }
@@ -38,6 +47,7 @@ namespace Bonsai
         while (SDL_PollEvent(&event))
         {
             HandlePlatformEvent(event);
+            _renderManager.HandlePlatformEvent(event);
         }
     }
 
@@ -51,17 +61,20 @@ namespace Bonsai
 
     void Application::Tick()
     {
-        // Pump platform message loop.
+        // Start a new frame
+        if (!_renderManager.StartFrame()) {
+            return;
+        }
+
+        // Pump platform message loop
         PumpMessages();
 
         // Tick the scene using the system registry
         Scene& scene = _sceneManager.GetActiveScene();
         scene.Tick(_systemRegistry);
-    }
 
-    void Application::Frame()
-    {
-        //
+        // Render the current frame
+        _renderManager.RenderFrame();
     }
 
     AppResult Application::Run()
@@ -76,9 +89,6 @@ namespace Bonsai
         {
             // Tick application state
             Tick();
-
-            // Render frame
-            Frame();
         }
 
         // Shut down application

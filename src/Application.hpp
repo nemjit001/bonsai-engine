@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 #include "Assets/AssetManager.hpp"
+#include "Renderer/RenderManager.hpp"
 #include "Systems/SystemRegistry.hpp"
 #include "Scene/SceneManager.hpp"
 
@@ -37,9 +38,6 @@ namespace Bonsai
         /// @brief Tick the application state.
         void Tick();
 
-        /// @brief Render an application frame.
-        void Frame();
-
     public:
         /// @brief Run the application.
         /// @return 
@@ -48,6 +46,7 @@ namespace Bonsai
     private:
         bool _isRunning = false;
         AssetManager _assetManager{};
+        RenderManager _renderManager{};
         SystemRegistry _systemRegistry{};
         SceneManager _sceneManager{};
     };
