@@ -64,9 +64,46 @@ namespace Bonsai
         return false;
     }
 
-    GraphicsDevice::GraphicsDevice(VulkanInstanceState const& instanceState)
+    /// @brief Attempt to find a queue family index for a given set of required and ignored queue flags.
+    /// @param queueFamilies Available queue families.
+    /// @param requiredFlags Required queue flags.
+    /// @param ignoredFlags Ignored queue flags. Optionally unused if a queue is not found for these flags.
+    /// @return The found queue family, or VK_QUEUE_FAMILY_IGNORED on failure.
+    [[nodiscard]]
+    static uint32_t FindQueueFamily(
+        std::vector<VkQueueFamilyProperties> const& availableQueueFamilies,
+        VkQueueFlagBits requiredFlags,
+        VkQueueFlags ignoredFlags
+    )
+    {
+        // Perform first search with ignored flags for distinct queues
+        for (uint32_t i = 0; i < availableQueueFamilies.size(); i++)
+        {
+            VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
+            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags
+                && (queueProperties.queueFlags & ignoredFlags) == 0)
+            {
+                return i;
+            }
+        }
+
+        // Perform fallback search without ignored flags for overlapping queue families
+        for (uint32_t i = 0; i < availableQueueFamilies.size(); i++)
+        {
+            VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
+            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags)
+            {
+                return i;
+            }
+        }
+
+        return VK_QUEUE_FAMILY_IGNORED;
+    }
+
+    GraphicsDevice::GraphicsDevice(VulkanInstanceState const& instanceState, VulkanPhysicalDeviceInfo const& physicalDeviceInfo)
         :
-        _instanceState(instanceState)
+        _instanceState(instanceState),
+        _physicalDeviceInfo(physicalDeviceInfo)
     {
         //
     }
@@ -85,15 +122,29 @@ namespace Bonsai
         }
 
         // Create instance state
-        VulkanInstanceState instanceState{};
-        if (!CreateInstanceState(instanceState)) {
+        std::optional<VulkanInstanceState> const instanceState = CreateInstanceState();
+        if (!instanceState.has_value())
+        {
+            SPDLOG_ERROR("Failed to create Vulkan instance state");
             return nullptr;
         }
 
-        return new GraphicsDevice(instanceState);
+        // Find a physical device
+        std::optional<VulkanPhysicalDeviceInfo> const physicalDeviceInfo = FindPhysicalDevice(instanceState.value());
+        if (!physicalDeviceInfo.has_value())
+        {
+            SPDLOG_ERROR("Failed to find Vulkan physical device");
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
+        return new GraphicsDevice(
+            instanceState.value(),
+            physicalDeviceInfo.value()
+        );
     }
 
-    bool GraphicsDevice::CreateInstanceState(VulkanInstanceState& instanceState)
+    std::optional<GraphicsDevice::VulkanInstanceState> GraphicsDevice::CreateInstanceState()
     {
         // Query available instance layers and extensions
         std::vector<VkLayerProperties> const availableInstanceLayers = []() {
@@ -143,8 +194,10 @@ namespace Bonsai
             }
 
             // Enable debug utils extension
-            if (!IsExtensionAvailable(availableInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-                return false;
+            if (!IsExtensionAvailable(availableInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            {
+                SPDLOG_ERROR("Failed to enable required instance extension: {}", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                return {};
             }
             enabledExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
@@ -186,23 +239,117 @@ namespace Bonsai
         instanceCreateInfo.pNext = &debugMessengerCreateInfo;
 #endif  //BONSAI_BUILD_TYPE_DEBUG
 
-        if (VK_CHECK_FAILED(vkCreateInstance(&instanceCreateInfo, nullptr, &instanceState.instance))) {
-            return false;
+        VkInstance instance = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateInstance(&instanceCreateInfo, nullptr, &instance)))
+        {
+            SPDLOG_ERROR("Failed to create Vulkan instance");
+            return {};
         }
         
         // Load function pointers at instance level
-        volkLoadInstance(instanceState.instance);
+        volkLoadInstance(instance);
 
-#if     BONSAI_BUILD_TYPE_DEBUG
         // Create debug messenger
-        if (VK_CHECK_FAILED(vkCreateDebugUtilsMessengerEXT(instanceState.instance, &debugMessengerCreateInfo, nullptr, &instanceState.debugMessenger)))
+        VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+#if     BONSAI_BUILD_TYPE_DEBUG
+        if (VK_CHECK_FAILED(vkCreateDebugUtilsMessengerEXT(instance, &debugMessengerCreateInfo, nullptr, &debugMessenger)))
         {
-            vkDestroyInstance(instanceState.instance, nullptr);
-            return false;
+            SPDLOG_ERROR("Failed to create Vulkan debug messenger");
+            vkDestroyInstance(instance, nullptr);
+            return {};
         }
 #endif  //BONSAI_BUILD_TYPE_DEBUG
 
-        return true;
+        return VulkanInstanceState {
+            instance,
+            debugMessenger,
+        };
+    }
+
+    std::optional<GraphicsDevice::VulkanPhysicalDeviceInfo> GraphicsDevice::FindPhysicalDevice(VulkanInstanceState const& instanceState)
+    {
+        // Query available physical devices
+        std::vector<VkPhysicalDevice> const physicalDevices = [&instanceState]() {
+            uint32_t deviceCount = 0;
+            vkEnumeratePhysicalDevices(instanceState.instance, &deviceCount, nullptr);
+            std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+            vkEnumeratePhysicalDevices(instanceState.instance, &deviceCount, physicalDevices.data());
+            return physicalDevices;
+        }();
+
+        // Set up physical device info structures
+        size_t const physicalDeviceCount = physicalDevices.size();
+        std::vector<VulkanPhysicalDeviceInfo> physicalDeviceInfos(physicalDeviceCount);
+        for (size_t i = 0; i < physicalDeviceCount; i++)
+        {
+            VulkanPhysicalDeviceInfo& physicalDeviceInfo = physicalDeviceInfos[i];
+            physicalDeviceInfo.physicalDevice = physicalDevices[i];
+            physicalDeviceInfo.isSupported = false;
+            
+            // Get physical device properties
+            physicalDeviceInfo.physicalDeviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+            physicalDeviceInfo.physicalDeviceProperties2.pNext = nullptr;
+            vkGetPhysicalDeviceProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceProperties2);
+
+            // Query queue family properties
+            std::vector<VkQueueFamilyProperties> const queueFamilyProperties = [&physicalDeviceInfo]() {
+                uint32_t queueCount = 0;
+                vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceInfo.physicalDevice, &queueCount, nullptr);
+                std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueCount);
+                vkGetPhysicalDeviceQueueFamilyProperties(physicalDeviceInfo.physicalDevice, &queueCount, queueFamilyProperties.data());
+                return queueFamilyProperties;
+            }();
+
+            // Find queue families for physical device
+            physicalDeviceInfo.graphicsQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT, 0);
+            physicalDeviceInfo.computeQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT);
+            physicalDeviceInfo.transferQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT);
+        }
+
+        // Verify physical device support
+        for (auto& physicalDeviceInfo : physicalDeviceInfos)
+        {
+            // Assume the device is supported
+            physicalDeviceInfo.isSupported = true;
+
+            // Check if the device API version is above the minimal supported version
+            if (physicalDeviceInfo.physicalDeviceProperties2.properties.apiVersion < ReferenceVulkanApiVersion)
+            {
+                SPDLOG_WARN("Physical device was under minimum required Vulkan version: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                physicalDeviceInfo.isSupported = false;
+            }
+
+            // Check if the required queue families were found
+            if (physicalDeviceInfo.graphicsQueueFamily == VK_QUEUE_FAMILY_IGNORED
+                || physicalDeviceInfo.computeQueueFamily == VK_QUEUE_FAMILY_IGNORED
+                || physicalDeviceInfo.transferQueueFamily == VK_QUEUE_FAMILY_IGNORED)
+            {
+                SPDLOG_WARN("Physical device does not support the required queue families: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                physicalDeviceInfo.isSupported = false;
+            }
+        }
+
+        // Select first supported physical device
+        for (auto const& physicalDeviceInfo : physicalDeviceInfos)
+        {
+            if (physicalDeviceInfo.isSupported)
+            {
+                SPDLOG_TRACE("Selected physical device: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                return physicalDeviceInfo;
+            }
+        }
+
+        // No supported device found
+        return {};
     }
 
     void GraphicsDevice::DestroyInstanceState(VulkanInstanceState const& instanceState)
