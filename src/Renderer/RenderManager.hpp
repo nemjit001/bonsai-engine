@@ -3,6 +3,7 @@
 #define BONSAI_RENDER_MANAGER_HPP
 
 #include <SDL3/SDL.h>
+#include "Gfx/GraphicsDevice.hpp"
 
 namespace Bonsai
 {
@@ -29,6 +30,7 @@ namespace Bonsai
         void HandlePlatformEvent(SDL_Event const& event);
 
     private:
+        GraphicsDevice* _graphicsDevice = nullptr;
         SDL_Window* _window = nullptr;
     };
 } // namespace Bonsai

@@ -8,6 +8,12 @@ namespace Bonsai
 
     bool RenderManager::Initialize()
     {
+        // Create a graphics device
+        _graphicsDevice = GraphicsDevice::TryCreate();
+        if (_graphicsDevice == nullptr) {
+            return false;
+        }
+
         // Set the window flags
         SDL_WindowFlags const windowFlags = SDL_WINDOW_RESIZABLE
             | SDL_WINDOW_HIGH_PIXEL_DENSITY
@@ -25,6 +31,7 @@ namespace Bonsai
     void RenderManager::Shutdown()
     {
         SDL_DestroyWindow(_window);
+        delete _graphicsDevice;
     }
 
     bool RenderManager::StartFrame()
