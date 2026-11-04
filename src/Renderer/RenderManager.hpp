@@ -2,6 +2,8 @@
 #ifndef BONSAI_RENDER_MANAGER_HPP
 #define BONSAI_RENDER_MANAGER_HPP
 
+#include <SDL3/SDL.h>
+
 namespace Bonsai
 {
     /// @brief The RenderManager manages high level render resource management and frame execution.
@@ -21,6 +23,13 @@ namespace Bonsai
 
         /// @brief Record the render commands for the current frame.
         void RenderFrame();
+
+        /// @brief Handle a platform event.
+        /// @param event 
+        void HandlePlatformEvent(SDL_Event const& event);
+
+    private:
+        SDL_Window* _window = nullptr;
     };
 } // namespace Bonsai
 

@@ -47,6 +47,7 @@ namespace Bonsai
         while (SDL_PollEvent(&event))
         {
             HandlePlatformEvent(event);
+            _renderManager.HandlePlatformEvent(event);
         }
     }
 
