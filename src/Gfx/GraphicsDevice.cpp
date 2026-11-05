@@ -444,6 +444,9 @@ namespace Bonsai
         vkGetDeviceQueue(device, physicalDeviceInfo.computeQueueFamily, 0, &computeQueue);
         vkGetDeviceQueue(device, physicalDeviceInfo.transferQueueFamily, 0, &transferQueue);
 
+        // Load vulkan pointers at device level
+        volkLoadDevice(device);
+        
         return VulkanDeviceState {
             device,
             graphicsQueue,
