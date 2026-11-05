@@ -476,7 +476,7 @@ namespace Bonsai
 
         // Remove duplicates from list
         std::sort(queueFamilies.begin(), queueFamilies.end());
-        queueFamilies.erase(std::unique(queueFamilies.begin(), queueFamilies.end()));
+        queueFamilies.erase(std::unique(queueFamilies.begin(), queueFamilies.end()), queueFamilies.end());
 
         return queueFamilies;
     }
