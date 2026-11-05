@@ -22,12 +22,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+      - name: Set up Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: latest
+          vulkan-use-cache: true
+          vulkan-components: Vulkan-Headers
       - name: Install Linux dependencies
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: >
           sudo apt-get update
-          && sudo apt-get upgrade
           && sudo apt-get install cmake clang
+          libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev
+          libxkbcommon-dev libdrm-dev libdbus-1-dev libibus-1.0-dev libudev-dev libusb-1.0-0-dev
       - name: Configure CMake
         run: |
           cmake . --preset ${{ matrix.preset }} -DSDL_UNIX_CONSOLE_BUILD=ON

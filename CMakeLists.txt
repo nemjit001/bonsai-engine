@@ -17,6 +17,7 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
+find_package(volk CONFIG REQUIRED)
 
 # Set up bonsai library target
 add_library(BonsaiEngineLib STATIC)
@@ -30,6 +31,7 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.hpp
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
+        src/Gfx/GraphicsDevice.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
@@ -49,6 +51,7 @@ target_sources(BonsaiEngineLib
     PRIVATE
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
+        src/Gfx/GraphicsDevice.cpp
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
@@ -76,6 +79,7 @@ target_link_libraries(BonsaiEngineLib
         SDL3::SDL3
         spdlog::spdlog
         tinyobjloader
+        volk::volk_headers
 )
 
 # Set up bonsai engine binary target

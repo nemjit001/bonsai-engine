@@ -67,6 +67,13 @@ FetchContent_Declare(tinyobjloader
     OVERRIDE_FIND_PACKAGE
 )
 
+FetchContent_Declare(volk
+    GIT_REPOSITORY  https://github.com/zeux/volk.git
+    GIT_TAG         master
+    GIT_SHALLOW     TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
 # Set up header-only lib targets
 FetchContent_MakeAvailable(cgltf)
 
