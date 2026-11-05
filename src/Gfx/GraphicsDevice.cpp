@@ -1,6 +1,7 @@
 #include "GraphicsDevice.hpp"
 
 #define VOLK_IMPLEMENTATION
+#include <algorithm>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
 #include "Core/Logger.hpp"
@@ -100,16 +101,22 @@ namespace Bonsai
         return VK_QUEUE_FAMILY_IGNORED;
     }
 
-    GraphicsDevice::GraphicsDevice(VulkanInstanceState const& instanceState, VulkanPhysicalDeviceInfo const& physicalDeviceInfo)
+    GraphicsDevice::GraphicsDevice(
+        VulkanInstanceState const& instanceState,
+        VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
+        VulkanDeviceState const& deviceState
+    )
         :
         _instanceState(instanceState),
-        _physicalDeviceInfo(physicalDeviceInfo)
+        _physicalDeviceInfo(physicalDeviceInfo),
+        _deviceState(deviceState)
     {
         //
     }
 
     GraphicsDevice::~GraphicsDevice()
     {
+        DestroyDeviceState(_deviceState);
         DestroyInstanceState(_instanceState);
         volkFinalize();
     }
@@ -122,6 +129,7 @@ namespace Bonsai
         }
 
         // Create instance state
+        SPDLOG_TRACE("Creating Vulkan instance state");
         std::optional<VulkanInstanceState> const instanceState = CreateInstanceState();
         if (!instanceState.has_value())
         {
@@ -130,6 +138,7 @@ namespace Bonsai
         }
 
         // Find a physical device
+        SPDLOG_TRACE("Searching for Vulkan physical device");
         std::optional<VulkanPhysicalDeviceInfo> const physicalDeviceInfo = FindPhysicalDevice(instanceState.value());
         if (!physicalDeviceInfo.has_value())
         {
@@ -138,9 +147,20 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create device state
+        SPDLOG_TRACE("Creating Vulkan device state");
+        std::optional<VulkanDeviceState> deviceState = CreateDeviceState(physicalDeviceInfo.value());
+        if (!deviceState.has_value())
+        {
+            SPDLOG_ERROR("Failed to create Vulkan device state");
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
         return new GraphicsDevice(
             instanceState.value(),
-            physicalDeviceInfo.value()
+            physicalDeviceInfo.value(),
+            deviceState.value()
         );
     }
 
@@ -173,7 +193,6 @@ namespace Bonsai
         // Set up enabled layers and extensions
         std::vector<char const*> enabledLayerNames;
         std::vector<char const*> enabledExtensionNames;
-
         enabledExtensionNames.insert(
             enabledExtensionNames.end(),
             windowSystemExtensions.begin(),
@@ -194,12 +213,16 @@ namespace Bonsai
             }
 
             // Enable debug utils extension
-            if (!IsExtensionAvailable(availableInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            if (IsExtensionAvailable(availableInstanceExtensions, VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            {
+                SPDLOG_ERROR("Enabled required instance extension: {}", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                enabledExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            }
+            else
             {
                 SPDLOG_ERROR("Failed to enable required instance extension: {}", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 return {};
             }
-            enabledExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
 
         // Create instance
@@ -352,11 +375,109 @@ namespace Bonsai
         return {};
     }
 
+    std::optional<GraphicsDevice::VulkanDeviceState> GraphicsDevice::CreateDeviceState(VulkanPhysicalDeviceInfo const& physicalDeviceInfo)
+    {
+        // Query available device extensions
+        std::vector<VkExtensionProperties> const availableDeviceExtensions = [&physicalDeviceInfo]() {
+            uint32_t extensionCount = 0;
+            vkEnumerateDeviceExtensionProperties(physicalDeviceInfo.physicalDevice, nullptr, &extensionCount, nullptr);
+            std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+            vkEnumerateDeviceExtensionProperties(physicalDeviceInfo.physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+            return availableExtensions;
+        }();
+
+        // Set up enabled device extensions
+        std::vector<char const*> enabledExtensionNames;
+        if (IsExtensionAvailable(availableDeviceExtensions, VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+        {
+            SPDLOG_TRACE("Enabled required device extension: {}", VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+            enabledExtensionNames.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
+        else
+        {
+            SPDLOG_ERROR("Failed to enable required device extension: {}", VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+            return {};
+        }
+
+        // Set up device queue create infos
+        std::vector<uint32_t> const uniqueQueueFamilyIndices = GetUniqueQueueFamilyIndices(physicalDeviceInfo);
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        queueCreateInfos.reserve(uniqueQueueFamilyIndices.size());
+
+        static constexpr float DefaultQueuePriorities[] = { 1.0F };
+        for (auto const& queueFamilyIdx : uniqueQueueFamilyIndices)
+        {
+            VkDeviceQueueCreateInfo deviceQueueCreateInfo{};
+            deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            deviceQueueCreateInfo.pNext = nullptr;
+            deviceQueueCreateInfo.flags = 0;
+            deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIdx;
+            deviceQueueCreateInfo.queueCount = 1;
+            deviceQueueCreateInfo.pQueuePriorities = DefaultQueuePriorities;
+
+            queueCreateInfos.push_back(deviceQueueCreateInfo);
+        }
+
+        // Create logical device
+        VkDeviceCreateInfo deviceCreateInfo{};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        deviceCreateInfo.pNext = nullptr;
+        deviceCreateInfo.flags = 0;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+        deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensionNames.size());
+        deviceCreateInfo.ppEnabledExtensionNames = enabledExtensionNames.data();
+        deviceCreateInfo.pEnabledFeatures = nullptr;
+
+        VkDevice device = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateDevice(physicalDeviceInfo.physicalDevice, &deviceCreateInfo, nullptr, &device)))
+        {
+            SPDLOG_ERROR("Failed to create Vulkan logical device");
+            return {};
+        }
+
+        // Get device queues
+        VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue computeQueue = VK_NULL_HANDLE;
+        VkQueue transferQueue = VK_NULL_HANDLE;
+        vkGetDeviceQueue(device, physicalDeviceInfo.graphicsQueueFamily, 0, &graphicsQueue);
+        vkGetDeviceQueue(device, physicalDeviceInfo.computeQueueFamily, 0, &computeQueue);
+        vkGetDeviceQueue(device, physicalDeviceInfo.transferQueueFamily, 0, &transferQueue);
+
+        return VulkanDeviceState {
+            device,
+            graphicsQueue,
+            computeQueue,
+            transferQueue,
+        };
+    }
+
     void GraphicsDevice::DestroyInstanceState(VulkanInstanceState const& instanceState)
     {
 #if     BONSAI_BUILD_TYPE_DEBUG
         vkDestroyDebugUtilsMessengerEXT(instanceState.instance, instanceState.debugMessenger, nullptr);
 #endif  //BONSAI_BUILD_TYPE_DEBUG
         vkDestroyInstance(instanceState.instance, nullptr);
+    }
+
+    void GraphicsDevice::DestroyDeviceState(VulkanDeviceState const& deviceState)
+    {
+        vkDestroyDevice(deviceState.device, nullptr);
+    }
+
+    std::vector<uint32_t> GraphicsDevice::GetUniqueQueueFamilyIndices(VulkanPhysicalDeviceInfo const& physicalDeviceInfo)
+    {
+        // Get list of queue families
+        std::vector<uint32_t> queueFamilies = {
+            physicalDeviceInfo.graphicsQueueFamily,
+            physicalDeviceInfo.computeQueueFamily,
+            physicalDeviceInfo.transferQueueFamily,
+        };
+
+        // Remove duplicates from list
+        std::sort(queueFamilies.begin(), queueFamilies.end());
+        queueFamilies.erase(std::unique(queueFamilies.begin(), queueFamilies.end()));
+
+        return queueFamilies;
     }
 } // namespace Bonsai
