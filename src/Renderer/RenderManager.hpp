@@ -30,8 +30,9 @@ namespace Bonsai
         void HandlePlatformEvent(SDL_Event const& event);
 
     private:
-        GraphicsDevice* _graphicsDevice = nullptr;
         SDL_Window* _window = nullptr;
+        GraphicsDevice* _graphicsDevice = nullptr;
+        FrameContext* _activeFrame = nullptr;
     };
 } // namespace Bonsai
 

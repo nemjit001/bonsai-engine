@@ -1,11 +1,14 @@
 #include "GraphicsDevice.hpp"
 
 #define VOLK_IMPLEMENTATION
+
 #include <algorithm>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanRenderContext.hpp"
 
 namespace Bonsai
 {
@@ -104,12 +107,14 @@ namespace Bonsai
     GraphicsDevice::GraphicsDevice(
         VulkanInstanceState const& instanceState,
         VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
-        VulkanDeviceState const& deviceState
+        VulkanDeviceState const& deviceState,
+        VulkanRenderContext* renderContext
     )
         :
         _instanceState(instanceState),
         _physicalDeviceInfo(physicalDeviceInfo),
-        _deviceState(deviceState)
+        _deviceState(deviceState),
+        _renderContext(renderContext)
     {
         //
     }
@@ -157,11 +162,39 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create Vulkan render context
+        VulkanRenderContext* renderContext = VulkanRenderContext::TryCreate(deviceState->device, deviceState->graphicsQueue, FramesInFlight);
+        if (renderContext == nullptr)
+        {
+            SPDLOG_ERROR("Failed to create Vulkan render context");
+            DestroyDeviceState(deviceState.value());
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
         return new GraphicsDevice(
             instanceState.value(),
             physicalDeviceInfo.value(),
-            deviceState.value()
+            deviceState.value(),
+            renderContext
         );
+    }
+
+    FrameContext* GraphicsDevice::StartFrame()
+    {
+        return _renderContext->StartFrame();
+    }
+
+    void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
+    {
+        auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        _renderContext->SubmitFrame(vulkanFrameContext);
+    }
+
+    void GraphicsDevice::WaitForIdle()
+    {
+        // Wait for the Vulkan device to be idle
+        vkDeviceWaitIdle(_deviceState.device);
     }
 
     std::optional<GraphicsDevice::VulkanInstanceState> GraphicsDevice::CreateInstanceState()

@@ -61,13 +61,13 @@ namespace Bonsai
 
     void Application::Tick()
     {
+        // Pump platform message loop
+        PumpMessages();
+        
         // Start a new frame
         if (!_renderManager.StartFrame()) {
             return;
         }
-
-        // Pump platform message loop
-        PumpMessages();
 
         // Tick the scene using the system registry
         Scene& scene = _sceneManager.GetActiveScene();
