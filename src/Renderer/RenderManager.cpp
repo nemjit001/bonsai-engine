@@ -1,5 +1,7 @@
 #include "RenderManager.hpp"
 
+#include "Core/Logger.hpp"
+
 namespace Bonsai
 {
     static constexpr char const*    WindowTitle         = "Bonsai Engine";
@@ -8,12 +10,7 @@ namespace Bonsai
 
     bool RenderManager::Initialize()
     {
-        // Create a graphics device
-        _graphicsDevice = GraphicsDevice::TryCreate();
-        if (_graphicsDevice == nullptr) {
-            return false;
-        }
-
+        SPDLOG_TRACE("Creating application window");
         // Set the window flags
         SDL_WindowFlags const windowFlags = SDL_WINDOW_RESIZABLE
             | SDL_WINDOW_HIGH_PIXEL_DENSITY
@@ -21,7 +18,19 @@ namespace Bonsai
 
         // Create the window
         _window = SDL_CreateWindow(WindowTitle, DefaultWindowWidth, DefaultWindowHeight, windowFlags);
-        if (_window == nullptr) {
+        if (_window == nullptr)
+        {
+            SPDLOG_ERROR("Failed to create application window");
+            return false;
+        }
+
+        // Create a graphics device
+        SPDLOG_TRACE("Creating graphics device");
+        _graphicsDevice = GraphicsDevice::TryCreate();
+        if (_graphicsDevice == nullptr)
+        {
+            SPDLOG_ERROR("Failed to create graphics device");
+            SDL_DestroyWindow(_window);
             return false;
         }
 
@@ -30,18 +39,26 @@ namespace Bonsai
 
     void RenderManager::Shutdown()
     {
+        _graphicsDevice->WaitForIdle();
         SDL_DestroyWindow(_window);
         delete _graphicsDevice;
     }
 
     bool RenderManager::StartFrame()
     {
+        // Try to start a new frame
+        _activeFrame = _graphicsDevice->StartFrame();
+        if (!_activeFrame) {
+            return false;
+        }
+
         return true;
     }
 
     void RenderManager::RenderFrame()
     {
-        //
+        // Submit the active frame
+        _graphicsDevice->SubmitFrame(_activeFrame);
     }
 
     void RenderManager::HandlePlatformEvent([[maybe_unused]] SDL_Event const& event)

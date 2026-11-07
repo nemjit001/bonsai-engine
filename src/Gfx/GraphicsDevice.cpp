@@ -1,11 +1,14 @@
 #include "GraphicsDevice.hpp"
 
 #define VOLK_IMPLEMENTATION
+
 #include <algorithm>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanRenderContext.hpp"
 
 namespace Bonsai
 {
@@ -104,18 +107,24 @@ namespace Bonsai
     GraphicsDevice::GraphicsDevice(
         VulkanInstanceState const& instanceState,
         VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
-        VulkanDeviceState const& deviceState
+        VulkanDeviceState const& deviceState,
+        std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
+        std::unique_ptr<VulkanRenderContext>&& renderContext
     )
         :
         _instanceState(instanceState),
         _physicalDeviceInfo(physicalDeviceInfo),
-        _deviceState(deviceState)
+        _deviceState(deviceState),
+        _sharedDeviceState(std::move(sharedDeviceState)),
+        _renderContext(std::move(renderContext))
     {
         //
     }
 
     GraphicsDevice::~GraphicsDevice()
     {
+        _renderContext.reset();
+        _sharedDeviceState.reset();
         DestroyDeviceState(_deviceState);
         DestroyInstanceState(_instanceState);
         volkFinalize();
@@ -157,11 +166,50 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create shared device state
+        auto sharedDeviceState = std::make_unique<VulkanSharedDeviceState>();
+        sharedDeviceState->framesInFlight = FramesInFlight;
+        sharedDeviceState->graphicsQueueFamily = physicalDeviceInfo->graphicsQueueFamily;
+        sharedDeviceState->computeQueueFamily = physicalDeviceInfo->computeQueueFamily;
+        sharedDeviceState->transferQueueFamily = physicalDeviceInfo->transferQueueFamily;
+        sharedDeviceState->graphicsQueue = deviceState->graphicsQueue;
+        sharedDeviceState->computeQueue = deviceState->computeQueue;
+        sharedDeviceState->transferQueue = deviceState->transferQueue;
+
+        // Create Vulkan render context
+        auto renderContext = std::unique_ptr<VulkanRenderContext>(VulkanRenderContext::TryCreate(deviceState->device, sharedDeviceState.get()));
+        if (!renderContext)
+        {
+            SPDLOG_ERROR("Failed to create Vulkan render context");
+            DestroyDeviceState(deviceState.value());
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
         return new GraphicsDevice(
             instanceState.value(),
             physicalDeviceInfo.value(),
-            deviceState.value()
+            deviceState.value(),
+            std::move(sharedDeviceState),
+            std::move(renderContext)
         );
+    }
+
+    FrameContext* GraphicsDevice::StartFrame()
+    {
+        return _renderContext->StartFrame();
+    }
+
+    void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
+    {
+        auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        _renderContext->SubmitFrame(vulkanFrameContext);
+    }
+
+    void GraphicsDevice::WaitForIdle()
+    {
+        // Wait for the Vulkan device to be idle
+        vkDeviceWaitIdle(_deviceState.device);
     }
 
     std::optional<GraphicsDevice::VulkanInstanceState> GraphicsDevice::CreateInstanceState()

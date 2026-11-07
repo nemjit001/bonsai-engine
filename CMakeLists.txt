@@ -32,6 +32,7 @@ target_sources(BonsaiEngineLib
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
         src/Gfx/GraphicsDevice.hpp
+        src/Gfx/GraphicsTypes.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
@@ -52,6 +53,10 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
+        src/Gfx/GraphicsTypesInternal.hpp
+        src/Gfx/Vulkan/VulkanGraphicsTypes.hpp
+        src/Gfx/Vulkan/VulkanRenderContext.cpp
+        src/Gfx/Vulkan/VulkanRenderContext.hpp
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp

@@ -2,17 +2,39 @@
 #ifndef BONSAI_GRAPHICS_DEVICE_HPP
 #define BONSAI_GRAPHICS_DEVICE_HPP
 
+#define VK_NO_PROTOTYPES
+
+#include <memory>
 #include <optional>
 #include <vector>
-#include <volk.h>
-
-#define VK_CHECK_SUCCEEDED(result)  (result == VK_SUCCESS)
-#define VK_CHECK_FAILED(result)     (result != VK_SUCCESS)
+#include <vulkan/vulkan.h>
+#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanRenderContext.hpp"
 
 namespace Bonsai
 {
+    class VulkanRenderContext;
+
     class GraphicsDevice
     {
+    private:
+        struct VulkanInstanceState;
+        struct VulkanPhysicalDeviceInfo;
+        struct VulkanDeviceState;
+
+        /// @brief Constructor for graphics device.
+        /// @param instanceState Initialized instance state.
+        /// @param physicalDeviceInfo Initialized physical device info.
+        /// @param deviceState Initialized device state.
+        /// @param renderContext Initialized render context.
+        GraphicsDevice(
+            VulkanInstanceState const& instanceState,
+            VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
+            VulkanDeviceState const& deviceState,
+            std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
+            std::unique_ptr<VulkanRenderContext>&& renderContext
+        );
+
     public:
         virtual ~GraphicsDevice();
 
@@ -23,7 +45,23 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
+        /// @brief Start a new frame on the graphics device.
+        /// @return The frame context for the started frame.
+        FrameContext* StartFrame();
+
+        /// @brief Submit a frame to the graphics device.
+        /// @param frameContext Frame context to submit.
+        void SubmitFrame(FrameContext* frameContext);
+
+        /// @brief Wait for the graphics device to be idle.
+        void WaitForIdle();
+
     private:
+        /// @brief Reference API version against which the graphics implementation is written.
+        static constexpr uint32_t ReferenceVulkanApiVersion = VK_API_VERSION_1_3;
+        /// @brief Number of frames that can be recorded simultaneously.
+        static constexpr uint32_t FramesInFlight = 2u;
+
         /// @brief Vulkan instance level state.
         struct VulkanInstanceState
         {
@@ -50,19 +88,6 @@ namespace Bonsai
             VkQueue computeQueue;
             VkQueue transferQueue;
         };
-
-        /// @brief Reference API version against which the graphics implementation is written.
-        static constexpr uint32_t ReferenceVulkanApiVersion = VK_API_VERSION_1_3;
-
-        /// @brief Constructor for graphics device.
-        /// @param instanceState Initialized instance state.
-        /// @param physicalDeviceInfo Initialized physical device info.
-        /// @param deviceState Initialized device state.
-        GraphicsDevice(
-            VulkanInstanceState const& instanceState,
-            VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
-            VulkanDeviceState const& deviceState
-        );
 
         /// @brief Create Vulkan instance level state.
         /// @return An optional Vulkan instance state structure.
@@ -92,9 +117,11 @@ namespace Bonsai
         [[nodiscard]] static std::vector<uint32_t> GetUniqueQueueFamilyIndices(VulkanPhysicalDeviceInfo const& physicalDeviceInfo);
 
     private:
-        VulkanInstanceState _instanceState{};
-        VulkanPhysicalDeviceInfo _physicalDeviceInfo{};
-        VulkanDeviceState _deviceState{};
+        VulkanInstanceState _instanceState;
+        VulkanPhysicalDeviceInfo _physicalDeviceInfo;
+        VulkanDeviceState _deviceState;
+        std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
+        std::unique_ptr<VulkanRenderContext> _renderContext;
     };
 } // namespace Bonsai
 
