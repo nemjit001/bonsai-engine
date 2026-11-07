@@ -4,15 +4,16 @@
 
 #define VK_NO_PROTOTYPES
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
-#include "Gfx/Vulkan/VulkanRenderContext.hpp"
+#include "Gfx/GraphicsTypesInternal.hpp"
 
 namespace Bonsai
 {
+    struct VulkanSharedDeviceState;
     class VulkanRenderContext;
 
     class GraphicsDevice
@@ -45,9 +46,15 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
+        /// @brief Create a swap chain on this graphics device.
+        /// @return A new graphics swapchain, or nullptr on failure.
+        [[nodiscard]] GraphicsSwapchain* CreateSwapchain();
+
         /// @brief Start a new frame on the graphics device.
+        /// @param swapchain Swapchain participating in this frame.
+        /// @param swapchainCount Number of swapchains in the swapchains array.
         /// @return The frame context for the started frame.
-        FrameContext* StartFrame();
+        [[nodiscard]] FrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
         /// @brief Submit a frame to the graphics device.
         /// @param frameContext Frame context to submit.

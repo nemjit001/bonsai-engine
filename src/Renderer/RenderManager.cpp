@@ -34,20 +34,32 @@ namespace Bonsai
             return false;
         }
 
+        // Create a swapchain
+        SPDLOG_TRACE("Creating graphics swapchain");
+        _swapchain = _graphicsDevice->CreateSwapchain();
+        if (_swapchain == nullptr)
+        {
+            SPDLOG_ERROR("Failed to create graphics swapchain");
+            delete _graphicsDevice;
+            SDL_DestroyWindow(_window);
+            return false;
+        }
+
         return true;
     }
 
     void RenderManager::Shutdown()
     {
         _graphicsDevice->WaitForIdle();
-        SDL_DestroyWindow(_window);
+        delete _swapchain;
         delete _graphicsDevice;
+        SDL_DestroyWindow(_window);
     }
 
     bool RenderManager::StartFrame()
     {
         // Try to start a new frame
-        _activeFrame = _graphicsDevice->StartFrame();
+        _activeFrame = _graphicsDevice->StartFrame(&_swapchain, 1);
         if (!_activeFrame) {
             return false;
         }

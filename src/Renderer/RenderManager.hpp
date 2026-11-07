@@ -32,6 +32,7 @@ namespace Bonsai
     private:
         SDL_Window* _window = nullptr;
         GraphicsDevice* _graphicsDevice = nullptr;
+        GraphicsSwapchain* _swapchain = nullptr;
         FrameContext* _activeFrame = nullptr;
     };
 } // namespace Bonsai

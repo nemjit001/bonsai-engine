@@ -85,8 +85,8 @@ namespace Bonsai
         {
             VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
             if ((queueProperties.queueFlags & requiredFlags) == requiredFlags
-                && (queueProperties.queueFlags & ignoredFlags) == 0)
-            {
+                && (queueProperties.queueFlags & ignoredFlags) == 0
+            ) {
                 return i;
             }
         }
@@ -95,8 +95,7 @@ namespace Bonsai
         for (uint32_t i = 0; i < availableQueueFamilies.size(); i++)
         {
             VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
-            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags)
-            {
+            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags) {
                 return i;
             }
         }
@@ -195,7 +194,12 @@ namespace Bonsai
         );
     }
 
-    FrameContext* GraphicsDevice::StartFrame()
+    GraphicsSwapchain* GraphicsDevice::CreateSwapchain()
+    {
+        return nullptr;
+    }
+
+    FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
     {
         return _renderContext->StartFrame();
     }

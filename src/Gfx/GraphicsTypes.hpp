@@ -5,6 +5,7 @@
 namespace Bonsai
 {
     struct FrameContext;
+    struct GraphicsSwapchain;
 } // namespace Bonsai
 
 #endif //BONSAI_GRAPHICS_TYPES_HPP

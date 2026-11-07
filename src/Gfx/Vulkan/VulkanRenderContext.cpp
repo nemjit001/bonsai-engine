@@ -95,9 +95,10 @@ namespace Bonsai
 
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frame.frameReadyFence))
-            || VK_CHECK_FAILED(vkResetCommandBuffer(frame.frameCommandBuffer, 0))) {
-                return nullptr;
-            }
+            || VK_CHECK_FAILED(vkResetCommandBuffer(frame.frameCommandBuffer, 0))
+        ) {
+            return nullptr;
+        }
 
         // Begin frame command buffer
         VkCommandBufferBeginInfo frameCommandBufferBeginInfo{};
