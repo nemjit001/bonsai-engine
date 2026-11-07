@@ -18,9 +18,11 @@ namespace Bonsai
     {
         uint64_t framesInFlight;
         uint32_t graphicsQueueFamily;
+        uint32_t presentQueueFamily;
         uint32_t computeQueueFamily;
         uint32_t transferQueueFamily;
         VkQueue graphicsQueue;
+        VkQueue presentQueue;
         VkQueue computeQueue;
         VkQueue transferQueue;
     };

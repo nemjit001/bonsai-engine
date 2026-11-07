@@ -75,17 +75,22 @@ namespace Bonsai
     /// @return The found queue family, or VK_QUEUE_FAMILY_IGNORED on failure.
     [[nodiscard]]
     static uint32_t FindQueueFamily(
+        VkInstance instance,
+        VkPhysicalDevice physicalDevice,
         std::vector<VkQueueFamilyProperties> const& availableQueueFamilies,
         VkQueueFlagBits requiredFlags,
-        VkQueueFlags ignoredFlags
+        VkQueueFlags ignoredFlags,
+        bool requirePresentSupport
     )
     {
         // Perform first search with ignored flags for distinct queues
         for (uint32_t i = 0; i < availableQueueFamilies.size(); i++)
         {
             VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
+            bool const hasPresentSupport = SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, i);
             if ((queueProperties.queueFlags & requiredFlags) == requiredFlags
                 && (queueProperties.queueFlags & ignoredFlags) == 0
+                && (!requirePresentSupport || hasPresentSupport)
             ) {
                 return i;
             }
@@ -95,7 +100,10 @@ namespace Bonsai
         for (uint32_t i = 0; i < availableQueueFamilies.size(); i++)
         {
             VkQueueFamilyProperties const& queueProperties = availableQueueFamilies[i];
-            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags) {
+            bool const hasPresentSupport = SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, i);
+            if ((queueProperties.queueFlags & requiredFlags) == requiredFlags    
+                && (!requirePresentSupport || hasPresentSupport)
+            ) {
                 return i;
             }
         }
@@ -136,6 +144,10 @@ namespace Bonsai
             return nullptr;
         }
 
+        if (!SDL_Vulkan_LoadLibrary(nullptr)) {
+            return nullptr;
+        }
+
         // Create instance state
         SPDLOG_TRACE("Creating Vulkan instance state");
         std::optional<VulkanInstanceState> const instanceState = CreateInstanceState();
@@ -169,9 +181,11 @@ namespace Bonsai
         auto sharedDeviceState = std::make_unique<VulkanSharedDeviceState>();
         sharedDeviceState->framesInFlight = FramesInFlight;
         sharedDeviceState->graphicsQueueFamily = physicalDeviceInfo->graphicsQueueFamily;
+        sharedDeviceState->presentQueueFamily = physicalDeviceInfo->presentQueueFamily;
         sharedDeviceState->computeQueueFamily = physicalDeviceInfo->computeQueueFamily;
         sharedDeviceState->transferQueueFamily = physicalDeviceInfo->transferQueueFamily;
         sharedDeviceState->graphicsQueue = deviceState->graphicsQueue;
+        sharedDeviceState->presentQueue = deviceState->presentQueue;
         sharedDeviceState->computeQueue = deviceState->computeQueue;
         sharedDeviceState->transferQueue = deviceState->transferQueue;
 
@@ -377,9 +391,10 @@ namespace Bonsai
             }();
 
             // Find queue families for physical device
-            physicalDeviceInfo.graphicsQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT, 0);
-            physicalDeviceInfo.computeQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT);
-            physicalDeviceInfo.transferQueueFamily = FindQueueFamily(queueFamilyProperties, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT);
+            physicalDeviceInfo.graphicsQueueFamily = FindQueueFamily(instanceState.instance, physicalDeviceInfo.physicalDevice, queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT, 0, false);
+            physicalDeviceInfo.presentQueueFamily = FindQueueFamily(instanceState.instance, physicalDeviceInfo.physicalDevice, queueFamilyProperties, VK_QUEUE_GRAPHICS_BIT, 0, true);
+            physicalDeviceInfo.computeQueueFamily = FindQueueFamily(instanceState.instance, physicalDeviceInfo.physicalDevice, queueFamilyProperties, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, false);
+            physicalDeviceInfo.transferQueueFamily = FindQueueFamily(instanceState.instance, physicalDeviceInfo.physicalDevice, queueFamilyProperties, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, false);
         }
 
         // Verify physical device support
@@ -400,6 +415,7 @@ namespace Bonsai
 
             // Check if the required queue families were found
             if (physicalDeviceInfo.graphicsQueueFamily == VK_QUEUE_FAMILY_IGNORED
+                || physicalDeviceInfo.presentQueueFamily == VK_QUEUE_FAMILY_IGNORED
                 || physicalDeviceInfo.computeQueueFamily == VK_QUEUE_FAMILY_IGNORED
                 || physicalDeviceInfo.transferQueueFamily == VK_QUEUE_FAMILY_IGNORED)
             {
@@ -491,9 +507,11 @@ namespace Bonsai
 
         // Get device queues
         VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue presentQueue = VK_NULL_HANDLE;
         VkQueue computeQueue = VK_NULL_HANDLE;
         VkQueue transferQueue = VK_NULL_HANDLE;
         vkGetDeviceQueue(device, physicalDeviceInfo.graphicsQueueFamily, 0, &graphicsQueue);
+        vkGetDeviceQueue(device, physicalDeviceInfo.presentQueueFamily, 0, &presentQueue);
         vkGetDeviceQueue(device, physicalDeviceInfo.computeQueueFamily, 0, &computeQueue);
         vkGetDeviceQueue(device, physicalDeviceInfo.transferQueueFamily, 0, &transferQueue);
 
@@ -503,6 +521,7 @@ namespace Bonsai
         return VulkanDeviceState {
             device,
             graphicsQueue,
+            presentQueue,
             computeQueue,
             transferQueue,
         };
@@ -526,6 +545,7 @@ namespace Bonsai
         // Get list of queue families
         std::vector<uint32_t> queueFamilies = {
             physicalDeviceInfo.graphicsQueueFamily,
+            physicalDeviceInfo.presentQueueFamily,
             physicalDeviceInfo.computeQueueFamily,
             physicalDeviceInfo.transferQueueFamily,
         };

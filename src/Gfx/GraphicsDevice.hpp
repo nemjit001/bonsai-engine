@@ -83,6 +83,7 @@ namespace Bonsai
             bool isSupported;
             VkPhysicalDeviceProperties2 physicalDeviceProperties2;
             uint32_t graphicsQueueFamily;
+            uint32_t presentQueueFamily;
             uint32_t computeQueueFamily;
             uint32_t transferQueueFamily;
         };
@@ -92,6 +93,7 @@ namespace Bonsai
         {
             VkDevice device;
             VkQueue graphicsQueue;
+            VkQueue presentQueue;
             VkQueue computeQueue;
             VkQueue transferQueue;
         };

@@ -180,7 +180,7 @@ namespace Bonsai
         presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
         presentInfo.pResults = nullptr;
 
-        if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->graphicsQueue, &presentInfo))) {
+        if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
             return;
         }
     }
