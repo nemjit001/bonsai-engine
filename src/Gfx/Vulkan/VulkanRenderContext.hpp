@@ -33,8 +33,10 @@ namespace Bonsai
         );
 
         /// @brief Start a Vulkan frame.
+        /// @param swapchain Swapchains participating in this frame.
+        /// @param swapchainCount Number of swapchains in the swapchains array.
         /// @return Frame context for the frame.
-        VulkanFrameContext* StartFrame();
+        VulkanFrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
         /// @brief Submit a Vulkan frame.
         /// @param frameContext Frame context for the frame.

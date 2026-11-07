@@ -196,12 +196,13 @@ namespace Bonsai
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain()
     {
+        // TODO(nemjit001): Create Vulkan swapchain here
         return nullptr;
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
     {
-        return _renderContext->StartFrame();
+        return _renderContext->StartFrame(swapchains, swapchainCount);
     }
 
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)

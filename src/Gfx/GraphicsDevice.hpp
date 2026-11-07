@@ -51,7 +51,7 @@ namespace Bonsai
         [[nodiscard]] GraphicsSwapchain* CreateSwapchain();
 
         /// @brief Start a new frame on the graphics device.
-        /// @param swapchain Swapchain participating in this frame.
+        /// @param swapchain Swapchains participating in this frame.
         /// @param swapchainCount Number of swapchains in the swapchains array.
         /// @return The frame context for the started frame.
         [[nodiscard]] FrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
