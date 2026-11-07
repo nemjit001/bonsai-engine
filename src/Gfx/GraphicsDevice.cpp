@@ -108,19 +108,23 @@ namespace Bonsai
         VulkanInstanceState const& instanceState,
         VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
         VulkanDeviceState const& deviceState,
-        VulkanRenderContext* renderContext
+        std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
+        std::unique_ptr<VulkanRenderContext>&& renderContext
     )
         :
         _instanceState(instanceState),
         _physicalDeviceInfo(physicalDeviceInfo),
         _deviceState(deviceState),
-        _renderContext(renderContext)
+        _sharedDeviceState(std::move(sharedDeviceState)),
+        _renderContext(std::move(renderContext))
     {
         //
     }
 
     GraphicsDevice::~GraphicsDevice()
     {
+        _renderContext.reset();
+        _sharedDeviceState.reset();
         DestroyDeviceState(_deviceState);
         DestroyInstanceState(_instanceState);
         volkFinalize();
@@ -162,9 +166,19 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create shared device state
+        auto sharedDeviceState = std::make_unique<VulkanSharedDeviceState>();
+        sharedDeviceState->framesInFlight = FramesInFlight;
+        sharedDeviceState->graphicsQueueFamily = physicalDeviceInfo->graphicsQueueFamily;
+        sharedDeviceState->computeQueueFamily = physicalDeviceInfo->computeQueueFamily;
+        sharedDeviceState->transferQueueFamily = physicalDeviceInfo->transferQueueFamily;
+        sharedDeviceState->graphicsQueue = deviceState->graphicsQueue;
+        sharedDeviceState->computeQueue = deviceState->computeQueue;
+        sharedDeviceState->transferQueue = deviceState->transferQueue;
+
         // Create Vulkan render context
-        VulkanRenderContext* renderContext = VulkanRenderContext::TryCreate(deviceState->device, deviceState->graphicsQueue, FramesInFlight);
-        if (renderContext == nullptr)
+        auto renderContext = std::unique_ptr<VulkanRenderContext>(VulkanRenderContext::TryCreate(deviceState->device, sharedDeviceState.get()));
+        if (!renderContext)
         {
             SPDLOG_ERROR("Failed to create Vulkan render context");
             DestroyDeviceState(deviceState.value());
@@ -176,7 +190,8 @@ namespace Bonsai
             instanceState.value(),
             physicalDeviceInfo.value(),
             deviceState.value(),
-            renderContext
+            std::move(sharedDeviceState),
+            std::move(renderContext)
         );
     }
 

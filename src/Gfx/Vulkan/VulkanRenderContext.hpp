@@ -13,8 +13,7 @@ namespace Bonsai
     private:
         VulkanRenderContext(
             VkDevice device,
-            VkQueue graphicsQueue,
-            uint64_t framesInFlight,
+            VulkanSharedDeviceState* sharedDeviceState,
             std::vector<VulkanFrameContext> const& frames
         );
 
@@ -26,13 +25,11 @@ namespace Bonsai
 
         /// @brief Try to create a Vulkan render context.
         /// @param device Logical device to use in the render context.
-        /// @param graphicsQueue Graphics queue to use for frame submissions.
-        /// @param framesInFlight Number of simultaneous frames in flight.
+        /// @param sharedDeviceState Shared device state.
         /// @return 
         static VulkanRenderContext* TryCreate(
             VkDevice device,
-            VkQueue graphicsQueue,
-            uint64_t framesInFlight
+            VulkanSharedDeviceState* sharedDeviceState
         );
 
         /// @brief Start a Vulkan frame.
@@ -44,12 +41,10 @@ namespace Bonsai
         void SubmitFrame(VulkanFrameContext* frameContext);
 
     private:
-        VkDevice _device = VK_NULL_HANDLE;
-        VkQueue _graphicsQueue = VK_NULL_HANDLE;
-        uint64_t _framesInFlight = 0;
-
+        VkDevice _device;
+        VulkanSharedDeviceState* _sharedDeviceState;
         std::vector<VulkanFrameContext> _frames;
-        uint64_t _currentFrameIndex = 0;
+        uint64_t _currentFrameIndex;
     };
 } // namespace Bonsai
 

@@ -4,10 +4,12 @@
 
 #define VK_NO_PROTOTYPES
 
+#include <memory>
 #include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "Gfx/GraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanRenderContext.hpp"
 
 namespace Bonsai
 {
@@ -29,7 +31,8 @@ namespace Bonsai
             VulkanInstanceState const& instanceState,
             VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
             VulkanDeviceState const& deviceState,
-            VulkanRenderContext* renderContext
+            std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
+            std::unique_ptr<VulkanRenderContext>&& renderContext
         );
 
     public:
@@ -117,7 +120,8 @@ namespace Bonsai
         VulkanInstanceState _instanceState;
         VulkanPhysicalDeviceInfo _physicalDeviceInfo;
         VulkanDeviceState _deviceState;
-        VulkanRenderContext* _renderContext = nullptr;
+        std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
+        std::unique_ptr<VulkanRenderContext> _renderContext;
     };
 } // namespace Bonsai
 
