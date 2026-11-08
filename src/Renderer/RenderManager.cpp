@@ -36,7 +36,14 @@ namespace Bonsai
 
         // Create a swapchain
         SPDLOG_TRACE("Creating graphics swapchain");
-        _swapchain = _graphicsDevice->CreateSwapchain();
+        GraphicsSwapchainDesc swapchainDesc{};
+        swapchainDesc.window = _window;
+        swapchainDesc.width = DefaultWindowWidth;
+        swapchainDesc.height = DefaultWindowHeight;
+        swapchainDesc.syncInterval = 0;
+        swapchainDesc.allowTearing = false;
+
+        _swapchain = _graphicsDevice->CreateSwapchain(swapchainDesc);
         if (_swapchain == nullptr)
         {
             SPDLOG_ERROR("Failed to create graphics swapchain");
@@ -50,8 +57,7 @@ namespace Bonsai
 
     void RenderManager::Shutdown()
     {
-        _graphicsDevice->WaitForIdle();
-        delete _swapchain;
+        _graphicsDevice->DestroySwapchain(_swapchain);
         delete _graphicsDevice;
         SDL_DestroyWindow(_window);
     }

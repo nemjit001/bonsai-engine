@@ -8,6 +8,7 @@
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
+#include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
 
 namespace Bonsai
@@ -116,20 +117,27 @@ namespace Bonsai
         VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
         VulkanDeviceState const& deviceState,
         std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
-        std::unique_ptr<VulkanRenderContext>&& renderContext
+        std::unique_ptr<VulkanRenderContext>&& renderContext,
+        std::unique_ptr<VulkanObjectFactory>&& objectFactory
     )
         :
         _instanceState(instanceState),
         _physicalDeviceInfo(physicalDeviceInfo),
         _deviceState(deviceState),
         _sharedDeviceState(std::move(sharedDeviceState)),
-        _renderContext(std::move(renderContext))
+        _renderContext(std::move(renderContext)),
+        _objectFactory(std::move(objectFactory))
     {
         //
     }
 
     GraphicsDevice::~GraphicsDevice()
     {
+        // Wait for all frames to finish executing
+        _renderContext->waitForAllFrames();
+
+        // Clean up Vulkan state
+        _objectFactory.reset();
         _renderContext.reset();
         _sharedDeviceState.reset();
         DestroyDeviceState(_deviceState);
@@ -199,19 +207,35 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create Vulkan object factory
+        auto objectFactory = std::unique_ptr<VulkanObjectFactory>(VulkanObjectFactory::TryCreate(instanceState->instance, physicalDeviceInfo->physicalDevice, deviceState->device, sharedDeviceState.get()));
+        if (!objectFactory)
+        {
+            SPDLOG_ERROR("Failed to create Vulkan render context");
+            renderContext.reset();
+            DestroyDeviceState(deviceState.value());
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
         return new GraphicsDevice(
             instanceState.value(),
             physicalDeviceInfo.value(),
             deviceState.value(),
             std::move(sharedDeviceState),
-            std::move(renderContext)
+            std::move(renderContext),
+            std::move(objectFactory)
         );
     }
 
-    GraphicsSwapchain* GraphicsDevice::CreateSwapchain()
+    GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
-        // TODO(nemjit001): Create Vulkan swapchain here
-        return nullptr;
+        return _objectFactory->CreateSwapchain(swapchainDesc);
+    }
+
+    void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
+    {
+        delete swapchain;
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
@@ -222,13 +246,14 @@ namespace Bonsai
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
     {
         auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        _renderContext->RecordFrame(vulkanFrameContext);
         _renderContext->SubmitFrame(vulkanFrameContext);
     }
 
     void GraphicsDevice::WaitForIdle()
     {
-        // Wait for the Vulkan device to be idle
-        vkDeviceWaitIdle(_deviceState.device);
+        // Wait for all frames to finish rendering
+        _renderContext->waitForAllFrames();
     }
 
     std::optional<GraphicsDevice::VulkanInstanceState> GraphicsDevice::CreateInstanceState()

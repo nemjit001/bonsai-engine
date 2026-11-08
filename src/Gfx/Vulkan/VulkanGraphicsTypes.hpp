@@ -36,6 +36,21 @@ namespace Bonsai
         std::vector<uint32_t> imageIndices;
     };
 
+    /// @brief Vulkan swapchain implementation.
+    struct VulkanSwapchain : public GraphicsSwapchain
+    {
+        VkPhysicalDevice physicalDevice;
+        VkDevice device;
+        VkSurfaceKHR surface;
+        VulkanSharedDeviceState* sharedDeviceState;
+        VkSwapchainKHR swapchain;
+        std::vector<VkImage> swapchainImages;
+        std::vector<VkSemaphore> imageAvailableSemaphores;
+        uint32_t currentImageSemaphoreIndex;
+        uint32_t activeImageIndex;
+        bool recreateSwapchain;
+    };
+    
     /// @brief Vulkan frame context implementation.
     struct VulkanFrameContext : public FrameContext
     {
@@ -43,21 +58,8 @@ namespace Bonsai
         VkSemaphore renderingFinishedSemaphore;
         VkCommandPool graphicsCommandPool;
         VkCommandBuffer frameCommandBuffer;
+        std::vector<VulkanSwapchain*> participatingSwapchains;
         VulkanFrameSwapchainInfo swapchainInfo;
-    };
-
-    /// @brief Vulkan swapchain implementation.
-    struct VulkanSwapchain : public GraphicsSwapchain
-    {
-        VkPhysicalDevice physicalDevice;
-        VkDevice device;
-        VkSurfaceKHR surface;
-        VkSwapchainKHR swapchain;
-        std::vector<VkImage> swapchainImages;
-        std::vector<VkSemaphore> imageAvailableSemaphores;
-        uint32_t currentImageSemaphoreIndex;
-        uint32_t activeImageIndex;
-        bool recreateSwapchain;
     };
 } // namespace Bonsai
 

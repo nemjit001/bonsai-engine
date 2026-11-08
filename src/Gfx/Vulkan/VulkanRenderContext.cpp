@@ -35,7 +35,7 @@ namespace Bonsai
         VulkanSharedDeviceState* sharedDeviceState
     )
     {
-        assert(device != VK_NULL_HANDLE && "Device was VK_NULL_HANDLE!");
+        assert(device != VK_NULL_HANDLE && "Vulkan device was VK_NULL_HANDLE!");
         assert(sharedDeviceState != nullptr && "Shared device state was null!");
 
         // Create frames
@@ -103,9 +103,7 @@ namespace Bonsai
     {
         // Acquire the frame by waiting on the frame fence
         VulkanFrameContext& frame = _frames[_currentFrameIndex % _sharedDeviceState->framesInFlight];
-        if (VK_CHECK_FAILED(vkWaitForFences(_device, 1, &frame.frameReadyFence, VK_TRUE, UINT64_MAX))) {
-            return nullptr;
-        }
+        waitForFrame(frame);
 
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frame.frameReadyFence))
@@ -115,6 +113,7 @@ namespace Bonsai
         }
 
         // Clear old swapchain data
+        frame.participatingSwapchains.clear();
         frame.swapchainInfo.swapchains.clear();
         frame.swapchainInfo.imageAvailableSemaphores.clear();
         frame.swapchainInfo.dstWaitStageMasks.clear();
@@ -135,9 +134,44 @@ namespace Bonsai
 
             // Add swapchain to frame swapchain info
             VulkanSwapchainHelpers::RegisterWithFrame(frame.swapchainInfo, *vulkanSwapchain);
+            frame.participatingSwapchains.push_back(vulkanSwapchain);
         }
 
         return &frame;
+    }
+
+    void VulkanRenderContext::RecordFrame(VulkanFrameContext* frameContext)
+    {
+        // Check for a valid frame context
+        if (frameContext == nullptr) {
+            return;
+        }
+
+        // Begin command buffer recording
+        VkCommandBufferBeginInfo commandBufferBeginInfo{};
+        commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        commandBufferBeginInfo.pNext = nullptr;
+        commandBufferBeginInfo.flags = 0;
+        commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+        if (VK_CHECK_FAILED(vkBeginCommandBuffer(frameContext->frameCommandBuffer, &commandBufferBeginInfo))) {
+            return;
+        }
+        
+        // Prepare all swapchains for rendering
+        for (auto const& swapchain : frameContext->participatingSwapchains) {
+            VulkanSwapchainHelpers::PrepareForRendering(*swapchain, frameContext->frameCommandBuffer);
+        }
+
+        // Prepare all swapchains for presentation
+        for (auto const& swapchain : frameContext->participatingSwapchains) {
+            VulkanSwapchainHelpers::PrepareForPresent(*swapchain, frameContext->frameCommandBuffer);
+        }
+
+        // End command buffer recording
+        if (VK_CHECK_FAILED(vkEndCommandBuffer(frameContext->frameCommandBuffer))) {
+            return;
+        }
     }
 
     void VulkanRenderContext::SubmitFrame(VulkanFrameContext* frameContext)
@@ -181,6 +215,20 @@ namespace Bonsai
         presentInfo.pResults = nullptr;
 
         if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
+            return;
+        }
+    }
+
+    void VulkanRenderContext::waitForAllFrames()
+    {
+        for (auto const& frame : _frames) {
+            waitForFrame(frame);
+        }
+    }
+
+    void VulkanRenderContext::waitForFrame(VulkanFrameContext const& frameContext)
+    {
+        if (VK_CHECK_FAILED(vkWaitForFences(_device, 1, &frameContext.frameReadyFence, VK_TRUE, UINT64_MAX))) {
             return;
         }
     }

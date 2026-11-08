@@ -4,17 +4,52 @@
 
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
-namespace Bonsai::VulkanSwapchainHelpers
+namespace Bonsai
 {
-    /// @brief Acquire the next image for a swapchain.
-    /// @param swapchain Swapchain to use for image acquisition.
-    /// @return A boolean indicating success.
-    [[nodiscard]] bool AcquireNextImage(VulkanSwapchain& swapchain);
+    struct VulkanSwapchainDesc
+    {
+        VkPhysicalDevice physicalDevice;
+        VkDevice device;
+        VkSurfaceKHR surface;
+        VulkanSharedDeviceState* sharedDeviceState;
+        uint32_t width;
+        uint32_t height;
+        uint32_t syncInterval;
+        bool allowTearing;
+    };
 
-    /// @brief Register a swapchain with a frame's swapchain info.
-    /// @param swapchainInfo Swapchain info to register with.
-    /// @param swapchain Swapchain to register.
-    void RegisterWithFrame(VulkanFrameSwapchainInfo& swapchainInfo, VulkanSwapchain const& swapchain);
-} // namespace Bonsai::VulkanSwapchainHelpers
+    namespace VulkanSwapchainHelpers
+    {
+        /// @brief Configure a Vulkan swapchain.
+        /// @param swapchainDesc Vulkan swapchain description.
+        /// @param swapchain Swapchain to configure.
+        /// @return A boolean indicating success.
+        [[nodiscard]] bool ConfigureSwapchain(VulkanSwapchainDesc const& swapchainDesc, VulkanSwapchain& swapchain);
+
+        /// @brief Destroy swapchain state.
+        /// @param swapchain Swapchain to destroy state for.
+        void DestroySwapchain(VulkanSwapchain& swapchain);
+
+        /// @brief Acquire the next image for a Vulkan swapchain.
+        /// @param swapchain Swapchain to use for image acquisition.
+        /// @return A boolean indicating success.
+        [[nodiscard]] bool AcquireNextImage(VulkanSwapchain& swapchain);
+
+        /// @brief Register a Vulkan swapchain with a frame's swapchain info.
+        /// @param swapchainInfo Swapchain info to register with.
+        /// @param swapchain Swapchain to register.
+        void RegisterWithFrame(VulkanFrameSwapchainInfo& swapchainInfo, VulkanSwapchain const& swapchain);
+
+        /// @brief Prepare a swapchain for rendering.
+        /// @param swapchain Swapchain to prep.
+        /// @param commandBuffer Command buffer to record commands into.
+        void PrepareForRendering(VulkanSwapchain& swapchain, VkCommandBuffer commandBuffer);
+
+        /// @brief Prepare a swapchain for presentation.
+        /// @param swapchain Swapchain to prep.
+        /// @param commandBuffer Command buffer to record commands into.
+        void PrepareForPresent(VulkanSwapchain& swapchain, VkCommandBuffer commandBuffer);
+    } // namespace VulkanSwapchainHelpers
+} // namespace Bonsai
 
 #endif //BONSAI_VULKAN_SWAPCHAIN_HELPERS

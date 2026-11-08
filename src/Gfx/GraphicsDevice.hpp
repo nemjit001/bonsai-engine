@@ -9,12 +9,13 @@
 #include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "Gfx/GraphicsTypesInternal.hpp"
+#include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
 {
     struct VulkanSharedDeviceState;
     class VulkanRenderContext;
+    class VulkanObjectFactory;
 
     class GraphicsDevice
     {
@@ -28,12 +29,14 @@ namespace Bonsai
         /// @param physicalDeviceInfo Initialized physical device info.
         /// @param deviceState Initialized device state.
         /// @param renderContext Initialized render context.
+        /// @param objectFactory Initialized object factory.
         GraphicsDevice(
             VulkanInstanceState const& instanceState,
             VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
             VulkanDeviceState const& deviceState,
             std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
-            std::unique_ptr<VulkanRenderContext>&& renderContext
+            std::unique_ptr<VulkanRenderContext>&& renderContext,
+            std::unique_ptr<VulkanObjectFactory>&& objectFactory
         );
 
     public:
@@ -46,9 +49,14 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
-        /// @brief Create a swap chain on this graphics device.
+        /// @brief Create a swapchain on this graphics device.
+        /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
-        [[nodiscard]] GraphicsSwapchain* CreateSwapchain();
+        [[nodiscard]] GraphicsSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
+
+        /// @brief Destroy a swapchain.
+        /// @param swapchain Swapchain to destroy.
+        void DestroySwapchain(GraphicsSwapchain* swapchain);
 
         /// @brief Start a new frame on the graphics device.
         /// @param swapchain Swapchains participating in this frame.
@@ -131,6 +139,7 @@ namespace Bonsai
         VulkanDeviceState _deviceState;
         std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
         std::unique_ptr<VulkanRenderContext> _renderContext;
+        std::unique_ptr<VulkanObjectFactory> _objectFactory;
     };
 } // namespace Bonsai
 

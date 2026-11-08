@@ -38,9 +38,21 @@ namespace Bonsai
         /// @return Frame context for the frame.
         VulkanFrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
+        /// @brief Record a Vulkan frame.
+        /// @param frameContext Frame context for the frame.
+        void RecordFrame(VulkanFrameContext* frameContext);
+
         /// @brief Submit a Vulkan frame.
         /// @param frameContext Frame context for the frame.
         void SubmitFrame(VulkanFrameContext* frameContext);
+
+        /// @brief Wait for all frames to finish executing.
+        void waitForAllFrames();
+
+    private:
+        /// @brief Wait for a single frame to finish executing.
+        /// @param frameContext Frame context to wait on.
+        void waitForFrame(VulkanFrameContext const& frameContext);
 
     private:
         VkDevice _device;
