@@ -59,8 +59,8 @@ target_sources(BonsaiEngineLib
         src/Gfx/Vulkan/VulkanObjectFactory.hpp
         src/Gfx/Vulkan/VulkanRenderContext.cpp
         src/Gfx/Vulkan/VulkanRenderContext.hpp
-        src/Gfx/Vulkan/VulkanSwapchainHelpers.cpp
-        src/Gfx/Vulkan/VulkanSwapchainHelpers.hpp
+        src/Gfx/Vulkan/VulkanSwapchain.cpp
+        src/Gfx/Vulkan/VulkanSwapchain.hpp
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp

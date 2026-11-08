@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
-#include "Gfx/Vulkan/VulkanSwapchainHelpers.hpp"
+#include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
 {
@@ -131,12 +131,12 @@ namespace Bonsai
             }
 
             // Try to acquire the next swapchain image
-            if (!VulkanSwapchainHelpers::AcquireNextImage(*vulkanSwapchain)) {
+            if (!vulkanSwapchain->AcquireNextImage()) {
                 continue;
             }
 
             // Add swapchain to frame swapchain info
-            VulkanSwapchainHelpers::RegisterWithFrame(frame.swapchainInfo, *vulkanSwapchain);
+            vulkanSwapchain->RegisterWithFrame(frame.swapchainInfo);
             frame.participatingSwapchains.push_back(vulkanSwapchain);
         }
 
@@ -163,12 +163,12 @@ namespace Bonsai
         
         // Prepare all swapchains for rendering
         for (auto const& swapchain : frameContext->participatingSwapchains) {
-            VulkanSwapchainHelpers::PrepareForRendering(*swapchain, frameContext->frameCommandBuffer);
+            swapchain->PrepareForRendering(frameContext->frameCommandBuffer);
         }
 
         // Prepare all swapchains for presentation
         for (auto const& swapchain : frameContext->participatingSwapchains) {
-            VulkanSwapchainHelpers::PrepareForPresent(*swapchain, frameContext->frameCommandBuffer);
+            swapchain->PrepareForPresent(frameContext->frameCommandBuffer);
         }
 
         // End command buffer recording

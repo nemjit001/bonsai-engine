@@ -10,7 +10,7 @@
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
-#include "Gfx/Vulkan/VulkanSwapchainHelpers.hpp"
+#include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
 {
@@ -236,13 +236,6 @@ namespace Bonsai
 
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
     {
-        auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
-        if (vulkanSwapchain == nullptr) {
-            return;
-        }
-
-        VulkanSwapchainHelpers::DestroySwapchain(*vulkanSwapchain);
-        vkDestroySurfaceKHR(_instanceState.instance, vulkanSwapchain->surface, nullptr);
         delete swapchain;
     }
 
@@ -265,7 +258,7 @@ namespace Bonsai
             return;
         }
 
-        if (!VulkanSwapchainHelpers::ResizeSwapchain(*vulkanSwapchain, width, height)) {
+        if (!vulkanSwapchain->Resize(width, height)) {
             SPDLOG_WARN("Failed to resize swap chain to {} x {}", width, height);
         }
     }

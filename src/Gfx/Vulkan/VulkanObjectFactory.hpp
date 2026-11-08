@@ -32,7 +32,7 @@ namespace Bonsai
         /// @param device Logical device to use in the object factory.
         /// @param sharedDeviceState Shared device state.
         /// @return 
-        static VulkanObjectFactory* TryCreate(
+        [[nodiscard]] static VulkanObjectFactory* TryCreate(
             VkInstance instance,
             VkPhysicalDevice physicalDevice,
             VkDevice device,

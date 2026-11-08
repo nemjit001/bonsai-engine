@@ -11,9 +11,10 @@ namespace Bonsai
         //
     };
 
-    struct GraphicsSwapchain
+    class GraphicsSwapchain
     {
-        //
+    public:
+        virtual ~GraphicsSwapchain() = default;
     };
 } // namespace Bonsai
 

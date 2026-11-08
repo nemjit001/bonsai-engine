@@ -13,6 +13,8 @@
 
 namespace Bonsai
 {
+    class VulkanSwapchain;
+
     /// @brief Shared state for Vulkan devices.
     struct VulkanSharedDeviceState
     {
@@ -34,27 +36,6 @@ namespace Bonsai
         std::vector<VkSemaphore> imageAvailableSemaphores;
         std::vector<VkPipelineStageFlags> dstWaitStageMasks;
         std::vector<uint32_t> imageIndices;
-    };
-
-    /// @brief Vulkan swapchain implementation.
-    struct VulkanSwapchain : public GraphicsSwapchain
-    {
-        VkPhysicalDevice physicalDevice;
-        VkDevice device;
-        VkSurfaceKHR surface;
-        VulkanSharedDeviceState* sharedDeviceState;
-        
-        uint32_t width;
-        uint32_t height;
-        uint32_t syncInterval;
-        bool allowTearing;
-
-        VkSwapchainKHR swapchain;
-        std::vector<VkImage> swapchainImages;
-        std::vector<VkSemaphore> imageAvailableSemaphores;
-        uint32_t currentImageSemaphoreIndex;
-        uint32_t activeImageIndex;
-        bool recreateSwapchain;
     };
     
     /// @brief Vulkan frame context implementation.

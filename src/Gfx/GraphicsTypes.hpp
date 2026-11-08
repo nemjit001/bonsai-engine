@@ -7,7 +7,7 @@
 
 namespace Bonsai
 {
-    struct GraphicsSwapchain;
+    class GraphicsSwapchain;
     struct FrameContext;
 
     /// @brief Swapchain description.

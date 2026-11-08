@@ -1,9 +1,8 @@
 #include "VulkanObjectFactory.hpp"
 
 #include <cassert>
-#include <SDL3/SDL_vulkan.h>
 #include <volk.h>
-#include "Gfx/Vulkan/VulkanSwapchainHelpers.hpp"
+#include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
 {
@@ -44,25 +43,20 @@ namespace Bonsai
     
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
-        // Create Vulkan surface
-        VkSurfaceKHR surface = VK_NULL_HANDLE;
-        if (!SDL_Vulkan_CreateSurface(swapchainDesc.window, _instance, nullptr, &surface)) {
+        // Create swapchain
+        VulkanSwapchain* swapchain = VulkanSwapchain::TryCreate(swapchainDesc.window, _instance, _physicalDevice, _device, _sharedDeviceState);
+        if (swapchain == nullptr) {
             return nullptr;
         }
-
-        // Create the new swapchain and configure
+        
+        // Configure swapchain
         VulkanSwapchainDesc vulkanSwapchainDesc{};
-        vulkanSwapchainDesc.physicalDevice = _physicalDevice;
-        vulkanSwapchainDesc.device = _device;
-        vulkanSwapchainDesc.surface = surface;
-        vulkanSwapchainDesc.sharedDeviceState = _sharedDeviceState;
         vulkanSwapchainDesc.width = swapchainDesc.width;
         vulkanSwapchainDesc.height = swapchainDesc.height;
         vulkanSwapchainDesc.syncInterval = swapchainDesc.syncInterval;
         vulkanSwapchainDesc.allowTearing = swapchainDesc.allowTearing;
 
-        VulkanSwapchain* swapchain = new VulkanSwapchain{};
-        if (!VulkanSwapchainHelpers::ConfigureSwapchain(vulkanSwapchainDesc, *swapchain))
+        if (!swapchain->Configure(vulkanSwapchainDesc))
         {
             delete swapchain;
             return nullptr;

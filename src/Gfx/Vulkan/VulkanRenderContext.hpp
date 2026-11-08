@@ -27,7 +27,7 @@ namespace Bonsai
         /// @param device Logical device to use in the render context.
         /// @param sharedDeviceState Shared device state.
         /// @return 
-        static VulkanRenderContext* TryCreate(
+        [[nodiscard]] static VulkanRenderContext* TryCreate(
             VkDevice device,
             VulkanSharedDeviceState* sharedDeviceState
         );
