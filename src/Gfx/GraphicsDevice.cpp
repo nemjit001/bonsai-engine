@@ -236,6 +236,13 @@ namespace Bonsai
 
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
     {
+        auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+        if (vulkanSwapchain == nullptr) {
+            return;
+        }
+
+        VulkanSwapchainHelpers::DestroySwapchain(*vulkanSwapchain);
+        vkDestroySurfaceKHR(_instanceState.instance, vulkanSwapchain->surface, nullptr);
         delete swapchain;
     }
 
