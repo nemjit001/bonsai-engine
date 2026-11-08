@@ -404,7 +404,21 @@ namespace Bonsai
             // Get physical device properties
             physicalDeviceInfo.physicalDeviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
             physicalDeviceInfo.physicalDeviceProperties2.pNext = nullptr;
+
             vkGetPhysicalDeviceProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceProperties2);
+
+            // Get physical device features
+            physicalDeviceInfo.physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+            physicalDeviceInfo.physicalDeviceVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+            physicalDeviceInfo.physicalDeviceVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+            physicalDeviceInfo.physicalDeviceVulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+            physicalDeviceInfo.physicalDeviceFeatures2.pNext = &physicalDeviceInfo.physicalDeviceVulkan11Features;
+            physicalDeviceInfo.physicalDeviceVulkan11Features.pNext = &physicalDeviceInfo.physicalDeviceVulkan12Features;
+            physicalDeviceInfo.physicalDeviceVulkan12Features.pNext = &physicalDeviceInfo.physicalDeviceVulkan13Features;
+            physicalDeviceInfo.physicalDeviceVulkan13Features.pNext = nullptr;
+            
+            vkGetPhysicalDeviceFeatures2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceFeatures2);
 
             // Query queue family properties
             std::vector<VkQueueFamilyProperties> const queueFamilyProperties = [&physicalDeviceInfo]() {
@@ -432,6 +446,25 @@ namespace Bonsai
             if (physicalDeviceInfo.physicalDeviceProperties2.properties.apiVersion < ReferenceVulkanApiVersion)
             {
                 SPDLOG_WARN("Physical device was under minimum required Vulkan version: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                physicalDeviceInfo.isSupported = false;
+            }
+
+            // Check if all required features are supported
+            if (physicalDeviceInfo.physicalDeviceVulkan13Features.dynamicRendering != VK_TRUE)
+            {
+                SPDLOG_WARN("Physical device does not support the dynamic rendering feature: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                physicalDeviceInfo.isSupported = false;
+            }
+
+            if (physicalDeviceInfo.physicalDeviceVulkan13Features.synchronization2 != VK_TRUE)
+            {
+                SPDLOG_WARN("Physical device does not support the synchronization2 feature: \"{}\" ({})",
                     physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
                     physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
                 );
@@ -493,6 +526,28 @@ namespace Bonsai
             return {};
         }
 
+        // Set up enabled device features
+        VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
+        VkPhysicalDeviceVulkan11Features physicalDeviceVulkan11Features{};
+        VkPhysicalDeviceVulkan12Features physicalDeviceVulkan12Features{};
+        VkPhysicalDeviceVulkan13Features physicalDeviceVulkan13Features{};
+        physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        physicalDeviceVulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+        physicalDeviceVulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        physicalDeviceVulkan13Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
+        physicalDeviceFeatures2.pNext = &physicalDeviceVulkan11Features;
+        physicalDeviceVulkan11Features.pNext = &physicalDeviceVulkan12Features;
+        physicalDeviceVulkan12Features.pNext = &physicalDeviceVulkan13Features;
+        physicalDeviceVulkan13Features.pNext = nullptr;
+
+        if (physicalDeviceInfo.physicalDeviceVulkan13Features.dynamicRendering == VK_TRUE) {
+            physicalDeviceVulkan13Features.dynamicRendering = VK_TRUE;
+        }
+        if (physicalDeviceInfo.physicalDeviceVulkan13Features.synchronization2 == VK_TRUE) {
+            physicalDeviceVulkan13Features.synchronization2 = VK_TRUE;
+        }
+
         // Set up device queue create infos
         std::vector<uint32_t> const uniqueQueueFamilyIndices = GetUniqueQueueFamilyIndices(physicalDeviceInfo);
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -515,7 +570,7 @@ namespace Bonsai
         // Create logical device
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pNext = nullptr;
+        deviceCreateInfo.pNext = &physicalDeviceFeatures2;
         deviceCreateInfo.flags = 0;
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();

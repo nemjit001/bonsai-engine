@@ -90,6 +90,10 @@ namespace Bonsai
             VkPhysicalDevice physicalDevice;
             bool isSupported;
             VkPhysicalDeviceProperties2 physicalDeviceProperties2;
+            VkPhysicalDeviceFeatures2 physicalDeviceFeatures2;
+            VkPhysicalDeviceVulkan11Features physicalDeviceVulkan11Features;
+            VkPhysicalDeviceVulkan12Features physicalDeviceVulkan12Features;
+            VkPhysicalDeviceVulkan13Features physicalDeviceVulkan13Features;
             uint32_t graphicsQueueFamily;
             uint32_t presentQueueFamily;
             uint32_t computeQueueFamily;
