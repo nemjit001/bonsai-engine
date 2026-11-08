@@ -3,6 +3,8 @@
 #define BONSAI_VULKAN_GRAPHICS_TYPES_HPP
 
 #define VK_NO_PROTOTYPES
+
+#include <vector>
 #include <vulkan/vulkan.h>
 #include "Gfx/GraphicsTypesInternal.hpp"
 
@@ -11,24 +13,40 @@
 
 namespace Bonsai
 {
-    /// @brief Frame context used with Vulkan.
-    struct VulkanFrameContext : public FrameContext
-    {
-        VkFence frameReadyFence;
-        VkCommandPool graphicsCommandPool;
-        VkCommandBuffer frameCommandBuffer;
-    };
+    class VulkanSwapchain;
 
     /// @brief Shared state for Vulkan devices.
     struct VulkanSharedDeviceState
     {
         uint64_t framesInFlight;
         uint32_t graphicsQueueFamily;
+        uint32_t presentQueueFamily;
         uint32_t computeQueueFamily;
         uint32_t transferQueueFamily;
         VkQueue graphicsQueue;
+        VkQueue presentQueue;
         VkQueue computeQueue;
         VkQueue transferQueue;
+    };
+
+    /// @brief Vulkan swapchain info for tracking active swap chains for a frame.
+    struct VulkanFrameSwapchainInfo
+    {
+        std::vector<VkSwapchainKHR> swapchains;
+        std::vector<VkSemaphore> imageAvailableSemaphores;
+        std::vector<VkPipelineStageFlags> dstWaitStageMasks;
+        std::vector<uint32_t> imageIndices;
+    };
+    
+    /// @brief Vulkan frame context implementation.
+    struct VulkanFrameContext : public FrameContext
+    {
+        VkFence frameReadyFence;
+        VkSemaphore renderingFinishedSemaphore;
+        VkCommandPool graphicsCommandPool;
+        VkCommandBuffer frameCommandBuffer;
+        std::vector<VulkanSwapchain*> participatingSwapchains;
+        VulkanFrameSwapchainInfo swapchainInfo;
     };
 } // namespace Bonsai
 

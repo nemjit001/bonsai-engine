@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
 {
@@ -24,6 +25,7 @@ namespace Bonsai
         for (auto const& frame : _frames)
         {
             vkDestroyCommandPool(_device, frame.graphicsCommandPool, nullptr);
+            vkDestroySemaphore(_device, frame.renderingFinishedSemaphore, nullptr);
             vkDestroyFence(_device, frame.frameReadyFence, nullptr);
         }
     }
@@ -33,21 +35,32 @@ namespace Bonsai
         VulkanSharedDeviceState* sharedDeviceState
     )
     {
-        assert(device != VK_NULL_HANDLE && "Device was VK_NULL_HANDLE!");
+        assert(device != VK_NULL_HANDLE && "Vulkan device was VK_NULL_HANDLE!");
         assert(sharedDeviceState != nullptr && "Shared device state was null!");
 
         // Create frames
         std::vector<VulkanFrameContext> frames(sharedDeviceState->framesInFlight);
         for (auto& frame : frames)
         {
-            // Create frame ready fence
-            VkFenceCreateInfo fenceCreateInfo{};
-            fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            fenceCreateInfo.pNext = nullptr;
-            fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            // Create fence
+            VkFenceCreateInfo frameReadyFenceCreateInfo{};
+            frameReadyFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            frameReadyFenceCreateInfo.pNext = nullptr;
+            frameReadyFenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
             VkFence frameReadyFence = VK_NULL_HANDLE;
-            if (VK_CHECK_FAILED(vkCreateFence(device, &fenceCreateInfo, nullptr, &frameReadyFence))) {
+            if (VK_CHECK_FAILED(vkCreateFence(device, &frameReadyFenceCreateInfo, nullptr, &frameReadyFence))) {
+                return nullptr;
+            }
+
+            // Create semaphore
+            VkSemaphoreCreateInfo renderingFinishedSemaphoreCreateInfo{};
+            renderingFinishedSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            renderingFinishedSemaphoreCreateInfo.pNext = nullptr;
+            renderingFinishedSemaphoreCreateInfo.flags = 0;
+
+            VkSemaphore renderingFinishedSemaphore = VK_NULL_HANDLE;
+            if (VK_CHECK_FAILED(vkCreateSemaphore(device, &renderingFinishedSemaphoreCreateInfo, nullptr, &renderingFinishedSemaphore))) {
                 return nullptr;
             }
 
@@ -78,6 +91,7 @@ namespace Bonsai
             // Populate frame context
             frame = VulkanFrameContext{};
             frame.frameReadyFence = frameReadyFence;
+            frame.renderingFinishedSemaphore = renderingFinishedSemaphore;
             frame.graphicsCommandPool = graphicsCommandPool;
             frame.frameCommandBuffer = frameCommandBuffer;
         }
@@ -85,32 +99,82 @@ namespace Bonsai
         return new VulkanRenderContext(device, sharedDeviceState, frames);
     }
 
-    VulkanFrameContext* VulkanRenderContext::StartFrame()
+    VulkanFrameContext* VulkanRenderContext::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
     {
         // Acquire the frame by waiting on the frame fence
         VulkanFrameContext& frame = _frames[_currentFrameIndex % _sharedDeviceState->framesInFlight];
-        if (VK_CHECK_FAILED(vkWaitForFences(_device, 1, &frame.frameReadyFence, VK_TRUE, UINT64_MAX))) {
-            return nullptr;
-        }
+        waitForFrame(frame);
+        
+        // Bump frame index to next frame
+        _currentFrameIndex++;
 
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frame.frameReadyFence))
-            || VK_CHECK_FAILED(vkResetCommandBuffer(frame.frameCommandBuffer, 0))) {
-                return nullptr;
-            }
-
-        // Begin frame command buffer
-        VkCommandBufferBeginInfo frameCommandBufferBeginInfo{};
-        frameCommandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        frameCommandBufferBeginInfo.pNext = nullptr;
-        frameCommandBufferBeginInfo.flags = 0;
-        frameCommandBufferBeginInfo.pInheritanceInfo = nullptr;
-
-        if (VK_CHECK_FAILED(vkBeginCommandBuffer(frame.frameCommandBuffer, &frameCommandBufferBeginInfo))) {
+            || VK_CHECK_FAILED(vkResetCommandBuffer(frame.frameCommandBuffer, 0))
+        ) {
             return nullptr;
         }
 
+        // Clear old swapchain data
+        frame.participatingSwapchains.clear();
+        frame.swapchainInfo.swapchains.clear();
+        frame.swapchainInfo.imageAvailableSemaphores.clear();
+        frame.swapchainInfo.dstWaitStageMasks.clear();
+        frame.swapchainInfo.imageIndices.clear();
+
+        // Acquire all participating swapchain images
+        for (size_t i = 0; i < swapchainCount; i++)
+        {
+            auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchains[i]);
+            if (vulkanSwapchain == nullptr) {
+                continue;
+            }
+
+            // Try to acquire the next swapchain image
+            if (!vulkanSwapchain->AcquireNextImage()) {
+                continue;
+            }
+
+            // Add swapchain to frame swapchain info
+            vulkanSwapchain->RegisterWithFrame(frame.swapchainInfo);
+            frame.participatingSwapchains.push_back(vulkanSwapchain);
+        }
+
         return &frame;
+    }
+
+    void VulkanRenderContext::RecordFrame(VulkanFrameContext* frameContext)
+    {
+        // Check for a valid frame context
+        if (frameContext == nullptr) {
+            return;
+        }
+
+        // Begin command buffer recording
+        VkCommandBufferBeginInfo commandBufferBeginInfo{};
+        commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        commandBufferBeginInfo.pNext = nullptr;
+        commandBufferBeginInfo.flags = 0;
+        commandBufferBeginInfo.pInheritanceInfo = nullptr;
+
+        if (VK_CHECK_FAILED(vkBeginCommandBuffer(frameContext->frameCommandBuffer, &commandBufferBeginInfo))) {
+            return;
+        }
+        
+        // Prepare all swapchains for rendering
+        for (auto const& swapchain : frameContext->participatingSwapchains) {
+            swapchain->PrepareForRendering(frameContext->frameCommandBuffer);
+        }
+
+        // Prepare all swapchains for presentation
+        for (auto const& swapchain : frameContext->participatingSwapchains) {
+            swapchain->PrepareForPresent(frameContext->frameCommandBuffer);
+        }
+
+        // End command buffer recording
+        if (VK_CHECK_FAILED(vkEndCommandBuffer(frameContext->frameCommandBuffer))) {
+            return;
+        }
     }
 
     void VulkanRenderContext::SubmitFrame(VulkanFrameContext* frameContext)
@@ -120,27 +184,62 @@ namespace Bonsai
             return;
         }
 
-        // End frame command buffer
-        VulkanFrameContext& frame = *frameContext;
-        if (VK_CHECK_FAILED(vkEndCommandBuffer(frame.frameCommandBuffer))) {
-            return;
-        }
+        // Get reference to frame
+        VulkanFrameContext const& frame = *frameContext;
+        bool const hasParticipatingSwapchains = !frame.participatingSwapchains.empty();
 
         // Submit frame
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
-        submitInfo.waitSemaphoreCount = 0;
-        submitInfo.pWaitSemaphores = nullptr;
-        submitInfo.pWaitDstStageMask = nullptr;
+        submitInfo.waitSemaphoreCount = static_cast<uint32_t>(frame.swapchainInfo.imageAvailableSemaphores.size());
+        submitInfo.pWaitSemaphores = frame.swapchainInfo.imageAvailableSemaphores.data();
+        submitInfo.pWaitDstStageMask = frame.swapchainInfo.dstWaitStageMasks.data();
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &frame.frameCommandBuffer;
         submitInfo.signalSemaphoreCount = 0;
         submitInfo.pSignalSemaphores = nullptr;
 
-        vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frame.frameReadyFence);
+        if (hasParticipatingSwapchains)
+        {
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = &frame.renderingFinishedSemaphore;
+        }
 
-        // Bump frame index to next frame
-        _currentFrameIndex++;
+        if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frame.frameReadyFence))) {
+            return;
+        }
+
+        // Present any participating swapchains in a single present call
+        if (hasParticipatingSwapchains)
+        {
+            VkPresentInfoKHR presentInfo{};
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentInfo.pNext = nullptr;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pWaitSemaphores = &frame.renderingFinishedSemaphore;
+            presentInfo.swapchainCount = static_cast<uint32_t>(frame.swapchainInfo.swapchains.size());
+            presentInfo.pSwapchains = frame.swapchainInfo.swapchains.data();
+            presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
+            presentInfo.pResults = nullptr;
+
+            if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
+                return;
+            }
+        }
+    }
+
+    void VulkanRenderContext::waitForAllFrames()
+    {
+        for (auto const& frame : _frames) {
+            waitForFrame(frame);
+        }
+    }
+
+    void VulkanRenderContext::waitForFrame(VulkanFrameContext const& frameContext)
+    {
+        if (VK_CHECK_FAILED(vkWaitForFences(_device, 1, &frameContext.frameReadyFence, VK_TRUE, UINT64_MAX))) {
+            return;
+        }
     }
 } // namespace Bonsai
