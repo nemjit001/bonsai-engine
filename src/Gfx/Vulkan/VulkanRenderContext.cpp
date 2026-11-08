@@ -104,6 +104,9 @@ namespace Bonsai
         // Acquire the frame by waiting on the frame fence
         VulkanFrameContext& frame = _frames[_currentFrameIndex % _sharedDeviceState->framesInFlight];
         waitForFrame(frame);
+        
+        // Bump frame index to next frame
+        _currentFrameIndex++;
 
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frame.frameReadyFence))
@@ -181,11 +184,9 @@ namespace Bonsai
             return;
         }
 
-        // Bump frame index to next frame
-        _currentFrameIndex++;
-
         // Get reference to frame
         VulkanFrameContext const& frame = *frameContext;
+        bool const hasParticipatingSwapchains = !frame.participatingSwapchains.empty();
 
         // Submit frame
         VkSubmitInfo submitInfo{};
@@ -196,26 +197,35 @@ namespace Bonsai
         submitInfo.pWaitDstStageMask = frame.swapchainInfo.dstWaitStageMasks.data();
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &frame.frameCommandBuffer;
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = &frame.renderingFinishedSemaphore;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.pSignalSemaphores = nullptr;
+
+        if (hasParticipatingSwapchains)
+        {
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = &frame.renderingFinishedSemaphore;
+        }
 
         if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frame.frameReadyFence))) {
             return;
         }
 
-        // Present all swapchains
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.pNext = nullptr;
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = &frame.renderingFinishedSemaphore;
-        presentInfo.swapchainCount = static_cast<uint32_t>(frame.swapchainInfo.swapchains.size());
-        presentInfo.pSwapchains = frame.swapchainInfo.swapchains.data();
-        presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
-        presentInfo.pResults = nullptr;
+        // Present any participating swapchains in a single present call
+        if (hasParticipatingSwapchains)
+        {
+            VkPresentInfoKHR presentInfo{};
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            presentInfo.pNext = nullptr;
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pWaitSemaphores = &frame.renderingFinishedSemaphore;
+            presentInfo.swapchainCount = static_cast<uint32_t>(frame.swapchainInfo.swapchains.size());
+            presentInfo.pSwapchains = frame.swapchainInfo.swapchains.data();
+            presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
+            presentInfo.pResults = nullptr;
 
-        if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
-            return;
+            if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
+                return;
+            }
         }
     }
 

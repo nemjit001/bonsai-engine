@@ -26,6 +26,18 @@ namespace Bonsai
         /// @return A boolean indicating success.
         [[nodiscard]] bool ConfigureSwapchain(VulkanSwapchainDesc const& swapchainDesc, VulkanSwapchain& swapchain);
 
+        /// @brief Reconfigure a Vulkan swapchain.
+        /// @param swapchain Swapchain to reconfigure.
+        /// @return A boolean indicating success.
+        [[nodiscard]] bool ReconfigureSwapchain(VulkanSwapchain& swapchain);
+
+        /// @brief Resize a Vulkan swapchain.
+        /// @param swapchain Swapchain to resize.
+        /// @param width New swapchain width.
+        /// @param height New swapchain height.
+        /// @return A boolean indicating success.
+        [[nodiscard]] bool ResizeSwapchain(VulkanSwapchain& swapchain, uint32_t width, uint32_t height);
+
         /// @brief Destroy swapchain state.
         /// @param swapchain Swapchain to destroy state for.
         void DestroySwapchain(VulkanSwapchain& swapchain);

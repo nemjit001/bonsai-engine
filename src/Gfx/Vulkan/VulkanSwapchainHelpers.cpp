@@ -16,7 +16,10 @@ namespace Bonsai::VulkanSwapchainHelpers
         swapchain.sharedDeviceState = swapchainDesc.sharedDeviceState;
 
         // Check for zero sized swapchain
-        if (swapchainDesc.width == 0 || swapchainDesc.height == 0) {
+        if (swapchainDesc.width == 0 || swapchainDesc.height == 0)
+        {
+            // Zero sized swap chains are unsupported, so we clean up swapchain data
+            SPDLOG_WARN("Trying to configure a zero sized swapchain!");
             return false;
         }
 
@@ -41,7 +44,7 @@ namespace Bonsai::VulkanSwapchainHelpers
             return presentModes;
         }();
 
-        // Get preferred image count
+        // Query preferred image count
         uint32_t const imageCount = [&surfaceCapabilities]() {
             uint32_t const imageCount = surfaceCapabilities.minImageCount + 1;
             if (surfaceCapabilities.maxImageCount == 0) {
@@ -54,6 +57,11 @@ namespace Bonsai::VulkanSwapchainHelpers
         // Get image width and height
         uint32_t const width = std::clamp(swapchainDesc.width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width);
         uint32_t const height = std::clamp(swapchainDesc.height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height);
+
+        // Check if requested swap size is valid
+        if (width == 0 || height == 0) {
+            return false;
+        }
 
         // Get surface format
         // TODO(nemjit001): Use a more sophisticated method to find required surface formats (reqs texture formats in graphics API wrapper)
@@ -156,6 +164,10 @@ namespace Bonsai::VulkanSwapchainHelpers
         DestroySwapchain(swapchain);
 
         // Set new swapchain state
+        swapchain.width = width;
+        swapchain.height = height;
+        swapchain.syncInterval = swapchainDesc.syncInterval;
+        swapchain.allowTearing = swapchainDesc.allowTearing;
         swapchain.swapchain = newSwapchain;
         swapchain.swapchainImages = swapchainImages;
         swapchain.imageAvailableSemaphores = imageAvailableSemaphores;
@@ -165,31 +177,81 @@ namespace Bonsai::VulkanSwapchainHelpers
         return true;
     }
 
+    bool ReconfigureSwapchain(VulkanSwapchain& swapchain)
+    {
+        // Attempt to recreate the entire swapchain by resizing to its previous size
+        SPDLOG_TRACE("Reconfiguring Vulkan swapchain");
+        return ResizeSwapchain(swapchain, swapchain.width, swapchain.height);
+    }
+
+    bool ResizeSwapchain(VulkanSwapchain& swapchain, uint32_t width, uint32_t height)
+    {
+        SPDLOG_TRACE("Resizing Vulkan swapchain to {} x {}", width, height);
+
+        VulkanSwapchainDesc swapchainDesc{};
+        swapchainDesc.physicalDevice = swapchain.physicalDevice;
+        swapchainDesc.device = swapchain.device;
+        swapchainDesc.surface = swapchain.surface;
+        swapchainDesc.sharedDeviceState = swapchain.sharedDeviceState;
+        swapchainDesc.width = width;
+        swapchainDesc.height = height;
+        swapchainDesc.syncInterval = swapchain.syncInterval;
+        swapchainDesc.allowTearing = swapchain.allowTearing;
+
+        bool const result = ConfigureSwapchain(swapchainDesc, swapchain);
+        if (!result) {
+            DestroySwapchain(swapchain);
+            return false;
+        }
+
+        return true;
+    }
+
     void DestroySwapchain(VulkanSwapchain& swapchain)
     {
+        // Wait for device to be idle
+        vkDeviceWaitIdle(swapchain.device);
+
         // Clean up image semaphores
         for (auto const& imageSemaphore : swapchain.imageAvailableSemaphores) {
             vkDestroySemaphore(swapchain.device, imageSemaphore, nullptr);
         }
 
         // Clean up swapchain data
-        swapchain.swapchainImages.clear();        
         vkDestroySwapchainKHR(swapchain.device, swapchain.swapchain, nullptr);
+
+        // Zero invalidated swapchain state
+        swapchain.width = 0;
+        swapchain.height = 0;
+        swapchain.swapchain = VK_NULL_HANDLE;
+        swapchain.swapchainImages.clear();        
+        swapchain.imageAvailableSemaphores.clear();
+        swapchain.currentImageSemaphoreIndex = 0;
+        swapchain.activeImageIndex = 0;
     }
 
     bool AcquireNextImage(VulkanSwapchain& swapchain)
     {
+        // Cannot render with a zero sized swapchain
+        if (swapchain.width == 0 || swapchain.height == 0) {
+            return false;
+        }
+
         // Check if swapchain needs to be recreated
         if (swapchain.recreateSwapchain)
         {
             // Try to recreate swapchain once
             swapchain.recreateSwapchain = false;
-            // TODO(nemjit001): Recreate swapchain here
+            if (!ReconfigureSwapchain(swapchain)) {
+                SPDLOG_WARN("Failed to recreate swapchain");
+            }
+
             return false;
         }
 
-        // Get image semaphore
-        VkSemaphore const imageAvailableSemaphore = swapchain.imageAvailableSemaphores[swapchain.currentImageSemaphoreIndex];
+        // Get next free image semaphore
+        uint32_t const currentImageSemaphoreIndex = (swapchain.currentImageSemaphoreIndex + 1) % swapchain.imageAvailableSemaphores.size();
+        VkSemaphore const imageAvailableSemaphore = swapchain.imageAvailableSemaphores[currentImageSemaphoreIndex];
 
         // Acquire next swapchain image
         uint32_t imageIndex = 0;
@@ -206,7 +268,7 @@ namespace Bonsai::VulkanSwapchainHelpers
         }
 
         // Update swapchain state
-        swapchain.currentImageSemaphoreIndex = (swapchain.currentImageSemaphoreIndex + 1) % swapchain.imageAvailableSemaphores.size();
+        swapchain.currentImageSemaphoreIndex = currentImageSemaphoreIndex;
         swapchain.activeImageIndex = imageIndex;
         swapchain.recreateSwapchain = false;
         return true;

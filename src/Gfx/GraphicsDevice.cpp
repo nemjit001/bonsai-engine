@@ -10,6 +10,7 @@
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
+#include "Gfx/Vulkan/VulkanSwapchainHelpers.hpp"
 
 namespace Bonsai
 {
@@ -248,6 +249,18 @@ namespace Bonsai
         auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
         _renderContext->RecordFrame(vulkanFrameContext);
         _renderContext->SubmitFrame(vulkanFrameContext);
+    }
+
+    void GraphicsDevice::ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height)
+    {
+        auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+        if (vulkanSwapchain == nullptr) {
+            return;
+        }
+
+        if (!VulkanSwapchainHelpers::ResizeSwapchain(*vulkanSwapchain, width, height)) {
+            SPDLOG_WARN("Failed to resize swap chain to {} x {}", width, height);
+        }
     }
 
     void GraphicsDevice::WaitForIdle()

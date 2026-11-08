@@ -68,6 +68,12 @@ namespace Bonsai
         /// @param frameContext Frame context to submit.
         void SubmitFrame(FrameContext* frameContext);
 
+        /// @brief Resize a swapchain.
+        /// @param swapchain Swapchain to resize.
+        /// @param width New swapchain width.
+        /// @param height New swapchain height.
+        void ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height);
+
         /// @brief Wait for the graphics device to be idle.
         void WaitForIdle();
 

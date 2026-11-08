@@ -79,8 +79,12 @@ namespace Bonsai
         _graphicsDevice->SubmitFrame(_activeFrame);
     }
 
-    void RenderManager::HandlePlatformEvent([[maybe_unused]] SDL_Event const& event)
+    void RenderManager::HandlePlatformEvent(SDL_Event const& event)
     {
-        //
+        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+            uint32_t const width = event.window.data1;
+            uint32_t const height = event.window.data2;
+            _graphicsDevice->ResizeSwapchain(_swapchain, width, height);
+        }
     }
 } // namespace Bonsai

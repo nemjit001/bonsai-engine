@@ -43,6 +43,12 @@ namespace Bonsai
         VkDevice device;
         VkSurfaceKHR surface;
         VulkanSharedDeviceState* sharedDeviceState;
+        
+        uint32_t width;
+        uint32_t height;
+        uint32_t syncInterval;
+        bool allowTearing;
+
         VkSwapchainKHR swapchain;
         std::vector<VkImage> swapchainImages;
         std::vector<VkSemaphore> imageAvailableSemaphores;
