@@ -56,6 +56,20 @@ namespace Bonsai
         //
     };
 
+    /// @brief The GraphicsTextureView is a graphics resource containnig texture view data.
+    /// Also tracks the graphics texture that was used to create this view.
+    class GraphicsTextureView : public GraphicsResource
+    {
+    public:
+        GraphicsTextureView(GraphicsTexture* parentTexture);
+
+    protected:
+        ~GraphicsTextureView() override;
+
+    private:
+        GraphicsTexture* _parentTexture = nullptr; //< Parent texture that must remain valid while this view exists.
+    };
+
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.
     class GraphicsSwapchain : public GraphicsResource
     {

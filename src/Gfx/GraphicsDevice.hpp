@@ -59,6 +59,11 @@ namespace Bonsai
         /// @return A new graphics texture, or nullptr on failure.
         [[nodiscard]] GraphicsTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
 
+        /// @brief Create a texture view using this graphics device.
+        /// @param textureViewDesc Texture view description.
+        /// @return A new graphics texture view, or nullptr on failure.
+        [[nodiscard]] GraphicsTextureView* CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc);
+
         /// @brief Create a swapchain using this graphics device.
         /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
@@ -71,6 +76,10 @@ namespace Bonsai
         /// @brief Destroy a texture.
         /// @param texture Texture to destroy.
         void DestroyTexture(GraphicsTexture* texture);
+
+        /// @brief Destroy a texture view.
+        /// @param textureView Texture view to destroy.
+        void DestroyTextureView(GraphicsTextureView* textureView);
 
         /// @brief Destroy a swapchain.
         /// @param swapchain Swapchain to destroy.

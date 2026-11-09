@@ -1,7 +1,22 @@
 #include "GraphicsTypesInternal.hpp"
 
+#include <cassert>
+
 namespace Bonsai
 {
+    GraphicsTextureView::GraphicsTextureView(GraphicsTexture* parentTexture)
+        :
+        _parentTexture(parentTexture)
+    {
+        assert(_parentTexture != nullptr && "Parent texture for texture view was null!");
+        _parentTexture->AddRef();
+    }
+
+    GraphicsTextureView::~GraphicsTextureView()
+    {
+        _parentTexture->ReleaseRef();
+    }
+
     void FrameContext::AddResourceRef(GraphicsResource* resource)
     {
         // Add a reference to the resource and store in frame resources

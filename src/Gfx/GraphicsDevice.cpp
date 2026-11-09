@@ -241,6 +241,11 @@ namespace Bonsai
         return _objectFactory->CreateTexture(textureDesc);
     }
 
+    GraphicsTextureView* GraphicsDevice::CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc)
+    {
+        return nullptr;
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
@@ -257,6 +262,13 @@ namespace Bonsai
     {
         if (texture != nullptr) {
             texture->ReleaseRef();
+        }
+    }
+    
+    void GraphicsDevice::DestroyTextureView(GraphicsTextureView* textureView)
+    {
+        if (textureView != nullptr) {
+            textureView->ReleaseRef();
         }
     }
 

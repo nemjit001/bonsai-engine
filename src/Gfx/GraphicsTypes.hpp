@@ -10,8 +10,15 @@ namespace Bonsai
 {
     class GraphicsBuffer;
     class GraphicsTexture;
+    class GraphicsTextureView;
     class GraphicsSwapchain;
     class FrameContext;
+
+    namespace Graphics
+    {
+        static constexpr uint32_t RemainingLevels = UINT32_MAX;
+        static constexpr uint32_t RemainingLayers = UINT32_MAX;
+    } // namespace Graphics
 
     /// @brief Enumeration of available graphics heap types.
     enum GraphicsHeapType : uint32_t
@@ -93,12 +100,32 @@ namespace Bonsai
         GraphicsTextureType_3D      = 2,
     };
 
+    /// @brief Enumeration of available graphics texture view types.
+    enum GraphicsTextureViewType : uint32_t
+    {
+        GraphicsTextureViewType_1D      = 0,
+        GraphicsTextureViewType_2D      = 1,
+        GraphicsTextureViewType_3D      = 2,
+        GraphicsTextureViewType_Cube    = 3,
+        GraphicsTextureViewType_1DArray = 4,
+        GraphicsTextureViewType_2DArray = 5,
+    };
+
     /// @brief Enumeration of available graphics texture tiling modes.
     enum GraphicsTextureTiling : uint32_t
     {
         GraphicsTextureTiling_Optimal   = 0,
         GraphicsTextureTiling_Linear    = 1,
     };
+
+    /// @brief Enumeration of graphics texture aspect flag bits.
+    enum GraphicsTextureAspectFlagBits : uint32_t
+    {
+        GraphicsTextureAspect_None          = 0x00000000,
+        GraphicsTextureAspect_Color         = 0x00000001,
+        GraphicsTextureAspect_DepthStencil  = 0x00000002,
+    };
+    using GraphicsTextureAspectFlags = uint32_t;
 
     /// @brief Enumeration of graphics buffer usage flag bits.
     enum GraphicsBufferUsageFlagBits : uint32_t
@@ -127,6 +154,16 @@ namespace Bonsai
     };
     using GraphicsTextureUsageFlags = uint32_t;
 
+    /// @brief Subresource range for a graphics texture.
+    struct GraphicsTextureSubresourceRange
+    {
+        GraphicsTextureAspectFlags aspectMask = GraphicsTextureAspect_None;
+        uint32_t baseMipLevel = 0;
+        uint32_t levelCount = Graphics::RemainingLevels;
+        uint32_t baseArrayLayer = 0;
+        uint32_t layerCount = Graphics::RemainingLayers;
+    };
+
     /// @brief Graphics buffer description.
     struct GraphicsBufferDesc
     {
@@ -135,6 +172,7 @@ namespace Bonsai
         GraphicsBufferUsageFlags usage = GraphicsBufferUsage_None;
     };
 
+    /// @brief Graphics texture description.
     struct GraphicsTextureDesc
     {
         GraphicsHeapType heapType = GraphicsHeapType_Default;
@@ -147,6 +185,15 @@ namespace Bonsai
         uint32_t sampleCount = 1;
         GraphicsTextureTiling tilingMode = GraphicsTextureTiling_Optimal;
         GraphicsTextureUsageFlags usage = GraphicsTextureUsage_None;
+    };
+
+    /// @brief Graphics texture view description.
+    struct GraphicsTextureViewDesc
+    {
+        GraphicsTexture* texture = nullptr;
+        GraphicsTextureViewType viewType = GraphicsTextureViewType_1D;
+        GraphicsFormat viewFormat = GraphicsFormat_Unknown;
+        GraphicsTextureSubresourceRange subresourceRange = {};
     };
 
     /// @brief Graphics swapchain description.
