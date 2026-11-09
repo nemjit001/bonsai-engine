@@ -68,8 +68,6 @@ namespace Bonsai
         GraphicsFormat_R32_SInt,
         GraphicsFormat_R32_SFloat,
 
-        GraphicsFormat_RG32_UNorm,
-        GraphicsFormat_RG32_SNorm,
         GraphicsFormat_RG32_UInt,
         GraphicsFormat_RG32_SInt,
         GraphicsFormat_RG32_SFloat,
@@ -98,8 +96,8 @@ namespace Bonsai
     /// @brief Enumeration of available graphics texture tiling modes.
     enum GraphicsTextureTiling : uint32_t
     {
-        GraphicsTextureTiling_Linear    = 0,
-        GraphicsTextureTiling_Optimal   = 1,
+        GraphicsTextureTiling_Optimal   = 0,
+        GraphicsTextureTiling_Linear    = 1,
     };
 
     /// @brief Enumeration of graphics buffer usage flag bits.

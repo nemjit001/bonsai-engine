@@ -18,4 +18,19 @@ namespace Bonsai
         vkDestroyBuffer(_device, _buffer, nullptr);
         vkFreeMemory(_device, _memory, nullptr);
     }
+
+    VulkanTexture::VulkanTexture(VkDevice device, VkDeviceMemory memory, VkImage image)
+        :
+        _device(device),
+        _memory(memory),
+        _image(image)
+    {
+        //
+    }
+
+    VulkanTexture::~VulkanTexture()
+    {
+        vkDestroyImage(_device, _image, nullptr);
+        vkFreeMemory(_device, _memory, nullptr);
+    }
 } // namespace Bonsai

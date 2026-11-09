@@ -27,6 +27,21 @@ namespace Bonsai
         VkBuffer _buffer;
     };
 
+    /// @brief Vulkan texture implementation.
+    class VulkanTexture : public GraphicsTexture
+    {
+    public:
+        VulkanTexture(VkDevice device, VkDeviceMemory memory, VkImage image);
+
+    protected:
+        ~VulkanTexture() override;
+
+    private:
+        VkDevice _device;
+        VkDeviceMemory _memory;
+        VkImage _image;
+    };
+
     /// @brief Shared state for Vulkan devices.
     struct VulkanSharedDeviceState
     {

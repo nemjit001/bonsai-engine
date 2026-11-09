@@ -40,29 +40,167 @@ namespace Bonsai::VulkanGraphicsHelpers
         return 0;
     }
 
+    VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount)
+    {
+        switch (sampleCount)
+        {
+        case 0:
+        case 1:
+            return VK_SAMPLE_COUNT_1_BIT;
+        case 2:
+            return VK_SAMPLE_COUNT_2_BIT;
+        case 4:
+            return VK_SAMPLE_COUNT_4_BIT;
+        case 8:
+            return VK_SAMPLE_COUNT_8_BIT;
+        case 16:
+            return VK_SAMPLE_COUNT_16_BIT;
+        case 32:
+            return VK_SAMPLE_COUNT_32_BIT;
+        case 64:
+            return VK_SAMPLE_COUNT_64_BIT;
+        default:
+            break;
+        }
+
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
+
+    VkFormat GetVulkanFormat(GraphicsFormat const& format)
+    {
+        switch (format)
+        {
+        case GraphicsFormat_Unknown: return VK_FORMAT_UNDEFINED;
+        case GraphicsFormat_R8_UNorm: return VK_FORMAT_R8_UNORM;
+        case GraphicsFormat_R8_SNorm: return VK_FORMAT_R8_SNORM;
+        case GraphicsFormat_R8_UInt: return VK_FORMAT_R8_UINT;
+        case GraphicsFormat_R8_SInt: return VK_FORMAT_R8_SINT;
+        case GraphicsFormat_RG8_UNorm: return VK_FORMAT_R8G8_UNORM;
+        case GraphicsFormat_RG8_SNorm: return VK_FORMAT_R8G8_SNORM;
+        case GraphicsFormat_RG8_UInt: return VK_FORMAT_R8G8_UINT;
+        case GraphicsFormat_RG8_SInt: return VK_FORMAT_R8G8_SINT;
+        case GraphicsFormat_RGBA8_UNorm: return VK_FORMAT_R8G8B8A8_UNORM;
+        case GraphicsFormat_RGBA8_SNorm: return VK_FORMAT_R8G8B8A8_SNORM;
+        case GraphicsFormat_RGBA8_UInt: return VK_FORMAT_R8G8B8A8_UINT;
+        case GraphicsFormat_RGBA8_SInt: return VK_FORMAT_R8G8B8A8_SINT;
+        case GraphicsFormat_RGBA8_UNorm_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
+        case GraphicsFormat_BGRA8_UNorm: return VK_FORMAT_B8G8R8_UNORM;
+        case GraphicsFormat_BGRA8_UNorm_SRGB: return VK_FORMAT_B8G8R8_SRGB;
+        case GraphicsFormat_R16_UNorm: return VK_FORMAT_R16_UNORM;
+        case GraphicsFormat_R16_SNorm: return VK_FORMAT_R16_SNORM;
+        case GraphicsFormat_R16_UInt: return VK_FORMAT_R16_UINT;
+        case GraphicsFormat_R16_SInt: return VK_FORMAT_R16_SINT;
+        case GraphicsFormat_R16_SFloat: return VK_FORMAT_R16_SFLOAT;
+        case GraphicsFormat_RG16_UNorm: return VK_FORMAT_R16G16_UNORM;
+        case GraphicsFormat_RG16_SNorm: return VK_FORMAT_R16G16_SNORM;
+        case GraphicsFormat_RG16_UInt: return VK_FORMAT_R16G16_UINT;
+        case GraphicsFormat_RG16_SInt: return VK_FORMAT_R16G16_SINT;
+        case GraphicsFormat_RG16_SFloat: return VK_FORMAT_R16G16_SFLOAT;
+        case GraphicsFormat_RGBA16_UNorm: return VK_FORMAT_R16G16B16A16_UNORM;
+        case GraphicsFormat_RGBA16_SNorm: return VK_FORMAT_R16G16B16A16_SNORM;
+        case GraphicsFormat_RGBA16_UInt: return VK_FORMAT_R16G16B16A16_UINT;
+        case GraphicsFormat_RGBA16_SInt: return VK_FORMAT_R16G16B16A16_SINT;
+        case GraphicsFormat_RGBA16_SFloat: return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case GraphicsFormat_R32_UInt: return VK_FORMAT_R32_UINT;
+        case GraphicsFormat_R32_SInt: return VK_FORMAT_R32_SINT;
+        case GraphicsFormat_R32_SFloat: return VK_FORMAT_R32_SFLOAT;
+        case GraphicsFormat_RG32_UInt: return VK_FORMAT_R32G32_UINT;
+        case GraphicsFormat_RG32_SInt: return VK_FORMAT_R32G32_SINT;
+        case GraphicsFormat_RG32_SFloat: return VK_FORMAT_R32G32_SFLOAT;
+        case GraphicsFormat_RGB32_UInt: return VK_FORMAT_R32G32B32_UINT;
+        case GraphicsFormat_RGB32_SInt: return VK_FORMAT_R32G32B32_SINT;
+        case GraphicsFormat_RGB32_SFloat: return VK_FORMAT_R32G32B32_SFLOAT;
+        case GraphicsFormat_RGBA32_UInt: return VK_FORMAT_R32G32B32A32_UINT;
+        case GraphicsFormat_RGBA32_SInt: return VK_FORMAT_R32G32B32A32_SINT;
+        case GraphicsFormat_RGBA32_SFloat: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case GraphicsFormat_D16_UNorm: return VK_FORMAT_D16_UNORM;
+        case GraphicsFormat_D24_UNorm_S8_UInt: return VK_FORMAT_D24_UNORM_S8_UINT;
+        case GraphicsFormat_D32_SFloat: return VK_FORMAT_D32_SFLOAT;
+        }
+
+        return VK_FORMAT_UNDEFINED;
+    }
+
+    VkImageType GetVulkanImageType(GraphicsTextureType const& textureType)
+    {
+        switch (textureType)
+        {
+        case GraphicsTextureType_1D:
+            return VK_IMAGE_TYPE_1D;
+        case GraphicsTextureType_2D:
+            return VK_IMAGE_TYPE_2D;
+        case GraphicsTextureType_3D:
+            return VK_IMAGE_TYPE_3D;
+        default:
+            break;
+        }
+
+        return VK_IMAGE_TYPE_1D;
+    }
+
+    VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling)
+    {
+        switch (textureTiling)
+        {
+        case GraphicsTextureTiling_Optimal:
+            return VK_IMAGE_TILING_OPTIMAL;
+        case GraphicsTextureTiling_Linear:
+            return VK_IMAGE_TILING_LINEAR;
+        default:
+            break;
+        }
+
+        return VK_IMAGE_TILING_OPTIMAL;
+    }
+
     VkBufferUsageFlags GetVulkanBufferUsageFlags(GraphicsBufferUsageFlags const& usageFlags)
     {
         VkBufferUsageFlags output = 0;
         if (IsBitSet(usageFlags, GraphicsBufferUsage_TransferSrc)) {
             output |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_TransferDst)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_TransferDst)) {
             output |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_UniformBuffer)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_UniformBuffer)) {
             output |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_StorageBuffer)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_StorageBuffer)) {
             output |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_IndexBuffer)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_IndexBuffer)) {
             output |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_VertexBuffer)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_VertexBuffer)) {
             output |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
         }
-        else if (IsBitSet(usageFlags, GraphicsBufferUsage_IndirectBuffer)) {
+        if (IsBitSet(usageFlags, GraphicsBufferUsage_IndirectBuffer)) {
             output |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        }
+
+        return output;
+    }
+
+    VkImageUsageFlags GetVulkanImageUsageFlags(GraphicsTextureUsageFlags const& usageFlags)
+    {
+        VkImageUsageFlags output = 0;
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_TransferSrc)) {
+            output |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_TransferDst)) {
+            output |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_SampledImage)) {
+            output |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_StorageImage)) {
+            output |= VK_IMAGE_USAGE_STORAGE_BIT;
+        }
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_RenderTarget)) {
+            output |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        }
+        if (IsBitSet(usageFlags, GraphicsTextureUsage_DepthStencilTarget)) {
+            output |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         }
 
         return output;

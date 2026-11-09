@@ -45,6 +45,11 @@ namespace Bonsai
         /// @return A new Vulkan buffer.
         VulkanBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
 
+        /// @brief Create a Vulkan texture.
+        /// @param textureDesc Texture description to use for creation.
+        /// @return A new Vulkan texture.
+        VulkanTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
+
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
         /// @return A new Vulkan swapchain.

@@ -84,6 +84,60 @@ namespace Bonsai
         return new VulkanBuffer(_device, memory.value(), buffer);
     }
     
+    VulkanTexture* VulkanObjectFactory::CreateTexture(GraphicsTextureDesc const& textureDesc)
+    {
+        // Set texture depth and layers based on texture type
+        uint32_t const depth = textureDesc.textureType == GraphicsTextureType_3D ? textureDesc.depthOrLayers : 1;
+        uint32_t const layers = textureDesc.textureType != GraphicsTextureType_3D ? textureDesc.depthOrLayers : 1;
+
+        // Create Vulkan image
+        VkImageCreateInfo imageCreateInfo{};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.pNext = nullptr;
+        imageCreateInfo.flags = 0;
+        imageCreateInfo.imageType = VulkanGraphicsHelpers::GetVulkanImageType(textureDesc.textureType);
+        imageCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureDesc.textureFormat);
+        imageCreateInfo.extent.width = textureDesc.width;
+        imageCreateInfo.extent.height = textureDesc.height;
+        imageCreateInfo.extent.depth = depth;
+        imageCreateInfo.arrayLayers = layers;
+        imageCreateInfo.mipLevels = textureDesc.mipLevels;
+        imageCreateInfo.samples = VulkanGraphicsHelpers::GetVulkanSampleCountFlagBits(textureDesc.sampleCount);
+        imageCreateInfo.tiling = VulkanGraphicsHelpers::GetVulkanImageTiling(textureDesc.tilingMode);
+        imageCreateInfo.usage = VulkanGraphicsHelpers::GetVulkanImageUsageFlags(textureDesc.usage);
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.queueFamilyIndexCount = 0;
+        imageCreateInfo.pQueueFamilyIndices = nullptr;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        VkImage image = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateImage(_device, &imageCreateInfo, nullptr, &image))) {
+            return nullptr;
+        }
+
+        // Query image memory requirements
+        VkMemoryRequirements memoryRequirements{};
+        vkGetImageMemoryRequirements(_device, image, &memoryRequirements);
+
+        // Try to allocate memory
+        std::optional<VkDeviceMemory> memory = TryAllocateMemory(textureDesc.heapType, memoryRequirements);
+        if (!memory.has_value())
+        {
+            vkDestroyImage(_device, image, nullptr);
+            return nullptr;
+        }
+
+        // Bind image memory
+        if (VK_CHECK_FAILED(vkBindImageMemory(_device, image, memory.value(), 0)))
+        {
+            vkDestroyImage(_device, image, nullptr);
+            vkFreeMemory(_device, memory.value(), nullptr);
+            return nullptr;
+        }
+
+        return new VulkanTexture(_device, memory.value(), image);
+    }
+
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         // Create swapchain

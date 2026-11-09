@@ -28,11 +28,36 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @param heapType Heap type to translate.
     /// @return The Vulkan memory property flags.
     [[nodiscard]] VkMemoryPropertyFlags GetVulkanMemoryPropertyFlags(GraphicsHeapType const& heapType);
+    
+    /// @brief Get the Vulkan sample count flag bits based on a given sample count.
+    /// @param sampleCount Sample count to translate.
+    /// @return The Vulkan sample count flag bits.
+    [[nodiscard]] VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount);
+
+    /// @brief Get the Vulkan format for a given graphics format.
+    /// @param format Format to translate.
+    /// @return The Vulkan format.
+    [[nodiscard]] VkFormat GetVulkanFormat(GraphicsFormat const& format);
+
+    /// @brief Get the Vulkan image type for a given graphics texture type.
+    /// @param textureType Texture type to translate.
+    /// @return The Vulkan image type.
+    [[nodiscard]] VkImageType GetVulkanImageType(GraphicsTextureType const& textureType);
+
+    /// @brief Get the Vulkan image type for a given graphics texture tiling.
+    /// @param textureTiling Texture tiling to translate.
+    /// @return The Vulkan image tiling.
+    [[nodiscard]] VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling);
 
     /// @brief Get the Vulkan buffer usage flags for a given set of graphics buffer usage flags.
     /// @param usageFlags Usage flags to translate.
     /// @return The Vulkan buffer usage flags.
     [[nodiscard]] VkBufferUsageFlags GetVulkanBufferUsageFlags(GraphicsBufferUsageFlags const& usageFlags);
+
+    /// @brief Get the Vulkan image usage flags for a given set of graphics texture usage flags.
+    /// @param usageFlags Usage flags to translate.
+    /// @return The Vulkan image usage flags.
+    [[nodiscard]] VkImageUsageFlags GetVulkanImageUsageFlags(GraphicsTextureUsageFlags const& usageFlags);
 } // namespace Bonsai::VulkanGraphicsHelpers
 
 #endif //BONSAI_VULKAN_GRAPHICS_HELPERS_HPP

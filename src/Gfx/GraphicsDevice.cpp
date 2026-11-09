@@ -238,7 +238,7 @@ namespace Bonsai
 
     GraphicsTexture* GraphicsDevice::CreateTexture(GraphicsTextureDesc const& textureDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateTexture(textureDesc);
     }
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
