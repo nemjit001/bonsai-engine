@@ -64,38 +64,24 @@ namespace Bonsai
         VkMemoryRequirements memoryRequirements{};
         vkGetBufferMemoryRequirements(_device, buffer, &memoryRequirements);
 
-        // Get required memory property flags
-        VkMemoryPropertyFlags const requiredMemoryProperties = VulkanGraphicsHelpers::GetVulkanMemoryPropertyFlags(bufferDesc.heapType);
-        uint32_t const memoryTypeIndex = VulkanGraphicsHelpers::FindMemoryTypeIndex(
-            _sharedDeviceState->physicalDeviceMemoryProperties2.memoryProperties,
-            memoryRequirements.memoryTypeBits,
-            requiredMemoryProperties
-        );
-
-        // Allocate device memory
-        VkMemoryAllocateInfo memoryAllocateInfo{};
-        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        memoryAllocateInfo.pNext = nullptr;
-        memoryAllocateInfo.allocationSize = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
-
-        VkDeviceMemory memory = VK_NULL_HANDLE;
-        if (VK_CHECK_FAILED(vkAllocateMemory(_device, &memoryAllocateInfo, nullptr, &memory)))
+        // Try to allocate memory
+        std::optional<VkDeviceMemory> memory = TryAllocateMemory(bufferDesc.heapType, memoryRequirements);
+        if (!memory.has_value())
         {
             vkDestroyBuffer(_device, buffer, nullptr);
             return nullptr;
         }
 
         // Bind buffer memory
-        if (VK_CHECK_FAILED(vkBindBufferMemory(_device, buffer, memory, 0)))
+        if (VK_CHECK_FAILED(vkBindBufferMemory(_device, buffer, memory.value(), 0)))
         {
             vkDestroyBuffer(_device, buffer, nullptr);
-            vkFreeMemory(_device, memory, nullptr);
+            vkFreeMemory(_device, memory.value(), nullptr);
             return nullptr;
         }
 
         // Create buffer
-        return new VulkanBuffer(_device, memory, buffer);
+        return new VulkanBuffer(_device, memory.value(), buffer);
     }
     
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
@@ -120,5 +106,38 @@ namespace Bonsai
         }
 
         return swapchain;
+    }
+
+    std::optional<VkDeviceMemory> VulkanObjectFactory::TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements)
+    {
+        // Get required memory property flags
+        VkMemoryPropertyFlags const requiredMemoryProperties = VulkanGraphicsHelpers::GetVulkanMemoryPropertyFlags(heapType);
+        if (requiredMemoryProperties == 0) {
+            return {};
+        }
+
+        // Get memory type index
+        uint32_t const memoryTypeIndex = VulkanGraphicsHelpers::FindMemoryTypeIndex(
+            _sharedDeviceState->physicalDeviceMemoryProperties2.memoryProperties,
+            memoryRequirements.memoryTypeBits,
+            requiredMemoryProperties
+        );
+        if (memoryTypeIndex == UINT32_MAX) {
+            return {};
+        }
+
+        // Allocate device memory
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.pNext = nullptr;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkAllocateMemory(_device, &memoryAllocateInfo, nullptr, &memory))) {
+            return {};
+        }
+
+        return memory;
     }
 } // namespace Bonsai
