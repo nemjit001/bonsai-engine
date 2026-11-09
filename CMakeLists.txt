@@ -53,6 +53,7 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
+        src/Gfx/GraphicsTypesInternal.cpp
         src/Gfx/GraphicsTypesInternal.hpp
         src/Gfx/Vulkan/VulkanGraphicsTypes.hpp
         src/Gfx/Vulkan/VulkanObjectFactory.cpp

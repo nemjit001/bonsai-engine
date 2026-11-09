@@ -31,12 +31,10 @@ namespace Bonsai
             VkSurfaceKHR surface
         );
 
+    protected:
+        ~VulkanSwapchain() override;
+
     public:
-        virtual ~VulkanSwapchain();
-
-        VulkanSwapchain(VulkanSwapchain const&) = delete;
-        VulkanSwapchain& operator=(VulkanSwapchain const&) = delete;
-
         /// @brief Try to create a Vulkan swapchain.
         /// @param window Window to use for swapchain creation.
         /// @param instance Instance to use in the swapchain.

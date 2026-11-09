@@ -58,7 +58,7 @@ namespace Bonsai
 
         if (!swapchain->Configure(vulkanSwapchainDesc))
         {
-            delete swapchain;
+            swapchain->ReleaseRef();
             return nullptr;
         }
 

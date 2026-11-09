@@ -9,6 +9,7 @@ add_executable(BonsaiEngineTests)
 target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
+        src/Gfx/GraphicsResourceTests.cpp
         src/Assets/AssetManagerTests.cpp
         src/Assets/MeshTests.cpp
         src/Camera/CameraTests.cpp

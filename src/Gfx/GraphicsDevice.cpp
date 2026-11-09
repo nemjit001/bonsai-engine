@@ -236,7 +236,7 @@ namespace Bonsai
 
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
     {
-        delete swapchain;
+        swapchain->ReleaseRef();
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
