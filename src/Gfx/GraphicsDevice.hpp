@@ -54,6 +54,11 @@ namespace Bonsai
         /// @return A new graphics buffer, or nullptr on failure.
         [[nodiscard]] GraphicsBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
 
+        /// @brief Create a texture using this graphics device.
+        /// @param textureDesc Texture description.
+        /// @return A new graphics texture, or nullptr on failure.
+        [[nodiscard]] GraphicsTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
+
         /// @brief Create a swapchain using this graphics device.
         /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
@@ -62,6 +67,10 @@ namespace Bonsai
         /// @brief Destroy a buffer.
         /// @param buffer Buffer to destroy.
         void DestroyBuffer(GraphicsBuffer* buffer);
+
+        /// @brief Destroy a texture.
+        /// @param texture Texture to destroy.
+        void DestroyTexture(GraphicsTexture* texture);
 
         /// @brief Destroy a swapchain.
         /// @param swapchain Swapchain to destroy.

@@ -236,6 +236,11 @@ namespace Bonsai
         return _objectFactory->CreateBuffer(bufferDesc);
     }
 
+    GraphicsTexture* GraphicsDevice::CreateTexture(GraphicsTextureDesc const& textureDesc)
+    {
+        return nullptr;
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
@@ -243,12 +248,23 @@ namespace Bonsai
 
     void GraphicsDevice::DestroyBuffer(GraphicsBuffer* buffer)
     {
-        buffer->ReleaseRef();
+        if (buffer != nullptr) {
+            buffer->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyTexture(GraphicsTexture* texture)
+    {
+        if (texture != nullptr) {
+            texture->ReleaseRef();
+        }
     }
 
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
     {
-        swapchain->ReleaseRef();
+        if (swapchain != nullptr) {
+            swapchain->ReleaseRef();
+        }
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)

@@ -50,6 +50,12 @@ namespace Bonsai
         //
     };
 
+    /// @brief The GraphicsTexture is a graphics resource containing texture data.
+    class GraphicsTexture : public GraphicsResource
+    {
+        //
+    };
+
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.
     class GraphicsSwapchain : public GraphicsResource
     {
