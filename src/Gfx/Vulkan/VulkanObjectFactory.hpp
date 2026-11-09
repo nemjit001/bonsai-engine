@@ -39,6 +39,11 @@ namespace Bonsai
             VulkanSharedDeviceState* sharedDeviceState
         );
 
+        /// @brief Create a Vulkan buffer.
+        /// @param bufferDesc Buffer description to use for creation.
+        /// @return A new Vulkan buffer.
+        VulkanBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
+
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
         /// @return A new Vulkan swapchain.

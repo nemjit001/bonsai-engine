@@ -8,32 +8,6 @@
 
 namespace Bonsai
 {
-    class GraphicsResource;
-
-    /// @brief The FrameContext is used to store per-frame resources.
-    class FrameContext
-    {
-    public:
-        FrameContext() = default;
-        virtual ~FrameContext() = default;
-
-        FrameContext(FrameContext const&) = delete;
-        FrameContext& operator=(FrameContext const&) = delete;
-
-        FrameContext(FrameContext&&) = default;
-        FrameContext& operator=(FrameContext&&) = default;
-
-        /// @brief Reference a graphics resource in this frame.
-        /// @param resource Resource to reference.
-        void AddResourceRef(GraphicsResource* resource);
-
-        /// @brief Release all resource references for this frame.
-        void ReleaseResourceRefs();
-
-    private:
-        std::vector<GraphicsResource*> _resourceRefs;
-    };
-
     /// @brief The GraphicsResource base class implements lifetime management through refcounting.
     /// The class cannot be instantiated on the stack, and heap allocations must be cleaned up through releasing held references.
     class GraphicsResource
@@ -70,10 +44,40 @@ namespace Bonsai
         std::atomic<uint32_t> _refCount = 1; //< Initialized to 1 since on creation a reference exists.
     };
 
+    /// @brief The GraphicsBuffer is a graphics resource containing buffer data.
+    class GraphicsBuffer : public GraphicsResource
+    {
+        //
+    };
+
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.
     class GraphicsSwapchain : public GraphicsResource
     {
         //
+    };
+
+    /// @brief The FrameContext is used to store per-frame resources.
+    class FrameContext
+    {
+    public:
+        FrameContext() = default;
+        virtual ~FrameContext() = default;
+
+        FrameContext(FrameContext const&) = delete;
+        FrameContext& operator=(FrameContext const&) = delete;
+
+        FrameContext(FrameContext&&) = default;
+        FrameContext& operator=(FrameContext&&) = default;
+
+        /// @brief Reference a graphics resource in this frame.
+        /// @param resource Resource to reference.
+        void AddResourceRef(GraphicsResource* resource);
+
+        /// @brief Release all resource references for this frame.
+        void ReleaseResourceRefs();
+
+    private:
+        std::vector<GraphicsResource*> _resourceRefs;
     };
 } // namespace Bonsai
 

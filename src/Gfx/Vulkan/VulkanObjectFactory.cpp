@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
@@ -39,6 +40,62 @@ namespace Bonsai
         assert(sharedDeviceState != nullptr && "Shared device state was null!");
 
         return new VulkanObjectFactory(instance, physicalDevice, device, sharedDeviceState);
+    }
+    
+    VulkanBuffer* VulkanObjectFactory::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
+    {
+        // Create vulkan buffer
+        VkBufferCreateInfo bufferCreateInfo{};
+        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferCreateInfo.pNext = nullptr;
+        bufferCreateInfo.flags = 0;
+        bufferCreateInfo.size = static_cast<uint32_t>(bufferDesc.size);
+        bufferCreateInfo.usage = VulkanGraphicsHelpers::GetVulkanBufferUsageFlags(bufferDesc.usage);
+        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        bufferCreateInfo.queueFamilyIndexCount = 0;
+        bufferCreateInfo.pQueueFamilyIndices = nullptr;
+
+        VkBuffer buffer = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateBuffer(_device, &bufferCreateInfo, nullptr, &buffer))) {
+            return nullptr;
+        }
+
+        // Query buffer memory requirements
+        VkMemoryRequirements memoryRequirements{};
+        vkGetBufferMemoryRequirements(_device, buffer, &memoryRequirements);
+
+        // Get required memory property flags
+        VkMemoryPropertyFlags const requiredMemoryProperties = VulkanGraphicsHelpers::GetVulkanMemoryPropertyFlags(bufferDesc.heapType);
+        uint32_t const memoryTypeIndex = VulkanGraphicsHelpers::FindMemoryTypeIndex(
+            _sharedDeviceState->physicalDeviceMemoryProperties2.memoryProperties,
+            memoryRequirements.memoryTypeBits,
+            requiredMemoryProperties
+        );
+
+        // Allocate device memory
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.pNext = nullptr;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkAllocateMemory(_device, &memoryAllocateInfo, nullptr, &memory)))
+        {
+            vkDestroyBuffer(_device, buffer, nullptr);
+            return nullptr;
+        }
+
+        // Bind buffer memory
+        if (VK_CHECK_FAILED(vkBindBufferMemory(_device, buffer, memory, 0)))
+        {
+            vkDestroyBuffer(_device, buffer, nullptr);
+            vkFreeMemory(_device, memory, nullptr);
+            return nullptr;
+        }
+
+        // Create buffer
+        return new VulkanBuffer(_device, memory, buffer);
     }
     
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)

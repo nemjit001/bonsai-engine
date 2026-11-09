@@ -49,10 +49,19 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
-        /// @brief Create a swapchain on this graphics device.
+        /// @brief Create a buffer using this graphics device.
+        /// @param bufferDesc Buffer description.
+        /// @return A new graphics buffer, or nullptr on failure.
+        [[nodiscard]] GraphicsBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
+
+        /// @brief Create a swapchain using this graphics device.
         /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
         [[nodiscard]] GraphicsSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
+
+        /// @brief Destroy a buffer.
+        /// @param buffer Buffer to destroy.
+        void DestroyBuffer(GraphicsBuffer* buffer);
 
         /// @brief Destroy a swapchain.
         /// @param swapchain Swapchain to destroy.
@@ -96,6 +105,7 @@ namespace Bonsai
             VkPhysicalDevice physicalDevice;
             bool isSupported;
             VkPhysicalDeviceProperties2 physicalDeviceProperties2;
+            VkPhysicalDeviceMemoryProperties2 physicalDeviceMemoryProperties2;
             VkPhysicalDeviceFeatures2 physicalDeviceFeatures2;
             VkPhysicalDeviceVulkan11Features physicalDeviceVulkan11Features;
             VkPhysicalDeviceVulkan12Features physicalDeviceVulkan12Features;

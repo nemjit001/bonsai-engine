@@ -55,6 +55,9 @@ target_sources(BonsaiEngineLib
         src/Gfx/GraphicsDevice.cpp
         src/Gfx/GraphicsTypesInternal.cpp
         src/Gfx/GraphicsTypesInternal.hpp
+        src/Gfx/Vulkan/VulkanGraphicsHelpers.cpp
+        src/Gfx/Vulkan/VulkanGraphicsHelpers.hpp
+        src/Gfx/Vulkan/VulkanGraphicsTypes.cpp
         src/Gfx/Vulkan/VulkanGraphicsTypes.hpp
         src/Gfx/Vulkan/VulkanObjectFactory.cpp
         src/Gfx/Vulkan/VulkanObjectFactory.hpp

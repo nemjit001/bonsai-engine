@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai

@@ -8,17 +8,30 @@
 #include <vulkan/vulkan.h>
 #include "Gfx/GraphicsTypesInternal.hpp"
 
-#define VK_CHECK_SUCCEEDED(result)  (result == VK_SUCCESS)
-#define VK_CHECK_FAILED(result)     (result != VK_SUCCESS)
-
 namespace Bonsai
 {
     class VulkanSwapchain;
+
+    /// @brief Vulkan buffer implementation.
+    class VulkanBuffer : public GraphicsBuffer
+    {
+    public:
+        VulkanBuffer(VkDevice device, VkDeviceMemory memory, VkBuffer buffer);
+
+    protected:
+        ~VulkanBuffer() override;
+
+    private:
+        VkDevice _device;
+        VkDeviceMemory _memory;
+        VkBuffer _buffer;
+    };
 
     /// @brief Shared state for Vulkan devices.
     struct VulkanSharedDeviceState
     {
         uint64_t framesInFlight;
+        VkPhysicalDeviceMemoryProperties2 physicalDeviceMemoryProperties2;
         uint32_t graphicsQueueFamily;
         uint32_t presentQueueFamily;
         uint32_t computeQueueFamily;

@@ -7,6 +7,7 @@
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
@@ -189,6 +190,7 @@ namespace Bonsai
         // Create shared device state
         auto sharedDeviceState = std::make_unique<VulkanSharedDeviceState>();
         sharedDeviceState->framesInFlight = FramesInFlight;
+        sharedDeviceState->physicalDeviceMemoryProperties2 = physicalDeviceInfo->physicalDeviceMemoryProperties2;
         sharedDeviceState->graphicsQueueFamily = physicalDeviceInfo->graphicsQueueFamily;
         sharedDeviceState->presentQueueFamily = physicalDeviceInfo->presentQueueFamily;
         sharedDeviceState->computeQueueFamily = physicalDeviceInfo->computeQueueFamily;
@@ -229,9 +231,19 @@ namespace Bonsai
         );
     }
 
+    GraphicsBuffer* GraphicsDevice::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
+    {
+        return _objectFactory->CreateBuffer(bufferDesc);
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
+    }
+
+    void GraphicsDevice::DestroyBuffer(GraphicsBuffer* buffer)
+    {
+        buffer->ReleaseRef();
     }
 
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
@@ -413,12 +425,18 @@ namespace Bonsai
             VulkanPhysicalDeviceInfo& physicalDeviceInfo = physicalDeviceInfos[i];
             physicalDeviceInfo.physicalDevice = physicalDevices[i];
             physicalDeviceInfo.isSupported = false;
-            
+
             // Get physical device properties
             physicalDeviceInfo.physicalDeviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
             physicalDeviceInfo.physicalDeviceProperties2.pNext = nullptr;
 
             vkGetPhysicalDeviceProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceProperties2);
+
+            // Get physical device memory properties
+            physicalDeviceInfo.physicalDeviceMemoryProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+            physicalDeviceInfo.physicalDeviceMemoryProperties2.pNext = nullptr;
+
+            vkGetPhysicalDeviceMemoryProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceMemoryProperties2);
 
             // Get physical device features
             physicalDeviceInfo.physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
