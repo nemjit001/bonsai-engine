@@ -14,7 +14,7 @@ namespace Bonsai
         VulkanRenderContext(
             VkDevice device,
             VulkanSharedDeviceState* sharedDeviceState,
-            std::vector<VulkanFrameContext> const& frames
+            std::vector<VulkanFrameContext>&& frames
         );
 
     public:
@@ -50,9 +50,16 @@ namespace Bonsai
         void waitForAllFrames();
 
     private:
-        /// @brief Wait for a single frame to finish executing.
+        /// @brief Wait for a frame to finish executing. This will release frame resources
+        /// that were acquired during previous exeuction.
         /// @param frameContext Frame context to wait on.
-        void waitForFrame(VulkanFrameContext const& frameContext);
+        /// @return A boolean indicating success.
+        bool waitForFrame(VulkanFrameContext& frameContext);
+
+        /// @brief Prepare a frame for rendering.
+        /// @param frameContext Frame context to prepare for rendering.
+        /// @return A boolean indicating success.
+        bool prepareFrame(VulkanFrameContext& frameContext);
 
     private:
         VkDevice _device;

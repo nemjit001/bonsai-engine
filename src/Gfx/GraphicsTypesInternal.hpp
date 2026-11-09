@@ -3,13 +3,35 @@
 #define BONSAI_GRAPHICS_TYPES_INTERNAL_HPP
 
 #include <atomic>
+#include <vector>
 #include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
 {
-    struct FrameContext
+    class GraphicsResource;
+
+    /// @brief The FrameContext is used to store per-frame resources.
+    class FrameContext
     {
-        //
+    public:
+        FrameContext() = default;
+        virtual ~FrameContext() = default;
+
+        FrameContext(FrameContext const&) = delete;
+        FrameContext& operator=(FrameContext const&) = delete;
+
+        FrameContext(FrameContext&&) = default;
+        FrameContext& operator=(FrameContext&&) = default;
+
+        /// @brief Reference a graphics resource in this frame.
+        /// @param resource Resource to reference.
+        void AddResourceRef(GraphicsResource* resource);
+
+        /// @brief Release all resource references for this frame.
+        void ReleaseResourceRefs();
+
+    private:
+        std::vector<GraphicsResource*> _resourceRefs;
     };
 
     /// @brief The GraphicsResource base class implements lifetime management through refcounting.

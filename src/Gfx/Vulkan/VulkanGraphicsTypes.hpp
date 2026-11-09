@@ -38,9 +38,10 @@ namespace Bonsai
         std::vector<uint32_t> imageIndices;
     };
     
-    /// @brief Vulkan frame context implementation.
-    struct VulkanFrameContext : public FrameContext
+    /// @brief Vulkan frame context implementation. Exposes Vulkan frame state as public member variables.
+    class VulkanFrameContext : public FrameContext
     {
+    public:
         VkFence frameReadyFence;
         VkSemaphore renderingFinishedSemaphore;
         VkCommandPool graphicsCommandPool;

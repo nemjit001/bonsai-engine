@@ -2,6 +2,27 @@
 
 namespace Bonsai
 {
+    void FrameContext::AddResourceRef(GraphicsResource* resource)
+    {
+        // Add a reference to the resource and store in frame resources
+        resource->AddRef();
+        _resourceRefs.push_back(resource);
+    }
+
+    void FrameContext::ReleaseResourceRefs()
+    {
+        // Release all resource refs
+        for (auto const& resource : _resourceRefs)
+        {
+            if (resource != nullptr) {
+                resource->ReleaseRef();
+            }
+        }
+
+        // Clear held references
+        _resourceRefs.clear();
+    }
+
     uint32_t GraphicsResource::AddRef()
     {
         // Add a ref to the refcount, memory order acquire release is used to ensure other threads see accurate refcounts.
