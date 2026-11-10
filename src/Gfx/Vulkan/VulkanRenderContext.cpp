@@ -119,7 +119,7 @@ namespace Bonsai
         // Acquire all participating swapchain images
         for (size_t i = 0; i < swapchainCount; i++)
         {
-            auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchains[i]);
+            auto* vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchains[i]);
             if (vulkanSwapchain == nullptr) {
                 continue;
             }

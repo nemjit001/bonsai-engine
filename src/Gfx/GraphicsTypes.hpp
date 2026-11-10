@@ -16,8 +16,8 @@ namespace Bonsai
 
     namespace Graphics
     {
-        static constexpr uint32_t RemainingLevels = UINT32_MAX;
-        static constexpr uint32_t RemainingLayers = UINT32_MAX;
+        static constexpr uint32_t RemainingMipLevels    = UINT32_MAX;
+        static constexpr uint32_t RemainingArrayLayers  = UINT32_MAX;
     } // namespace Graphics
 
     /// @brief Enumeration of available graphics heap types.
@@ -121,9 +121,10 @@ namespace Bonsai
     /// @brief Enumeration of graphics texture aspect flag bits.
     enum GraphicsTextureAspectFlagBits : uint32_t
     {
-        GraphicsTextureAspect_None          = 0x00000000,
-        GraphicsTextureAspect_Color         = 0x00000001,
-        GraphicsTextureAspect_DepthStencil  = 0x00000002,
+        GraphicsTextureAspect_None      = 0x00000000,
+        GraphicsTextureAspect_Color     = 0x00000001,
+        GraphicsTextureAspect_Depth     = 0x00000002,
+        GraphicsTextureAspect_Stencil   = 0x00000004,
     };
     using GraphicsTextureAspectFlags = uint32_t;
 
@@ -159,9 +160,9 @@ namespace Bonsai
     {
         GraphicsTextureAspectFlags aspectMask = GraphicsTextureAspect_None;
         uint32_t baseMipLevel = 0;
-        uint32_t levelCount = Graphics::RemainingLevels;
+        uint32_t levelCount = Graphics::RemainingMipLevels;
         uint32_t baseArrayLayer = 0;
-        uint32_t layerCount = Graphics::RemainingLayers;
+        uint32_t layerCount = Graphics::RemainingArrayLayers;
     };
 
     /// @brief Graphics buffer description.

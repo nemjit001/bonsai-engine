@@ -21,6 +21,11 @@ namespace Bonsai
     protected:
         ~VulkanBuffer() override;
 
+    public:
+        /// @brief Get the Vulkan buffer handle.
+        /// @return The Vulkan buffer.
+        VkBuffer GetBuffer() const { return _buffer; }
+
     private:
         VkDevice _device;
         VkDeviceMemory _memory;
@@ -36,10 +41,34 @@ namespace Bonsai
     protected:
         ~VulkanTexture() override;
 
+    public:
+        /// @brief Get the Vulkan image handle.
+        /// @return The Vulkan image.
+        VkImage GetImage() const { return _image; }
+
     private:
         VkDevice _device;
         VkDeviceMemory _memory;
         VkImage _image;
+    };
+
+    /// @brief Vulkan texture view implementation.
+    class VulkanTextureView : public GraphicsTextureView
+    {
+    public:
+        VulkanTextureView(VulkanTexture* parentTexture, VkDevice device, VkImageView imageView);
+
+    protected:
+        ~VulkanTextureView() override;
+    
+    public:
+        /// @brief Get the Vulkan image view handle.
+        /// @return The Vulkan image view.
+        VkImageView GetImageView() const;
+
+    private:
+        VkDevice _device;
+        VkImageView _imageView;
     };
 
     /// @brief Shared state for Vulkan devices.

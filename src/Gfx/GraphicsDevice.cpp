@@ -243,7 +243,7 @@ namespace Bonsai
 
     GraphicsTextureView* GraphicsDevice::CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateTextureView(textureViewDesc);
     }
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)

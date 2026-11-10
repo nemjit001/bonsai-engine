@@ -50,6 +50,11 @@ namespace Bonsai
         /// @return A new Vulkan texture.
         VulkanTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
 
+        /// @brief Create a Vulkan texture view.
+        /// @param textureViewDesc Texture view description to use for creation.
+        /// @return A new Vulkan texture view.
+        VulkanTextureView* CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc);
+
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
         /// @return A new Vulkan swapchain.

@@ -1,5 +1,7 @@
 #include "VulkanGraphicsHelpers.hpp"
 
+#include "Gfx/GraphicsTypesInternal.hpp"
+
 namespace Bonsai::VulkanGraphicsHelpers
 {
     uint32_t FindMemoryTypeIndex(
@@ -151,6 +153,22 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
 
         return VK_IMAGE_TILING_OPTIMAL;
+    }
+
+    VkImageAspectFlags GetVulkanImageAspectFlags(GraphicsTextureAspectFlags const& aspectMask)
+    {
+        VkImageAspectFlags output = 0;
+        if (IsBitSet(aspectMask, GraphicsTextureAspect_Color)) {
+            output |= VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+        if (IsBitSet(aspectMask, GraphicsTextureAspect_Depth)) {
+            output |= VK_IMAGE_ASPECT_DEPTH_BIT;
+        }
+        if (IsBitSet(aspectMask, GraphicsTextureAspect_Stencil)) {
+            output |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+
+        return output;
     }
 
     VkBufferUsageFlags GetVulkanBufferUsageFlags(GraphicsBufferUsageFlags const& usageFlags)

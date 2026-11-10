@@ -138,6 +138,53 @@ namespace Bonsai
         return new VulkanTexture(_device, memory.value(), image);
     }
 
+    VulkanTextureView* VulkanObjectFactory::CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc)
+    {
+        // Check if texture is valid
+        auto* vulkanTexture = static_cast<VulkanTexture*>(textureViewDesc.texture);
+        if (vulkanTexture == nullptr) {
+            return nullptr;
+        }
+
+        // Create component mapping
+        VkComponentMapping components{};
+        components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        // Get actual layer and level counts
+        uint32_t const levelCount = textureViewDesc.subresourceRange.levelCount == Graphics::RemainingMipLevels ?
+            VK_REMAINING_MIP_LEVELS : textureViewDesc.subresourceRange.levelCount;
+        uint32_t const layerCount = textureViewDesc.subresourceRange.layerCount == Graphics::RemainingArrayLayers ?
+            VK_REMAINING_ARRAY_LAYERS : textureViewDesc.subresourceRange.layerCount;
+
+        // Set up subresource range
+        VkImageSubresourceRange subresourceRange{};
+        subresourceRange.aspectMask = VulkanGraphicsHelpers::GetVulkanImageAspectFlags(textureViewDesc.subresourceRange.aspectMask);
+        subresourceRange.baseMipLevel = textureViewDesc.subresourceRange.baseMipLevel;
+        subresourceRange.levelCount = levelCount;
+        subresourceRange.baseArrayLayer = textureViewDesc.subresourceRange.baseArrayLayer;
+        subresourceRange.layerCount = layerCount;
+
+        // Create image view
+        VkImageViewCreateInfo imageViewCreateInfo{};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.pNext = nullptr;
+        imageViewCreateInfo.flags = 0;
+        imageViewCreateInfo.image = vulkanTexture->GetImage();
+        imageViewCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureViewDesc.viewFormat);
+        imageViewCreateInfo.components = components;
+        imageViewCreateInfo.subresourceRange = subresourceRange;
+
+        VkImageView imageView = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView))) {
+            return nullptr;
+        }
+
+        return new VulkanTextureView(vulkanTexture, _device, imageView);
+    }
+
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         // Create swapchain

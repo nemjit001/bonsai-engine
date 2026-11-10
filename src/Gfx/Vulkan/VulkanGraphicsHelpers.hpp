@@ -49,6 +49,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @return The Vulkan image tiling.
     [[nodiscard]] VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling);
 
+    /// @brief Get the Vulkan image aspect flags for a given graphics texture aspect mask.
+    /// @param aspectMask Aspect mask to translate.
+    /// @return The Vulkan image aspect flags.
+    [[nodiscard]] VkImageAspectFlags GetVulkanImageAspectFlags(GraphicsTextureAspectFlags const& aspectMask);
+
     /// @brief Get the Vulkan buffer usage flags for a given set of graphics buffer usage flags.
     /// @param usageFlags Usage flags to translate.
     /// @return The Vulkan buffer usage flags.
