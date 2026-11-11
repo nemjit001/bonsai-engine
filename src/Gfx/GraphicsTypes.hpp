@@ -11,13 +11,15 @@ namespace Bonsai
     class GraphicsBuffer;
     class GraphicsTexture;
     class GraphicsTextureView;
+    class GraphicsSampler;
     class GraphicsSwapchain;
     class FrameContext;
 
     namespace Graphics
     {
-        static constexpr uint32_t RemainingMipLevels    = UINT32_MAX;
-        static constexpr uint32_t RemainingArrayLayers  = UINT32_MAX;
+        static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
+        static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
+        static constexpr float      LODClampNone            = 1'000.0F;
     } // namespace Graphics
 
     /// @brief Enumeration of available graphics heap types.
@@ -118,6 +120,54 @@ namespace Bonsai
         GraphicsTextureTiling_Linear    = 1,
     };
 
+    /// @brief Enumeration of available graphics filters.
+    enum GraphicsFilter : uint32_t
+    {
+        GraphicsFilter_Nearest  = 0,
+        GraphicsFilter_Linear   = 1,
+    };
+
+    /// @brief Enumeration of available graphics mipmap modes.
+    enum GraphicsMipmapMode : uint32_t
+    {
+        GraphicsMipmapMode_Nearest  = 0,
+        GraphicsMipmapMode_Linear   = 1,
+    };
+
+    /// @brief Enumeration of available graphics sampler address modes.
+    enum GraphicsSamplerAddressMode : uint32_t
+    {
+        GraphicsSamplerAddressMode_Repeat           = 0,
+        GraphicsSamplerAddressMode_MirroredRepeat   = 1,
+        GraphicsSamplerAddressMode_ClampToEdge      = 2,
+        GraphicsSamplerAddressMode_ClampToBorder    = 3,
+    };
+
+    /// @brief Enumeration of available graphics border colors.
+    enum GraphicsBorderColor : uint32_t
+    {
+        GraphicsBorderColor_TransparentBlack_Float  = 0,
+        GraphicsBorderColor_TransparentBlack_Int    = 1,
+        GraphicsBorderColor_OpaqueBlack_Float       = 2,
+        GraphicsBorderColor_OpaqueBlack_Int         = 3,
+        GraphicsBorderColor_OpaqueWhite_Float       = 4,
+        GraphicsBorderColor_OpaqueWhite_Int         = 5,
+    };
+
+    /// @brief Enumeration of available graphics compare ops.
+    enum GraphicsCompareOp : uint32_t
+    {
+        GraphicsCompareOp_Undefined         = 0,
+        GraphicsCompareOp_Never             = 1,
+        GraphicsCompareOp_Less              = 2,
+        GraphicsCompareOp_Equal             = 3,
+        GraphicsCompareOp_LessOrEqual       = 4,
+        GraphicsCompareOp_Greater           = 5,
+        GraphicsCompareOp_NotEqual          = 6,
+        GraphicsCompareOp_GreaterOrEqual    = 7,
+        GraphicsCompareOp_Always            = 8,
+    };
+
     /// @brief Enumeration of graphics texture aspect flag bits.
     enum GraphicsTextureAspectFlagBits : uint32_t
     {
@@ -195,6 +245,22 @@ namespace Bonsai
         GraphicsTextureViewType viewType = GraphicsTextureViewType_1D;
         GraphicsFormat viewFormat = GraphicsFormat_Unknown;
         GraphicsTextureSubresourceRange subresourceRange = {};
+    };
+
+    struct GraphicsSamplerDesc
+    {
+        GraphicsFilter magFilter = GraphicsFilter_Nearest;
+        GraphicsFilter minFilter = GraphicsFilter_Nearest;
+        GraphicsMipmapMode mipmapMode = GraphicsMipmapMode_Nearest;
+        GraphicsSamplerAddressMode addressModeU = GraphicsSamplerAddressMode_Repeat;
+        GraphicsSamplerAddressMode addressModeV = GraphicsSamplerAddressMode_Repeat;
+        GraphicsSamplerAddressMode addressModeW = GraphicsSamplerAddressMode_Repeat;
+        GraphicsCompareOp compareOp = GraphicsCompareOp_Undefined;
+        uint32_t maxAnisotropy = 0;
+        float mipLodBias = 0.0F;
+        float minLod = 0.0F;
+        float maxLod = Graphics::LODClampNone;
+        GraphicsBorderColor borderColor = GraphicsBorderColor_TransparentBlack_Float;
     };
 
     /// @brief Graphics swapchain description.

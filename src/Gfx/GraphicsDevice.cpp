@@ -246,6 +246,11 @@ namespace Bonsai
         return _objectFactory->CreateTextureView(textureViewDesc);
     }
 
+    GraphicsSampler* GraphicsDevice::CreateSampler(GraphicsSamplerDesc const& samplerDesc)
+    {
+        return nullptr;
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
@@ -269,6 +274,13 @@ namespace Bonsai
     {
         if (textureView != nullptr) {
             textureView->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroySampler(GraphicsSampler* sampler)
+    {
+        if (sampler != nullptr) {
+            sampler->ReleaseRef();
         }
     }
 
