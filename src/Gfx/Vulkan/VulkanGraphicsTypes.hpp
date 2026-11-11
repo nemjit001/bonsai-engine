@@ -71,6 +71,20 @@ namespace Bonsai
         VkImageView _imageView;
     };
 
+    /// @brief Vulkan sampler implementation.
+    class VulkanSampler : public GraphicsSampler
+    {
+    public:
+        VulkanSampler(VkDevice device, VkSampler sampler);
+
+    protected:
+        ~VulkanSampler() override;
+
+    private:
+        VkDevice _device;
+        VkSampler _sampler;
+    };
+
     /// @brief Shared state for Vulkan devices.
     struct VulkanSharedDeviceState
     {

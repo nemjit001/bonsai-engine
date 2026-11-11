@@ -155,6 +155,104 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_IMAGE_TILING_OPTIMAL;
     }
 
+    VkFilter GetVulkanFilter(GraphicsFilter const& filter)
+    {
+        switch (filter)
+        {
+        case GraphicsFilter_Nearest:
+            return VK_FILTER_NEAREST;
+        case GraphicsFilter_Linear:
+            return VK_FILTER_LINEAR;
+        default:
+            break;
+        }
+
+        return VK_FILTER_NEAREST;
+    }
+
+    VkSamplerMipmapMode GetVulkanSamplerMipmapMode(GraphicsSamplerMipmapMode const& mipmapMode)
+    {
+        switch (mipmapMode)
+        {
+        case GraphicsSamplerMipmapMode_Nearest:
+            return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        case GraphicsSamplerMipmapMode_Linear:
+            return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        }
+
+        return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    }
+
+    VkSamplerAddressMode GetVulkanSamplerAddressMode(GraphicsSamplerAddressMode const& addressMode)
+    {
+        switch (addressMode)
+        {
+        case GraphicsSamplerAddressMode_Repeat:
+            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        case GraphicsSamplerAddressMode_MirroredRepeat:
+            return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+        case GraphicsSamplerAddressMode_ClampToEdge:
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        case GraphicsSamplerAddressMode_ClampToBorder:
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        default:
+            break;
+        }
+
+        return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    }
+
+    VkBorderColor GetVulkanBorderColor(GraphicsBorderColor const& borderColor)
+    {
+        switch (borderColor)
+        {
+        case GraphicsBorderColor_TransparentBlack_Float:
+            return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+        case GraphicsBorderColor_TransparentBlack_Int:
+            return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
+        case GraphicsBorderColor_OpaqueBlack_Float:
+            return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+        case GraphicsBorderColor_OpaqueBlack_Int:
+            return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        case GraphicsBorderColor_OpaqueWhite_Float:
+            return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+        case GraphicsBorderColor_OpaqueWhite_Int:
+            return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+        default:
+            break;
+        }
+
+        return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+    }
+
+    VkCompareOp GetVulkanCompareOp(GraphicsCompareOp const& compareOp)
+    {
+        switch (compareOp)
+        {
+        case GraphicsCompareOp_Undefined:
+        case GraphicsCompareOp_Never:
+            return VK_COMPARE_OP_NEVER;
+        case GraphicsCompareOp_Less:
+            return VK_COMPARE_OP_LESS;
+        case GraphicsCompareOp_Equal:
+            return VK_COMPARE_OP_EQUAL;
+        case GraphicsCompareOp_LessOrEqual:
+            return VK_COMPARE_OP_LESS_OR_EQUAL;
+        case GraphicsCompareOp_Greater:
+            return VK_COMPARE_OP_GREATER;
+        case GraphicsCompareOp_NotEqual:
+            return VK_COMPARE_OP_NOT_EQUAL;
+        case GraphicsCompareOp_GreaterOrEqual:
+            return VK_COMPARE_OP_GREATER_OR_EQUAL;
+        case GraphicsCompareOp_Always:
+            return VK_COMPARE_OP_ALWAYS;
+        default:
+            break;
+        }
+
+        return VK_COMPARE_OP_NEVER;
+    }
+
     VkImageAspectFlags GetVulkanImageAspectFlags(GraphicsTextureAspectFlags const& aspectMask)
     {
         VkImageAspectFlags output = 0;

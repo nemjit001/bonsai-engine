@@ -128,10 +128,10 @@ namespace Bonsai
     };
 
     /// @brief Enumeration of available graphics mipmap modes.
-    enum GraphicsMipmapMode : uint32_t
+    enum GraphicsSamplerMipmapMode : uint32_t
     {
-        GraphicsMipmapMode_Nearest  = 0,
-        GraphicsMipmapMode_Linear   = 1,
+        GraphicsSamplerMipmapMode_Nearest  = 0,
+        GraphicsSamplerMipmapMode_Linear   = 1,
     };
 
     /// @brief Enumeration of available graphics sampler address modes.
@@ -251,7 +251,7 @@ namespace Bonsai
     {
         GraphicsFilter magFilter = GraphicsFilter_Nearest;
         GraphicsFilter minFilter = GraphicsFilter_Nearest;
-        GraphicsMipmapMode mipmapMode = GraphicsMipmapMode_Nearest;
+        GraphicsSamplerMipmapMode mipmapMode = GraphicsSamplerMipmapMode_Nearest;
         GraphicsSamplerAddressMode addressModeU = GraphicsSamplerAddressMode_Repeat;
         GraphicsSamplerAddressMode addressModeV = GraphicsSamplerAddressMode_Repeat;
         GraphicsSamplerAddressMode addressModeW = GraphicsSamplerAddressMode_Repeat;

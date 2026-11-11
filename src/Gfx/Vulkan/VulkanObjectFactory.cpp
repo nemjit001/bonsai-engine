@@ -185,6 +185,36 @@ namespace Bonsai
         return new VulkanTextureView(vulkanTexture, _device, imageView);
     }
 
+    VulkanSampler* VulkanObjectFactory::CreateSampler(GraphicsSamplerDesc const& samplerDesc)
+    {
+        // Create sampler
+        VkSamplerCreateInfo samplerCreateInfo{};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.pNext = nullptr;
+        samplerCreateInfo.flags = 0;
+        samplerCreateInfo.magFilter = VulkanGraphicsHelpers::GetVulkanFilter(samplerDesc.magFilter);
+        samplerCreateInfo.minFilter = VulkanGraphicsHelpers::GetVulkanFilter(samplerDesc.minFilter);
+        samplerCreateInfo.mipmapMode = VulkanGraphicsHelpers::GetVulkanSamplerMipmapMode(samplerDesc.mipmapMode);
+        samplerCreateInfo.addressModeU = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeU);
+        samplerCreateInfo.addressModeV = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeV);
+        samplerCreateInfo.addressModeW = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeW);
+        samplerCreateInfo.anisotropyEnable = samplerDesc.maxAnisotropy > 0 ? VK_TRUE : VK_FALSE;
+        samplerCreateInfo.maxAnisotropy = static_cast<float>(samplerDesc.maxAnisotropy);
+        samplerCreateInfo.compareEnable = samplerDesc.compareOp != GraphicsCompareOp_Undefined ? VK_TRUE : VK_FALSE;
+        samplerCreateInfo.compareOp = VulkanGraphicsHelpers::GetVulkanCompareOp(samplerDesc.compareOp);
+        samplerCreateInfo.minLod = samplerDesc.minLod;
+        samplerCreateInfo.maxLod = samplerDesc.maxLod == Graphics::LODClampNone ? VK_LOD_CLAMP_NONE : samplerDesc.maxLod;
+        samplerCreateInfo.borderColor = VulkanGraphicsHelpers::GetVulkanBorderColor(samplerDesc.borderColor);
+        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+        VkSampler sampler = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateSampler(_device, &samplerCreateInfo, nullptr, &sampler))) {
+            return nullptr;
+        }
+
+        return new VulkanSampler(_device, sampler);
+    }
+
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         // Create swapchain

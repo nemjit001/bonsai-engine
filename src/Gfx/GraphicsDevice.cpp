@@ -248,7 +248,7 @@ namespace Bonsai
 
     GraphicsSampler* GraphicsDevice::CreateSampler(GraphicsSamplerDesc const& samplerDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateSampler(samplerDesc);
     }
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)

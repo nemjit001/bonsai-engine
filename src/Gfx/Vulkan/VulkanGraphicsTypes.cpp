@@ -47,4 +47,17 @@ namespace Bonsai
     {
         vkDestroyImageView(_device, _imageView, nullptr);
     }
+    
+    VulkanSampler::VulkanSampler(VkDevice device, VkSampler sampler)
+        :
+        _device(device),
+        _sampler(sampler)
+    {
+        //
+    }
+
+    VulkanSampler::~VulkanSampler()
+    {
+        vkDestroySampler(_device, _sampler, nullptr);
+    }
 } // namespace Bonsai

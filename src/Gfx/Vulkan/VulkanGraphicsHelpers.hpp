@@ -49,6 +49,31 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @return The Vulkan image tiling.
     [[nodiscard]] VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling);
 
+    /// @brief Get the Vulkan filter for a given graphics filter.
+    /// @param filter Filter to translate.
+    /// @return The Vulkan filter.
+    [[nodiscard]] VkFilter GetVulkanFilter(GraphicsFilter const& filter);
+
+    /// @brief Get the Vulkan sampler mipmap mode for a given graphics sampler mipmap mode.
+    /// @param mipmapMode Sampler mipmap mode to translate.
+    /// @return The Vulkan sampler mipmap mode.
+    [[nodiscard]] VkSamplerMipmapMode GetVulkanSamplerMipmapMode(GraphicsSamplerMipmapMode const& mipmapMode);
+
+    /// @brief Get the Vulkan sampler address mode for a given graphics sampler address mode.
+    /// @param addressMode Sampler address mode to translate.
+    /// @return The Vulkan sampler address mode.
+    [[nodiscard]] VkSamplerAddressMode GetVulkanSamplerAddressMode(GraphicsSamplerAddressMode const& addressMode);
+
+    /// @brief Get the Vulkan border color for a given graphics border color.
+    /// @param borderColor Border color to translate.
+    /// @return The Vulkan border color.
+    [[nodiscard]] VkBorderColor GetVulkanBorderColor(GraphicsBorderColor const& borderColor);
+
+    /// @brief Get the Vulkan compare op for a given graphics compare op.
+    /// @param compareOp Compare op to translate.
+    /// @return The Vulkan compare op.
+    [[nodiscard]] VkCompareOp GetVulkanCompareOp(GraphicsCompareOp const& compareOp);
+
     /// @brief Get the Vulkan image aspect flags for a given graphics texture aspect mask.
     /// @param aspectMask Aspect mask to translate.
     /// @return The Vulkan image aspect flags.
