@@ -105,6 +105,12 @@ namespace Bonsai
     private:
         std::vector<GraphicsResource*> _resourceRefs;
     };
+
+    /// @brief The TransferBatch is used to store a batch of resource transfers.
+    class TransferBatch
+    {
+        //
+    };
 } // namespace Bonsai
 
 #endif //BONSAI_GRAPHICS_TYPES_INTERNAL_HPP

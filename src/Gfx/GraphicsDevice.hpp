@@ -104,6 +104,14 @@ namespace Bonsai
         /// @param frameContext Frame context to submit.
         void SubmitFrame(FrameContext* frameContext);
 
+        /// @brief Start a new transfer batch on the graphics device.
+        /// @return The new transfer batch.
+        [[nodiscard]] TransferBatch* StartTransferBatch();
+
+        /// @brief Submit a transfer batch to the graphics device.
+        /// @param transferBatch Transfer batch to submit.
+        void SubmitTransferBatch(TransferBatch* transferBatch);
+
         /// @brief Resize a swapchain.
         /// @param swapchain Swapchain to resize.
         /// @param width New swapchain width.

@@ -14,6 +14,7 @@ namespace Bonsai
     class GraphicsSampler;
     class GraphicsSwapchain;
     class FrameContext;
+    class TransferBatch;
 
     namespace Graphics
     {

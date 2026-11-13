@@ -303,6 +303,16 @@ namespace Bonsai
         _renderContext->SubmitFrame(vulkanFrameContext);
     }
 
+    TransferBatch* GraphicsDevice::StartTransferBatch()
+    {
+        return nullptr;
+    }
+
+    void GraphicsDevice::SubmitTransferBatch(TransferBatch* transferBatch)
+    {
+        //
+    }
+
     void GraphicsDevice::ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height)
     {
         auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
