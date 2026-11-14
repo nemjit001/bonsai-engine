@@ -97,6 +97,20 @@ namespace Bonsai
         /// @param swapchain Swapchain to destroy.
         void DestroySwapchain(GraphicsSwapchain* swapchain);
 
+        /// @brief Copy data to a target buffer.
+        /// @param buffer Buffer to copy data to.
+        /// @param data Pointer to the data to copy.
+        /// @param size Size of the copy region.
+        /// @param offset Offset into the target buffer.
+        void CopyToBuffer(GraphicsBuffer* buffer, void const* data, size_t size, size_t offset);
+
+        /// @brief Copy data from a target buffer.
+        /// @param buffer Buffer to copy data from.
+        /// @param outData Output data pointer to copy data to.
+        /// @param size Size of the copy region.
+        /// @param offset Offset into the target buffer.
+        void CopyFromBuffer(GraphicsBuffer* buffer, void* outData, size_t size, size_t offset);
+
         /// @brief Start a new frame on the graphics device.
         /// @param swapchain Swapchains participating in this frame.
         /// @param swapchainCount Number of swapchains in the swapchains array.

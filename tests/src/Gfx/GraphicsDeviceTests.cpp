@@ -112,10 +112,62 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
 
 TEST_F(GraphicsDeviceTests, TestStartAndSubmitEmptyTransferBatch)
 {
-    auto* batch = _graphicsDevice->StartTransferBatch();
+    Bonsai::TransferBatch* batch = _graphicsDevice->StartTransferBatch();
     
     // Do nothing...
 
     _graphicsDevice->SubmitTransferBatch(batch);
     _graphicsDevice->WaitForTransferBatch(batch);
+}
+
+TEST_F(GraphicsDeviceTests, TestStartAndSubmitSimpleTransferBatch)
+{
+    // Constants
+    constexpr uint32_t BufferElementCount = 1024;
+    constexpr uint32_t BufferSize = BufferElementCount * sizeof(uint32_t);
+
+    // Create source buffer
+    Bonsai::GraphicsBufferDesc bufferDesc{};
+    bufferDesc.heapType = Bonsai::GraphicsHeapType_Upload; // Require host visibility
+    bufferDesc.size = BufferSize;
+    bufferDesc.usage = Bonsai::GraphicsBufferUsage_TransferSrc;
+    auto* srcBuffer = _graphicsDevice->CreateBuffer(bufferDesc);
+
+    // Create transfer buffer
+    bufferDesc.usage = Bonsai::GraphicsBufferUsage_TransferDst;
+    auto* dstBuffer = _graphicsDevice->CreateBuffer(bufferDesc);
+
+    // Set up src buffer contents
+    uint32_t srcBufferData[BufferElementCount]{};
+    for (size_t i = 0; i < BufferElementCount; i++) {
+        srcBufferData[i] = static_cast<uint32_t>(i);
+    }
+    _graphicsDevice->CopyToBuffer(srcBuffer, srcBufferData, BufferSize, 0);
+
+    // Verify buffers are valid
+    ASSERT_NE(srcBuffer, nullptr);
+    ASSERT_NE(dstBuffer, nullptr);
+
+    // Start transfer batch
+    Bonsai::TransferBatch* batch = _graphicsDevice->StartTransferBatch();
+
+    // Record transfer commands
+    // TODO(nemjit001)
+    Bonsai::GraphicsCommandBuffer* commandBuffer = nullptr;
+    // commandBuffer->CopyBufferToBuffer(srcBuffer, dstBuffer, 1024, 0, 0);
+
+    // Submit transfer batch
+    _graphicsDevice->SubmitTransferBatch(batch);
+    _graphicsDevice->WaitForTransferBatch(batch);
+
+    // Verify destination buffer contents
+    uint32_t dstBufferData[BufferElementCount]{};
+    _graphicsDevice->CopyFromBuffer(dstBuffer, dstBufferData, BufferSize, 0);
+    for (size_t i = 0; i < BufferElementCount; i++) {
+        ASSERT_EQ(srcBufferData[i], dstBufferData[i]);
+    }
+
+    // Cleanup
+    _graphicsDevice->DestroyBuffer(srcBuffer);
+    _graphicsDevice->DestroyBuffer(dstBuffer);
 }

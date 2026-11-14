@@ -13,6 +13,7 @@ namespace Bonsai
     class GraphicsTextureView;
     class GraphicsSampler;
     class GraphicsSwapchain;
+    class GraphicsCommandBuffer;
     class FrameContext;
     class TransferBatch;
 
@@ -29,6 +30,28 @@ namespace Bonsai
         GraphicsHeapType_Default    = 0,
         GraphicsHeapType_Upload     = 1,
         GraphicsHeapType_ReadBack   = 2,
+    };
+
+    /// @brief Enumeration of available graphics index types.
+    enum GraphicsIndexType : uint32_t
+    {
+        GraphicsIndexType_UInt16    = 0,
+        GraphicsIndexType_UInt32    = 1,
+    };
+
+    /// @brief Enumeration of available graphics load ops.
+    enum GraphicsLoadOp : uint32_t
+    {
+        GraphicsLoadOp_Load     = 0,
+        GraphicsLoadOp_Clear    = 1,
+        GraphicsLoadOp_DontCare = 2,
+    };
+
+    /// @brief Enumeration of available graphics store ops.
+    enum GraphicsStoreOp : uint32_t
+    {
+        GraphicsStoreOp_Store       = 0,
+        GraphicsStoreOp_DontCare    = 1,
     };
 
     /// @brief Enumeration of available graphics formats.
@@ -206,6 +229,74 @@ namespace Bonsai
     };
     using GraphicsTextureUsageFlags = uint32_t;
 
+    /// @brief 2D offset into a resource.
+    struct Offset2D
+    {
+        int32_t x;
+        int32_t y;
+    };
+
+    /// @brief 3D offset into a resource.
+    struct Offset3D
+    {
+        int32_t x;
+        int32_t y;
+        int32_t z;
+    };
+
+    /// @brief 2D extent of a resource.
+    struct Extent2D
+    {
+        uint32_t width;
+        uint32_t height;
+    };
+
+    /// @brief 3D extent of a resource.
+    struct Extent3D
+    {
+        uint32_t width;
+        uint32_t height;
+        uint32_t depth;
+    };
+
+    /// @brief 2D rectangle.
+    struct Rect2D
+    {
+        Offset2D offset;
+        Extent2D extent;
+    };
+
+    /// @brief Clear value for color targets.
+    union GraphicsClearColorValue
+    {
+        float float32[4];
+        int32_t int32[4];
+        uint32_t uint32[4];
+    };
+
+    /// @brief Clear value for depth stencil targets.
+    struct GraphicsClearDepthStencilValue
+    {
+        float depth;
+        uint32_t stencil;
+    };
+
+    /// @brief Clear value for textures.
+    union GraphicsClearValue
+    {
+        GraphicsClearColorValue color;
+        GraphicsClearDepthStencilValue depthStencil;
+    };
+
+    struct GraphicsRenderAttachmentInfo
+    {
+        GraphicsTextureView* renderTarget;
+        GraphicsTextureView* resolveTarget;
+        GraphicsLoadOp loadOp;
+        GraphicsStoreOp storeOp;
+        GraphicsClearValue clearValue;
+    };
+
     /// @brief Subresource range for a graphics texture.
     struct GraphicsTextureSubresourceRange
     {
@@ -230,11 +321,11 @@ namespace Bonsai
         GraphicsHeapType heapType = GraphicsHeapType_Default;
         GraphicsTextureType textureType = GraphicsTextureType_2D;
         GraphicsFormat textureFormat = GraphicsFormat_Unknown;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        uint32_t depthOrLayers = 1;
-        uint32_t mipLevels = 1;
-        uint32_t sampleCount = 1;
+        size_t width = 0;
+        size_t height = 0;
+        size_t depthOrLayers = 1;
+        size_t mipLevels = 1;
+        size_t sampleCount = 1;
         GraphicsTextureTiling tilingMode = GraphicsTextureTiling_Optimal;
         GraphicsTextureUsageFlags usage = GraphicsTextureUsage_None;
     };

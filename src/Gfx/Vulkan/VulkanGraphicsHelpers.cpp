@@ -42,7 +42,7 @@ namespace Bonsai::VulkanGraphicsHelpers
         return 0;
     }
 
-    VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount)
+    VkSampleCountFlagBits GetVulkanSampleCountFlagBits(size_t const& sampleCount)
     {
         switch (sampleCount)
         {

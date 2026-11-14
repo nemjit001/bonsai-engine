@@ -68,4 +68,9 @@ namespace Bonsai
     {
         return _refCount;
     }
+
+    void GraphicsBuffer::SetMappedMemory(void* mappedMemory)
+    {
+        _mappedMemory = mappedMemory;
+    }
 } // namespace Bonsai

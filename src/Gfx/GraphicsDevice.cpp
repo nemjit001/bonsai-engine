@@ -3,6 +3,7 @@
 #define VOLK_IMPLEMENTATION
 
 #include <algorithm>
+#include <cstring>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
 #include "Core/Logger.hpp"
@@ -304,6 +305,37 @@ namespace Bonsai
         if (swapchain != nullptr) {
             swapchain->ReleaseRef();
         }
+    }
+
+    void GraphicsDevice::CopyToBuffer(GraphicsBuffer* buffer, void const* data, size_t size, size_t offset)
+    {
+        // Get mapped buffer pointer
+        void* bufferData = buffer->GetMappedMemory();
+        if (bufferData == nullptr) {
+            return;
+        }
+
+        // Copy data to buffer
+        bufferData = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(bufferData) + offset);
+        std::memcpy(bufferData, data, size);
+    }
+
+    void GraphicsDevice::CopyFromBuffer(GraphicsBuffer* buffer, void* outData, size_t size, size_t offset)
+    {
+        // Check output pointer
+        if (outData == nullptr) {
+            return;
+        }
+
+        // Get mapped buffer pointer
+        void* bufferData = buffer->GetMappedMemory();
+        if (bufferData == nullptr) {
+            return;
+        }
+
+        // Copy data from buffer
+        bufferData = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(bufferData) + offset);
+        std::memcpy(outData, bufferData, size);
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)

@@ -32,7 +32,7 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @brief Get the Vulkan sample count flag bits based on a given sample count.
     /// @param sampleCount Sample count to translate.
     /// @return The Vulkan sample count flag bits.
-    [[nodiscard]] VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount);
+    [[nodiscard]] VkSampleCountFlagBits GetVulkanSampleCountFlagBits(size_t const& sampleCount);
 
     /// @brief Get the Vulkan format for a given graphics format.
     /// @param format Format to translate.

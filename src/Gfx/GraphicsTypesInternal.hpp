@@ -47,7 +47,17 @@ namespace Bonsai
     /// @brief The GraphicsBuffer is a graphics resource containing buffer data.
     class GraphicsBuffer : public GraphicsResource
     {
-        //
+    public:
+        /// @brief Set the mapped memory pointer for this buffer.
+        /// @param mappedMemory Mapped memory pointer.
+        virtual void SetMappedMemory(void* mappedMemory) final;
+
+        /// @brief Get the mapped memory pointer for this buffer.
+        /// @return The mapped memory pointer, may be nullptr if buffer is not host visible.
+        virtual void* GetMappedMemory() final { return _mappedMemory; }
+
+    private:
+        void* _mappedMemory = nullptr;
     };
 
     /// @brief The GraphicsTexture is a graphics resource containing texture data.
@@ -65,6 +75,10 @@ namespace Bonsai
 
     protected:
         ~GraphicsTextureView() override;
+
+        /// @brief Get the parent texture for this texture view.
+        /// @return The stopred parent texture.
+        virtual GraphicsTexture* GetParentTexture() final { return _parentTexture; }
 
     private:
         GraphicsTexture* _parentTexture = nullptr; //< Parent texture that must remain valid while this view exists.
