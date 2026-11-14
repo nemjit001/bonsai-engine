@@ -31,7 +31,7 @@ namespace Bonsai
             GraphicsBuffer* src,
             GraphicsTexture* dst,
             size_t bufferOffset,
-            size_t bufferImagePitch,
+            size_t bufferRowLength,
             size_t bufferImageHeight,
             GraphicsTextureSubresourceRange const& textureSubresource,
             Offset3D const& textureOffset,
@@ -115,6 +115,10 @@ namespace Bonsai
         );
 
         void EndRendering();
+
+        /// @brief Get the recorded commands for the command buffer.
+        /// @return The list of recorded commands.
+        std::vector<GraphicsCommand> const& GetRecordedCommands() const { return _commands; }
 
     private:
         /// @brief Expected number of commands recorded per command buffer.

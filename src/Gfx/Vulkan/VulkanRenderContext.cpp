@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanCommandRecorder.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
@@ -163,7 +164,9 @@ namespace Bonsai
         }
         
         // Record frame commands
-        // TODO(nemjit001): Record frame commands here
+        for (size_t i = 0; i < frameContext->GetRecordedCommandBufferCount(); i++) {
+            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, frameContext->GetRecordedCommandBuffer(i));
+        }
 
         // Prepare all swapchains for presentation
         for (auto const& swapchain : frameContext->participatingSwapchains) {

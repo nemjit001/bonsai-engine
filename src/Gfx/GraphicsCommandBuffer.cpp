@@ -41,7 +41,7 @@ namespace Bonsai
         GraphicsBuffer* src,
         GraphicsTexture* dst,
         size_t bufferOffset,
-        size_t bufferImagePitch,
+        size_t bufferRowLength,
         size_t bufferImageHeight,
         GraphicsTextureSubresourceRange const& textureSubresource,
         Offset3D const& textureOffset,
@@ -52,7 +52,7 @@ namespace Bonsai
         commandCopyBufferToTexture.src = src;
         commandCopyBufferToTexture.dst = dst;
         commandCopyBufferToTexture.bufferOffset = bufferOffset;
-        commandCopyBufferToTexture.bufferImagePitch = bufferImagePitch;
+        commandCopyBufferToTexture.bufferRowLength = bufferRowLength;
         commandCopyBufferToTexture.bufferImageHeight = bufferImageHeight;
         commandCopyBufferToTexture.textureSubresource = textureSubresource;
         commandCopyBufferToTexture.textureOffset = textureOffset;
@@ -69,7 +69,7 @@ namespace Bonsai
         GraphicsTexture* src,
         GraphicsBuffer* dst,
         size_t bufferOffset,
-        size_t bufferImagePitch,
+        size_t bufferRowLength,
         size_t bufferImageHeight,
         GraphicsTextureSubresourceRange const& textureSubresource,
         Offset3D const& textureOffset,
@@ -80,7 +80,7 @@ namespace Bonsai
         commandCopyTextureToBuffer.src = src;
         commandCopyTextureToBuffer.dst = dst;
         commandCopyTextureToBuffer.bufferOffset = bufferOffset;
-        commandCopyTextureToBuffer.bufferImagePitch = bufferImagePitch;
+        commandCopyTextureToBuffer.bufferRowLength = bufferRowLength;
         commandCopyTextureToBuffer.bufferImageHeight = bufferImageHeight;
         commandCopyTextureToBuffer.textureSubresource = textureSubresource;
         commandCopyTextureToBuffer.textureOffset = textureOffset;

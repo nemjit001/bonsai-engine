@@ -46,7 +46,7 @@ namespace Bonsai
         GraphicsBuffer* src;
         GraphicsTexture* dst;
         size_t bufferOffset;
-        size_t bufferImagePitch;
+        size_t bufferRowLength;
         size_t bufferImageHeight;
         GraphicsTextureSubresourceRange textureSubresource;
         Offset3D textureOffset;
@@ -58,7 +58,7 @@ namespace Bonsai
         GraphicsTexture* src;
         GraphicsBuffer* dst;
         size_t bufferOffset;
-        size_t bufferImagePitch;
+        size_t bufferRowLength;
         size_t bufferImageHeight;
         GraphicsTextureSubresourceRange textureSubresource;
         Offset3D textureOffset;

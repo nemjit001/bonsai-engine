@@ -77,6 +77,7 @@ namespace Bonsai
     protected:
         ~GraphicsTextureView() override;
 
+    public:
         /// @brief Get the parent texture for this texture view.
         /// @return The stopred parent texture.
         virtual GraphicsTexture* GetParentTexture() final { return _parentTexture; }
@@ -117,6 +118,15 @@ namespace Bonsai
         /// @return The command buffer.
         GraphicsCommandBuffer* BeginNextGraphicsCommandBuffer();
 
+        /// @brief Get number of recorded command buffers.
+        /// @return The number of recorded command buffers.
+        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
+        
+        /// @brief Get the recorded command buffer at the given index.
+        /// @param index Index of the recorded command buffer.
+        /// @return The recorded command buffer.
+        GraphicsCommandBuffer const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
+
     private:
         uint32_t _nextCommandBuffer = 0;
         std::array<GraphicsCommandBuffer, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
@@ -141,6 +151,15 @@ namespace Bonsai
         /// @brief Begin a new command buffer in the transfer batch.
         /// @return The command buffer.
         GraphicsCommandBuffer* BeginNextTransferCommandBuffer();
+
+        /// @brief Get number of recorded command buffers.
+        /// @return The number of recorded command buffers.
+        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
+
+        /// @brief Get the recorded command buffer at the given index.
+        /// @param index Index of the recorded command buffer.
+        /// @return The recorded command buffer.
+        GraphicsCommandBuffer const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
 
     private:
         uint32_t _nextCommandBuffer = 0;

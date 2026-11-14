@@ -64,7 +64,7 @@ namespace Bonsai
     public:
         /// @brief Get the Vulkan image view handle.
         /// @return The Vulkan image view.
-        VkImageView GetImageView() const;
+        VkImageView GetImageView() const { return _imageView; }
 
     private:
         VkDevice _device;

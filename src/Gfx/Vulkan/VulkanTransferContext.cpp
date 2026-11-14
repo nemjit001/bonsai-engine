@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanCommandRecorder.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
 namespace Bonsai
@@ -143,7 +144,9 @@ namespace Bonsai
         }
 
         // Record transfer commands
-        // TODO(nemjit001): Record transfer commands here
+        for (size_t i = 0; i < transferBatch->GetRecordedCommandBufferCount(); i++) {
+            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, transferBatch->GetRecordedCommandBuffer(i));
+        }
 
         // End command buffer recording
         if (VK_CHECK_FAILED(vkEndCommandBuffer(transferBatch->transferCommandBuffer))) {

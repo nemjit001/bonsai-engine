@@ -68,6 +68,53 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_SAMPLE_COUNT_1_BIT;
     }
 
+    VkIndexType GetVulkanIndexType(GraphicsIndexType const& indexType)
+    {
+        switch (indexType)
+        {
+        case GraphicsIndexType_UInt16:
+            return VK_INDEX_TYPE_UINT16;
+        case GraphicsIndexType_UInt32:
+            return VK_INDEX_TYPE_UINT32;
+        default:
+            break;
+        }
+
+        return VK_INDEX_TYPE_UINT16;
+    }
+
+    VkAttachmentLoadOp GetVulkanAttachmentLoadOp(GraphicsLoadOp const& loadOp)
+    {
+        switch (loadOp)
+        {
+        case GraphicsLoadOp_Load:
+            return VK_ATTACHMENT_LOAD_OP_LOAD;
+        case GraphicsLoadOp_Clear:
+            return VK_ATTACHMENT_LOAD_OP_CLEAR;
+        case GraphicsLoadOp_DontCare:
+            return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        default:
+            break;
+        }
+
+        return VK_ATTACHMENT_LOAD_OP_LOAD;
+    }
+
+    VkAttachmentStoreOp GetVulkanAttachmentStoreOp(GraphicsStoreOp const& storeOp)
+    {
+        switch (storeOp)
+        {
+        case GraphicsStoreOp_Store:
+            return VK_ATTACHMENT_STORE_OP_STORE;
+        case GraphicsStoreOp_DontCare:
+            return VK_ATTACHMENT_STORE_OP_DONT_CARE;    
+        default:
+            break;
+        }
+
+        return VK_ATTACHMENT_STORE_OP_STORE;
+    }
+
     VkFormat GetVulkanFormat(GraphicsFormat const& format)
     {
         switch (format)
