@@ -75,6 +75,10 @@ namespace Bonsai
 
     void RenderManager::RenderFrame()
     {
+        // Record frame commands
+        GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginGraphicsCommandBuffer(_activeFrame);
+        commandBuffer->ClearRenderTarget(nullptr, GraphicsClearColorValue{{ 0.0F, 0.0F, 0.0F, 0.0F }}); // TODO(nemjit001): Render to swap backbuffer
+
         // Submit the active frame
         _graphicsDevice->SubmitFrame(_activeFrame);
     }

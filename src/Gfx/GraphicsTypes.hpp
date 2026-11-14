@@ -19,6 +19,10 @@ namespace Bonsai
 
     namespace Graphics
     {
+        static constexpr uint32_t   MaxBoundRenderTargets       = 8u;
+        static constexpr uint32_t   MaxBoundVertexBuffers       = 16u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffers   = 32u;
+
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
         static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
         static constexpr float      LODClampNone            = 1'000.0F;

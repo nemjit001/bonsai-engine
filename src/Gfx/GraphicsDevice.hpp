@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "Gfx/GraphicsCommandBuffer.hpp"
 #include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
@@ -117,6 +118,11 @@ namespace Bonsai
         /// @return The frame context for the started frame.
         [[nodiscard]] FrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
+        /// @brief Begin a command buffer for recording rendering commands.
+        /// @param frameContext Frame context to begin command buffer for.
+        /// @return The command buffer.
+        [[nodiscard]] GraphicsCommandBuffer* BeginGraphicsCommandBuffer(FrameContext* frameContext);
+
         /// @brief Submit a frame to the graphics device.
         /// @param frameContext Frame context to submit.
         void SubmitFrame(FrameContext* frameContext);
@@ -124,6 +130,11 @@ namespace Bonsai
         /// @brief Start a new transfer batch on the graphics device.
         /// @return The new transfer batch.
         [[nodiscard]] TransferBatch* StartTransferBatch();
+        
+        /// @brief Begin a command buffer for recording transfer commands.
+        /// @param transferBatch Transfer batch to begin command buffer for.
+        /// @return The command buffer.
+        [[nodiscard]] GraphicsCommandBuffer* BeginTransferCommandBuffer(TransferBatch* transferBatch);
 
         /// @brief Submit a transfer batch to the graphics device.
         /// @param transferBatch Transfer batch to submit.

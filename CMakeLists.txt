@@ -5,6 +5,9 @@ enable_testing()
 # Project options
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
+# Enable global options
+set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
+
 # Include cmake helpers
 include(cmake/dependencies.cmake)
 include(cmake/helpers.cmake)
@@ -32,6 +35,7 @@ target_sources(BonsaiEngineLib
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
         src/Gfx/GraphicsCommandBuffer.hpp
+        src/Gfx/GraphicsCommands.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
         src/Math/Math.hpp

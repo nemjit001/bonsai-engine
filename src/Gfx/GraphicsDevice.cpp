@@ -343,6 +343,11 @@ namespace Bonsai
         return _renderContext->StartFrame(swapchains, swapchainCount);
     }
 
+    GraphicsCommandBuffer* GraphicsDevice::BeginGraphicsCommandBuffer(FrameContext* frameContext)
+    {
+        return frameContext->BeginNextGraphicsCommandBuffer();
+    }
+
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
     {
         auto* vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
@@ -353,6 +358,11 @@ namespace Bonsai
     TransferBatch* GraphicsDevice::StartTransferBatch()
     {
         return _transferContext->StartTransferBatch();
+    }
+
+    GraphicsCommandBuffer* GraphicsDevice::BeginTransferCommandBuffer(TransferBatch* transferBatch)
+    {
+        return transferBatch->BeginNextTransferCommandBuffer();
     }
 
     void GraphicsDevice::SubmitTransferBatch(TransferBatch* transferBatch)

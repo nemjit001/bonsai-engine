@@ -133,7 +133,6 @@ namespace Bonsai
             vulkanSwapchain->RegisterWithFrame(frame.swapchainInfo);
 
             // Register swapchain with frame
-            frame.AddResourceRef(vulkanSwapchain);
             frame.participatingSwapchains.push_back(vulkanSwapchain);
         }
 
@@ -242,9 +241,6 @@ namespace Bonsai
             return false;
         }
 
-        // Release referenced resources
-        frameContext.ReleaseResourceRefs();
-
         // Clear old swapchain data
         frameContext.participatingSwapchains.clear();
         frameContext.swapchainInfo.swapchains.clear();
@@ -257,6 +253,9 @@ namespace Bonsai
 
     bool VulkanRenderContext::prepareFrame(VulkanFrameContext& frameContext)
     {
+        // Reset frame context
+        frameContext.Reset();
+
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frameContext.frameReadyFence))
             || VK_CHECK_FAILED(vkResetCommandBuffer(frameContext.frameCommandBuffer, 0))

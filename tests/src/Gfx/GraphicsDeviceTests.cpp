@@ -152,9 +152,9 @@ TEST_F(GraphicsDeviceTests, TestStartAndSubmitSimpleTransferBatch)
     Bonsai::TransferBatch* batch = _graphicsDevice->StartTransferBatch();
 
     // Record transfer commands
-    // TODO(nemjit001)
-    Bonsai::GraphicsCommandBuffer* commandBuffer = nullptr;
-    // commandBuffer->CopyBufferToBuffer(srcBuffer, dstBuffer, 1024, 0, 0);
+    Bonsai::GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginTransferCommandBuffer(batch);
+    ASSERT_NE(commandBuffer, nullptr);
+    commandBuffer->CopyBufferToBuffer(srcBuffer, dstBuffer, 1024, 0, 0);
 
     // Submit transfer batch
     _graphicsDevice->SubmitTransferBatch(batch);

@@ -3,57 +3,22 @@
 #define BONSAI_GRAPHICS_COMMAND_BUFFER_HPP
 
 #include <cstdint>
-#include <Gfx/GraphicsTypes.hpp>
+#include <vector>
+#include "Gfx/GraphicsCommands.hpp"
+#include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
 {
-    /// @brief Enumeration of graphics command types.
-    enum GraphicsCommandType : uint32_t
-    {
-        GraphicsCommandType_Undefined               = 0,
-
-        GraphicsCommandType_CopyBufferToBuffer      = 1,
-        GraphicsCommandType_CopyBufferToTexture     = 2,
-        GraphicsCommandType_CopyTextureToBuffer     = 3,
-        GraphicsCommandType_CopyTextureToTexture    = 4,
-
-        GraphicsCommandType_ClearRenderTarget       = 5,
-        GraphicsCommandType_ClearDepthStencilTarget = 6,
-
-        GraphicsCommandType_BindVertexBuffers       = 7,
-        GraphicsCommandType_BindIndexBuffer         = 8,
-        GraphicsCommandType_DrawIndexed             = 9,
-        GraphicsCommandType_DrawIndexedIndirect     = 10,
-
-        GraphicsCommandType_Dispatch                = 11,
-        GraphicsCommandType_DispatchIndirect        = 12,
-
-        GraphicsCommandType_BeginRendering          = 13,
-        GraphicsCommandType_EndRendering            = 14,
-    };
-
-    /// @brief A GraphicsCommand represents a single command within a graphics command buffer.
-    class GraphicsCommand
-    {
-    public:
-        virtual ~GraphicsCommand() = default;
-
-        GraphicsCommand(GraphicsCommand const&) = default;
-        GraphicsCommand& operator=(GraphicsCommand const&) = default;
-
-        /// @brief Get the graphics command type of this command.
-        /// @return The graphics command type.
-        virtual GraphicsCommandType GetCommandType() const final { return _type; }
-
-    protected:
-        GraphicsCommandType _type = GraphicsCommandType_Undefined;
-    };
-
     /// @brief The GraphicsCommandBuffer is used to record graphics commands
     /// that can then be submitted to a GraphicsDevice.
     class GraphicsCommandBuffer
     {
     public:
+        GraphicsCommandBuffer();
+        
+        /// @brief Reset the command buffer.
+        void Reset();
+
         void CopyBufferToBuffer(
             GraphicsBuffer* src,
             GraphicsBuffer* dst,
@@ -90,7 +55,7 @@ namespace Bonsai
             Offset3D const& srcOffset,
             GraphicsTextureSubresourceRange const& srcSubresource,
             Offset3D const& dstOffset,
-            GraphicsTexture const& dstSubresource,
+            GraphicsTextureSubresourceRange const& dstSubresource,
             Extent3D const& extent
         );
 
@@ -150,6 +115,12 @@ namespace Bonsai
         );
 
         void EndRendering();
+
+    private:
+        /// @brief Expected number of commands recorded per command buffer.
+        static constexpr uint32_t ExpectedCommandsPerCommandBuffer = 512;
+
+        std::vector<GraphicsCommand> _commands; //< Commands recorded in command buffer
     };
 } // namespace Bonsai
 

@@ -2,8 +2,9 @@
 #ifndef BONSAI_GRAPHICS_TYPES_INTERNAL_HPP
 #define BONSAI_GRAPHICS_TYPES_INTERNAL_HPP
 
+#include <array>
 #include <atomic>
-#include <vector>
+#include <Gfx/GraphicsCommandBuffer.hpp>
 #include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
@@ -109,15 +110,16 @@ namespace Bonsai
         FrameContext(FrameContext&&) = default;
         FrameContext& operator=(FrameContext&&) = default;
 
-        /// @brief Reference a graphics resource in this frame.
-        /// @param resource Resource to reference.
-        void AddResourceRef(GraphicsResource* resource);
+        /// @brief Reset the frame context in preparation for rendering.
+        void Reset();
 
-        /// @brief Release all resource references for this frame.
-        void ReleaseResourceRefs();
+        /// @brief Begin a new command buffer in the frame.
+        /// @return The command buffer.
+        GraphicsCommandBuffer* BeginNextGraphicsCommandBuffer();
 
     private:
-        std::vector<GraphicsResource*> _resourceRefs;
+        uint32_t _nextCommandBuffer = 0;
+        std::array<GraphicsCommandBuffer, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 
     /// @brief The TransferBatch is used to store a batch of resource transfers.
@@ -132,6 +134,17 @@ namespace Bonsai
 
         TransferBatch(TransferBatch&&) = default;
         TransferBatch& operator=(TransferBatch&&) = default;
+
+        /// @brief Reset the transfer batch in preparation for command recording.
+        void Reset();
+
+        /// @brief Begin a new command buffer in the transfer batch.
+        /// @return The command buffer.
+        GraphicsCommandBuffer* BeginNextTransferCommandBuffer();
+
+    private:
+        uint32_t _nextCommandBuffer = 0;
+        std::array<GraphicsCommandBuffer, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 } // namespace Bonsai
 
