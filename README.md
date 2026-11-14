@@ -4,6 +4,11 @@
 
 A C++17 render engine that implements a modern PBR render pipeline.
 
+## AI Notice
+
+No generative AI (LLM's, code assistants, etc.) has been used during the development of Bonsai, since Bonsai is a learning/self-study project.
+If/when that changes, this AI notice will be updated, until that time you can be sure that Bonsai remains entirely handwritten.
+
 ## License
 
 Bonsai is licensed under the MIT license.
