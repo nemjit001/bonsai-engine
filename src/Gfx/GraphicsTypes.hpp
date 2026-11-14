@@ -13,11 +13,19 @@ namespace Bonsai
     class GraphicsTextureView;
     class GraphicsSampler;
     class GraphicsSwapchain;
+    class GraphicsCommandBuffer;
     class FrameContext;
     class TransferBatch;
 
     namespace Graphics
     {
+        static constexpr uint32_t   MaxBoundRenderTargets       = 8u;
+        static constexpr uint32_t   MaxBoundVertexBuffers       = 16u;
+        static constexpr uint32_t   MaxGlobalBarriers           = 64u;
+        static constexpr uint32_t   MaxBufferBarriers           = 64u;
+        static constexpr uint32_t   MaxTextureBarriers          = 64u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffers   = 32u;
+
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
         static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
         static constexpr float      LODClampNone            = 1'000.0F;
@@ -29,6 +37,28 @@ namespace Bonsai
         GraphicsHeapType_Default    = 0,
         GraphicsHeapType_Upload     = 1,
         GraphicsHeapType_ReadBack   = 2,
+    };
+
+    /// @brief Enumeration of available graphics index types.
+    enum GraphicsIndexType : uint32_t
+    {
+        GraphicsIndexType_UInt16    = 0,
+        GraphicsIndexType_UInt32    = 1,
+    };
+
+    /// @brief Enumeration of available graphics load ops.
+    enum GraphicsLoadOp : uint32_t
+    {
+        GraphicsLoadOp_Load     = 0,
+        GraphicsLoadOp_Clear    = 1,
+        GraphicsLoadOp_DontCare = 2,
+    };
+
+    /// @brief Enumeration of available graphics store ops.
+    enum GraphicsStoreOp : uint32_t
+    {
+        GraphicsStoreOp_Store       = 0,
+        GraphicsStoreOp_DontCare    = 1,
     };
 
     /// @brief Enumeration of available graphics formats.
@@ -169,6 +199,44 @@ namespace Bonsai
         GraphicsCompareOp_Always            = 8,
     };
 
+    /// @brief Enumeration of available graphics texture layouts.
+    enum GraphicsTextureLayout : uint32_t
+    {
+        GraphicsTextureLayout_Undefined                     = 0,
+        GraphicsTextureLayout_General                       = 1,
+        GraphicsTextureLayout_RenderTarget                  = 2,
+        GraphicsTextureLayout_DepthStencilTarget            = 3,
+        GraphicsTextureLayout_DepthStencilReadOnlyTarget    = 4,
+        GraphicsTextureLayout_ShaderReadOnly                = 5,
+        GraphicsTextureLayout_TransferSrc                   = 6,
+        GraphicsTextureLayout_TransferDst                   = 7,
+        GraphicsTextureLayout_Present                       = 8,
+    };
+
+    /// @brief Enumeration of available graphics resource state.
+    enum GraphicsResourceState : uint32_t
+    {
+        GraphicsResourceState_Common                    = 0,
+        GraphicsResourceState_IndirectBuffer_Read       = 1,
+        GraphicsResourceState_IndexBuffer_Read          = 2,
+        GraphicsResourceState_VertexBuffer_Read         = 3,
+        GraphicsResourceState_VertexShader_Read         = 4,
+        GraphicsResourceState_VertexShader_Write        = 5,
+        GraphicsResourceState_PixelShader_Read          = 6,
+        GraphicsResourceState_PixelShader_Write         = 7,
+        GraphicsResourceState_ComputeShader_Read        = 8,
+        GraphicsResourceState_ComputeShader_Write       = 9,
+        GraphicsResourceState_RenderTarget_Read         = 10,
+        GraphicsResourceState_RenderTarget_Write        = 11,
+        GraphicsResourceState_DepthStencilTarget_Read   = 12,
+        GraphicsResourceState_DepthStencilTarget_Write  = 13,
+        GraphicsResourceState_Transfer_Read             = 14,
+        GraphicsResourceState_Transfer_Write            = 15,
+        GraphicsResourceState_Host_Read                 = 16,
+        GraphicsResourceState_Host_Write                = 17,
+        GraphicsResourceState_Present                   = 18,
+    };
+
     /// @brief Enumeration of graphics texture aspect flag bits.
     enum GraphicsTextureAspectFlagBits : uint32_t
     {
@@ -206,6 +274,75 @@ namespace Bonsai
     };
     using GraphicsTextureUsageFlags = uint32_t;
 
+    /// @brief 2D offset into a resource.
+    struct Offset2D
+    {
+        int32_t x;
+        int32_t y;
+    };
+
+    /// @brief 3D offset into a resource.
+    struct Offset3D
+    {
+        int32_t x;
+        int32_t y;
+        int32_t z;
+    };
+
+    /// @brief 2D extent of a resource.
+    struct Extent2D
+    {
+        uint32_t width;
+        uint32_t height;
+    };
+
+    /// @brief 3D extent of a resource.
+    struct Extent3D
+    {
+        uint32_t width;
+        uint32_t height;
+        uint32_t depth;
+    };
+
+    /// @brief 2D rectangle.
+    struct Rect2D
+    {
+        Offset2D offset;
+        Extent2D extent;
+    };
+
+    /// @brief Clear value for color targets.
+    union GraphicsClearColorValue
+    {
+        float float32[4];
+        int32_t int32[4];
+        uint32_t uint32[4];
+    };
+
+    /// @brief Clear value for depth stencil targets.
+    struct GraphicsClearDepthStencilValue
+    {
+        float depth;
+        uint32_t stencil;
+    };
+
+    /// @brief Clear value for textures.
+    union GraphicsClearValue
+    {
+        GraphicsClearColorValue color;
+        GraphicsClearDepthStencilValue depthStencil;
+    };
+
+    /// @brief Render attachment info for render and depth/stencil attachments.
+    struct GraphicsRenderAttachmentInfo
+    {
+        GraphicsTextureView* renderTarget = nullptr;
+        GraphicsTextureView* resolveTarget = nullptr;
+        GraphicsLoadOp loadOp = GraphicsLoadOp_Load;
+        GraphicsStoreOp storeOp = GraphicsStoreOp_Store;
+        GraphicsClearValue clearValue = GraphicsClearValue{};
+    };
+
     /// @brief Subresource range for a graphics texture.
     struct GraphicsTextureSubresourceRange
     {
@@ -214,6 +351,34 @@ namespace Bonsai
         uint32_t levelCount = Graphics::RemainingMipLevels;
         uint32_t baseArrayLayer = 0;
         uint32_t layerCount = Graphics::RemainingArrayLayers;
+    };
+
+    /// @brief Barrier for general pipeline-wide resource states.
+    struct GraphicsBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+    };
+
+    /// @brief Barrier for buffer resource state transitions.
+    struct GraphicsBufferBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+        GraphicsBuffer* buffer = nullptr;
+        size_t offset = 0;
+        size_t size = 0;
+    };
+
+    /// @brief Barrier for texture resource state transitions.
+    struct GraphicsTextureBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+        GraphicsTextureLayout srcLayout = GraphicsTextureLayout_Undefined;
+        GraphicsTextureLayout dstLayout = GraphicsTextureLayout_Undefined;
+        GraphicsTexture* texture = nullptr;
+        GraphicsTextureSubresourceRange subresource = GraphicsTextureSubresourceRange{};
     };
 
     /// @brief Graphics buffer description.
@@ -230,11 +395,11 @@ namespace Bonsai
         GraphicsHeapType heapType = GraphicsHeapType_Default;
         GraphicsTextureType textureType = GraphicsTextureType_2D;
         GraphicsFormat textureFormat = GraphicsFormat_Unknown;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        uint32_t depthOrLayers = 1;
-        uint32_t mipLevels = 1;
-        uint32_t sampleCount = 1;
+        size_t width = 0;
+        size_t height = 0;
+        size_t depthOrLayers = 1;
+        size_t mipLevels = 1;
+        size_t sampleCount = 1;
         GraphicsTextureTiling tilingMode = GraphicsTextureTiling_Optimal;
         GraphicsTextureUsageFlags usage = GraphicsTextureUsage_None;
     };

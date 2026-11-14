@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanCommandRecorder.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
 namespace Bonsai
@@ -105,11 +106,14 @@ namespace Bonsai
         uint32_t const batchIndex = _transferBatchFreeList.back();
         _transferBatchFreeList.pop_back();
 
-        // Prepare batch for transfer
+        // Get next transfer batch
         VulkanTransferBatch& transferBatch = _transferBatches[batchIndex];
         assert(transferBatch.batchIndex == batchIndex && "Mismatch between transferBatch->batchIndex and selected batchIndex!");
 
-        // Reset transfer batch state
+        // Reset tansfer batch
+        transferBatch.Reset();
+
+        // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &transferBatch.transferFinishedFence))
             || VK_CHECK_FAILED(vkResetCommandBuffer(transferBatch.transferCommandBuffer, 0))
         )
@@ -140,7 +144,9 @@ namespace Bonsai
         }
 
         // Record transfer commands
-        // TODO(nemjit001): Record transfer commands here
+        for (size_t i = 0; i < transferBatch->GetRecordedCommandBufferCount(); i++) {
+            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, transferBatch->GetRecordedCommandBuffer(i));
+        }
 
         // End command buffer recording
         if (VK_CHECK_FAILED(vkEndCommandBuffer(transferBatch->transferCommandBuffer))) {

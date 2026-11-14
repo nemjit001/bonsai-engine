@@ -32,7 +32,22 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @brief Get the Vulkan sample count flag bits based on a given sample count.
     /// @param sampleCount Sample count to translate.
     /// @return The Vulkan sample count flag bits.
-    [[nodiscard]] VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount);
+    [[nodiscard]] VkSampleCountFlagBits GetVulkanSampleCountFlagBits(size_t const& sampleCount);
+
+    /// @brief Get the Vulkan index type for a given graphics index type.
+    /// @param indexType Index type to translate.
+    /// @return The Vulkan index type.
+    [[nodiscard]] VkIndexType GetVulkanIndexType(GraphicsIndexType const& indexType);
+
+    /// @brief Get the Vulkan attachment load op for a given graphics load op.
+    /// @param loadOp Load op to translate.
+    /// @return The Vulkan attachment load op.
+    [[nodiscard]] VkAttachmentLoadOp GetVulkanAttachmentLoadOp(GraphicsLoadOp const& loadOp);
+    
+    /// @brief Get the Vulkan attachment store op for a given graphics store op.
+    /// @param storeOp Store op to translate.
+    /// @return The Vulkan attachment store op.
+    [[nodiscard]] VkAttachmentStoreOp GetVulkanAttachmentStoreOp(GraphicsStoreOp const& storeOp);
 
     /// @brief Get the Vulkan format for a given graphics format.
     /// @param format Format to translate.
@@ -43,6 +58,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @param textureType Texture type to translate.
     /// @return The Vulkan image type.
     [[nodiscard]] VkImageType GetVulkanImageType(GraphicsTextureType const& textureType);
+
+    /// @brief Get the Vulkan image layout for a given graphics texture layout.
+    /// @param textureLayout Texture layout to translate.
+    /// @return The Vulkan image layout.
+    [[nodiscard]] VkImageLayout GetVulkanImageLayout(GraphicsTextureLayout const& textureLayout);
 
     /// @brief Get the Vulkan image type for a given graphics texture tiling.
     /// @param textureTiling Texture tiling to translate.

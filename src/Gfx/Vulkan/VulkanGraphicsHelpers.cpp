@@ -1,7 +1,5 @@
 #include "VulkanGraphicsHelpers.hpp"
 
-#include "Gfx/GraphicsTypesInternal.hpp"
-
 namespace Bonsai::VulkanGraphicsHelpers
 {
     uint32_t FindMemoryTypeIndex(
@@ -42,7 +40,7 @@ namespace Bonsai::VulkanGraphicsHelpers
         return 0;
     }
 
-    VkSampleCountFlagBits GetVulkanSampleCountFlagBits(uint32_t const& sampleCount)
+    VkSampleCountFlagBits GetVulkanSampleCountFlagBits(size_t const& sampleCount)
     {
         switch (sampleCount)
         {
@@ -66,6 +64,53 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
 
         return VK_SAMPLE_COUNT_1_BIT;
+    }
+
+    VkIndexType GetVulkanIndexType(GraphicsIndexType const& indexType)
+    {
+        switch (indexType)
+        {
+        case GraphicsIndexType_UInt16:
+            return VK_INDEX_TYPE_UINT16;
+        case GraphicsIndexType_UInt32:
+            return VK_INDEX_TYPE_UINT32;
+        default:
+            break;
+        }
+
+        return VK_INDEX_TYPE_UINT16;
+    }
+
+    VkAttachmentLoadOp GetVulkanAttachmentLoadOp(GraphicsLoadOp const& loadOp)
+    {
+        switch (loadOp)
+        {
+        case GraphicsLoadOp_Load:
+            return VK_ATTACHMENT_LOAD_OP_LOAD;
+        case GraphicsLoadOp_Clear:
+            return VK_ATTACHMENT_LOAD_OP_CLEAR;
+        case GraphicsLoadOp_DontCare:
+            return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        default:
+            break;
+        }
+
+        return VK_ATTACHMENT_LOAD_OP_LOAD;
+    }
+
+    VkAttachmentStoreOp GetVulkanAttachmentStoreOp(GraphicsStoreOp const& storeOp)
+    {
+        switch (storeOp)
+        {
+        case GraphicsStoreOp_Store:
+            return VK_ATTACHMENT_STORE_OP_STORE;
+        case GraphicsStoreOp_DontCare:
+            return VK_ATTACHMENT_STORE_OP_DONT_CARE;    
+        default:
+            break;
+        }
+
+        return VK_ATTACHMENT_STORE_OP_STORE;
     }
 
     VkFormat GetVulkanFormat(GraphicsFormat const& format)
@@ -138,6 +183,35 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
 
         return VK_IMAGE_TYPE_1D;
+    }
+
+    VkImageLayout GetVulkanImageLayout(GraphicsTextureLayout const& textureLayout)
+    {
+        switch (textureLayout)
+        {
+        case GraphicsTextureLayout_Undefined:
+            return VK_IMAGE_LAYOUT_UNDEFINED;      
+        case GraphicsTextureLayout_General:
+            return VK_IMAGE_LAYOUT_GENERAL;
+        case GraphicsTextureLayout_RenderTarget:
+            return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        case GraphicsTextureLayout_DepthStencilTarget:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        case GraphicsTextureLayout_DepthStencilReadOnlyTarget:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        case GraphicsTextureLayout_ShaderReadOnly:
+            return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        case GraphicsTextureLayout_TransferSrc:
+            return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        case GraphicsTextureLayout_TransferDst:
+            return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        case GraphicsTextureLayout_Present:
+            return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        default:
+            break;
+        }
+
+        return VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
     VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling)

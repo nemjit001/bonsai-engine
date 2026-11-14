@@ -2,9 +2,10 @@
 #ifndef BONSAI_GRAPHICS_TYPES_INTERNAL_HPP
 #define BONSAI_GRAPHICS_TYPES_INTERNAL_HPP
 
+#include <array>
 #include <atomic>
-#include <vector>
 #include "Gfx/GraphicsTypes.hpp"
+#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
 
 namespace Bonsai
 {
@@ -47,7 +48,17 @@ namespace Bonsai
     /// @brief The GraphicsBuffer is a graphics resource containing buffer data.
     class GraphicsBuffer : public GraphicsResource
     {
-        //
+    public:
+        /// @brief Set the mapped memory pointer for this buffer.
+        /// @param mappedMemory Mapped memory pointer.
+        virtual void SetMappedMemory(void* mappedMemory) final;
+
+        /// @brief Get the mapped memory pointer for this buffer.
+        /// @return The mapped memory pointer, may be nullptr if buffer is not host visible.
+        virtual void* GetMappedMemory() final { return _mappedMemory; }
+
+    private:
+        void* _mappedMemory = nullptr;
     };
 
     /// @brief The GraphicsTexture is a graphics resource containing texture data.
@@ -65,6 +76,11 @@ namespace Bonsai
 
     protected:
         ~GraphicsTextureView() override;
+
+    public:
+        /// @brief Get the parent texture for this texture view.
+        /// @return The stopred parent texture.
+        virtual GraphicsTexture* GetParentTexture() final { return _parentTexture; }
 
     private:
         GraphicsTexture* _parentTexture = nullptr; //< Parent texture that must remain valid while this view exists.
@@ -95,15 +111,25 @@ namespace Bonsai
         FrameContext(FrameContext&&) = default;
         FrameContext& operator=(FrameContext&&) = default;
 
-        /// @brief Reference a graphics resource in this frame.
-        /// @param resource Resource to reference.
-        void AddResourceRef(GraphicsResource* resource);
+        /// @brief Reset the frame context in preparation for rendering.
+        void Reset();
 
-        /// @brief Release all resource references for this frame.
-        void ReleaseResourceRefs();
+        /// @brief Begin a new command buffer in the frame.
+        /// @return The command buffer.
+        GraphicsCommandBuffer* BeginNextGraphicsCommandBuffer();
+
+        /// @brief Get number of recorded command buffers.
+        /// @return The number of recorded command buffers.
+        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
+        
+        /// @brief Get the recorded command buffer at the given index.
+        /// @param index Index of the recorded command buffer.
+        /// @return The recorded command buffer.
+        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
 
     private:
-        std::vector<GraphicsResource*> _resourceRefs;
+        uint32_t _nextCommandBuffer = 0;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 
     /// @brief The TransferBatch is used to store a batch of resource transfers.
@@ -118,6 +144,26 @@ namespace Bonsai
 
         TransferBatch(TransferBatch&&) = default;
         TransferBatch& operator=(TransferBatch&&) = default;
+
+        /// @brief Reset the transfer batch in preparation for command recording.
+        void Reset();
+
+        /// @brief Begin a new command buffer in the transfer batch.
+        /// @return The command buffer.
+        GraphicsCommandBuffer* BeginNextTransferCommandBuffer();
+
+        /// @brief Get number of recorded command buffers.
+        /// @return The number of recorded command buffers.
+        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
+
+        /// @brief Get the recorded command buffer at the given index.
+        /// @param index Index of the recorded command buffer.
+        /// @return The recorded command buffer.
+        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
+
+    private:
+        uint32_t _nextCommandBuffer = 0;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 } // namespace Bonsai
 

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanCommandRecorder.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
@@ -133,7 +134,6 @@ namespace Bonsai
             vulkanSwapchain->RegisterWithFrame(frame.swapchainInfo);
 
             // Register swapchain with frame
-            frame.AddResourceRef(vulkanSwapchain);
             frame.participatingSwapchains.push_back(vulkanSwapchain);
         }
 
@@ -164,7 +164,9 @@ namespace Bonsai
         }
         
         // Record frame commands
-        // TODO(nemjit001): Record frame commands here
+        for (size_t i = 0; i < frameContext->GetRecordedCommandBufferCount(); i++) {
+            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, frameContext->GetRecordedCommandBuffer(i));
+        }
 
         // Prepare all swapchains for presentation
         for (auto const& swapchain : frameContext->participatingSwapchains) {
@@ -242,9 +244,6 @@ namespace Bonsai
             return false;
         }
 
-        // Release referenced resources
-        frameContext.ReleaseResourceRefs();
-
         // Clear old swapchain data
         frameContext.participatingSwapchains.clear();
         frameContext.swapchainInfo.swapchains.clear();
@@ -257,6 +256,9 @@ namespace Bonsai
 
     bool VulkanRenderContext::prepareFrame(VulkanFrameContext& frameContext)
     {
+        // Reset frame context
+        frameContext.Reset();
+
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frameContext.frameReadyFence))
             || VK_CHECK_FAILED(vkResetCommandBuffer(frameContext.frameCommandBuffer, 0))

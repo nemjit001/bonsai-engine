@@ -75,6 +75,17 @@ namespace Bonsai
 
     void RenderManager::RenderFrame()
     {
+        // Record frame commands
+        GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginGraphicsCommandBuffer(_activeFrame);
+        
+        GraphicsRenderAttachmentInfo colorAttachmentInfo{};
+        colorAttachmentInfo.renderTarget = nullptr; // FIXME(nemjit001): Set to swap backbuffer
+        colorAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
+        colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
+        colorAttachmentInfo.clearValue = GraphicsClearValue{{{ 1.0F, 1.0F, 1.0F, 1.0F }}};
+
+        // commandBuffer->BeginRendering(&colorAttachmentInfo, 1, nullptr);
+
         // Submit the active frame
         _graphicsDevice->SubmitFrame(_activeFrame);
     }

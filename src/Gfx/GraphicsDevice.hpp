@@ -9,6 +9,7 @@
 #include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "Gfx/GraphicsCommandBuffer.hpp"
 #include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
@@ -97,11 +98,30 @@ namespace Bonsai
         /// @param swapchain Swapchain to destroy.
         void DestroySwapchain(GraphicsSwapchain* swapchain);
 
+        /// @brief Copy data to a target buffer.
+        /// @param buffer Buffer to copy data to.
+        /// @param data Pointer to the data to copy.
+        /// @param size Size of the copy region.
+        /// @param offset Offset into the target buffer.
+        void CopyToBuffer(GraphicsBuffer* buffer, void const* data, size_t size, size_t offset);
+
+        /// @brief Copy data from a target buffer.
+        /// @param buffer Buffer to copy data from.
+        /// @param outData Output data pointer to copy data to.
+        /// @param size Size of the copy region.
+        /// @param offset Offset into the target buffer.
+        void CopyFromBuffer(GraphicsBuffer* buffer, void* outData, size_t size, size_t offset);
+
         /// @brief Start a new frame on the graphics device.
         /// @param swapchain Swapchains participating in this frame.
         /// @param swapchainCount Number of swapchains in the swapchains array.
         /// @return The frame context for the started frame.
         [[nodiscard]] FrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
+
+        /// @brief Begin a command buffer for recording rendering commands.
+        /// @param frameContext Frame context to begin command buffer for.
+        /// @return The command buffer.
+        [[nodiscard]] GraphicsCommandBuffer* BeginGraphicsCommandBuffer(FrameContext* frameContext);
 
         /// @brief Submit a frame to the graphics device.
         /// @param frameContext Frame context to submit.
@@ -110,6 +130,11 @@ namespace Bonsai
         /// @brief Start a new transfer batch on the graphics device.
         /// @return The new transfer batch.
         [[nodiscard]] TransferBatch* StartTransferBatch();
+        
+        /// @brief Begin a command buffer for recording transfer commands.
+        /// @param transferBatch Transfer batch to begin command buffer for.
+        /// @return The command buffer.
+        [[nodiscard]] GraphicsCommandBuffer* BeginTransferCommandBuffer(TransferBatch* transferBatch);
 
         /// @brief Submit a transfer batch to the graphics device.
         /// @param transferBatch Transfer batch to submit.

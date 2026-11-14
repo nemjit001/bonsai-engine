@@ -5,6 +5,9 @@ enable_testing()
 # Project options
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
+# Enable global options
+set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
+
 # Include cmake helpers
 include(cmake/dependencies.cmake)
 include(cmake/helpers.cmake)
@@ -31,6 +34,7 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.hpp
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
+        src/Gfx/GraphicsCommandBuffer.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
         src/Math/Math.hpp
@@ -53,8 +57,13 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
-        src/Gfx/GraphicsTypesInternal.cpp
-        src/Gfx/GraphicsTypesInternal.hpp
+        src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
+        src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
+        src/Gfx/Internal/GraphicsCommands.hpp
+        src/Gfx/Internal/GraphicsTypesInternal.cpp
+        src/Gfx/Internal/GraphicsTypesInternal.hpp
+        src/Gfx/Vulkan/VulkanCommandRecorder.cpp
+        src/Gfx/Vulkan/VulkanCommandRecorder.hpp
         src/Gfx/Vulkan/VulkanGraphicsHelpers.cpp
         src/Gfx/Vulkan/VulkanGraphicsHelpers.hpp
         src/Gfx/Vulkan/VulkanGraphicsTypes.cpp

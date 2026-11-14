@@ -80,8 +80,22 @@ namespace Bonsai
             return nullptr;
         }
 
-        // Create buffer
-        return new VulkanBuffer(_device, memory.value(), buffer);
+        // Map buffer memory if buffer is in a host visible heap
+        void* mappedMemory = nullptr;
+        if (bufferDesc.heapType == GraphicsHeapType_Upload || bufferDesc.heapType == GraphicsHeapType_ReadBack)
+        {
+            if (VK_CHECK_FAILED(vkMapMemory(_device, memory.value(), 0, bufferDesc.size, 0, &mappedMemory)))
+            {
+                vkDestroyBuffer(_device, buffer, nullptr);
+                vkFreeMemory(_device, memory.value(), nullptr);
+                return nullptr;
+            }
+        }
+
+        // Create buffer and set mapped memory region
+        auto* vulkanBuffer = new VulkanBuffer(_device, memory.value(), buffer);
+        vulkanBuffer->SetMappedMemory(mappedMemory);
+        return vulkanBuffer;
     }
     
     VulkanTexture* VulkanObjectFactory::CreateTexture(GraphicsTextureDesc const& textureDesc)
@@ -97,11 +111,11 @@ namespace Bonsai
         imageCreateInfo.flags = 0;
         imageCreateInfo.imageType = VulkanGraphicsHelpers::GetVulkanImageType(textureDesc.textureType);
         imageCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureDesc.textureFormat);
-        imageCreateInfo.extent.width = textureDesc.width;
-        imageCreateInfo.extent.height = textureDesc.height;
-        imageCreateInfo.extent.depth = depth;
-        imageCreateInfo.arrayLayers = layers;
-        imageCreateInfo.mipLevels = textureDesc.mipLevels;
+        imageCreateInfo.extent.width = static_cast<uint32_t>(textureDesc.width);
+        imageCreateInfo.extent.height = static_cast<uint32_t>(textureDesc.height);
+        imageCreateInfo.extent.depth = static_cast<uint32_t>(depth);
+        imageCreateInfo.arrayLayers = static_cast<uint32_t>(layers);
+        imageCreateInfo.mipLevels = static_cast<uint32_t>(textureDesc.mipLevels);
         imageCreateInfo.samples = VulkanGraphicsHelpers::GetVulkanSampleCountFlagBits(textureDesc.sampleCount);
         imageCreateInfo.tiling = VulkanGraphicsHelpers::GetVulkanImageTiling(textureDesc.tilingMode);
         imageCreateInfo.usage = VulkanGraphicsHelpers::GetVulkanImageUsageFlags(textureDesc.usage);

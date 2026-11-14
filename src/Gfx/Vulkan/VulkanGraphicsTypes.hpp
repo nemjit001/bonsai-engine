@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "Gfx/GraphicsTypesInternal.hpp"
+#include "Gfx/Internal/GraphicsTypesInternal.hpp"
 
 namespace Bonsai
 {
@@ -64,7 +64,7 @@ namespace Bonsai
     public:
         /// @brief Get the Vulkan image view handle.
         /// @return The Vulkan image view.
-        VkImageView GetImageView() const;
+        VkImageView GetImageView() const { return _imageView; }
 
     private:
         VkDevice _device;
