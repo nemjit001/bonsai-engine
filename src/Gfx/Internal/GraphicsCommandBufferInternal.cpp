@@ -15,6 +15,52 @@ namespace Bonsai
         _commands.clear();
     }
 
+    void GraphicsCommandBufferImpl::PipelineBarrier(
+        GraphicsBarrier* globalBarriers,
+        size_t globalBarrierCount,
+        GraphicsBufferBarrier* bufferBarriers,
+        size_t bufferBarrierCount,
+        GraphicsTextureBarrier* textureBarriers,
+        size_t textureBarrierCount
+    )
+    {
+        // Ensure barrier counts don't exceed maximum
+        globalBarrierCount = std::min(globalBarrierCount, static_cast<size_t>(Graphics::MaxGlobalBarriers));
+        bufferBarrierCount = std::min(bufferBarrierCount, static_cast<size_t>(Graphics::MaxBufferBarriers));
+        textureBarrierCount = std::min(textureBarrierCount, static_cast<size_t>(Graphics::MaxTextureBarriers));
+
+        // Copy over barrier data
+        std::array<GraphicsBarrier, Graphics::MaxGlobalBarriers> storedGlobalBarriers;
+        for (size_t i = 0; i < globalBarrierCount; i++) {
+            storedGlobalBarriers[i] = globalBarriers[i];
+        }
+
+        std::array<GraphicsBufferBarrier, Graphics::MaxBufferBarriers> storedBufferBarriers;
+        for (size_t i = 0; i < bufferBarrierCount; i++) {
+            storedBufferBarriers[i] = bufferBarriers[i];
+        }
+
+        std::array<GraphicsTextureBarrier, Graphics::MaxTextureBarriers> storedTextureBarriers;
+        for (size_t i = 0; i < textureBarrierCount; i++) {
+            storedTextureBarriers[i] = textureBarriers[i];
+        }
+
+        // Set up command state
+        GraphicsCommandPipelineBarrier commandPipelineBarrier{};
+        commandPipelineBarrier.globalBarriers = storedGlobalBarriers;
+        commandPipelineBarrier.globalBarrierCount = globalBarrierCount;
+        commandPipelineBarrier.bufferBarriers = storedBufferBarriers;
+        commandPipelineBarrier.bufferBarrierCount = bufferBarrierCount;
+        commandPipelineBarrier.textureBarriers = storedTextureBarriers;        
+        commandPipelineBarrier.textureBarrierCount = textureBarrierCount;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_PipelineBarrier;
+        command.data.commandPipelineBarrier = commandPipelineBarrier;
+
+        _commands.push_back(command);
+    }
+
     void GraphicsCommandBufferImpl::CopyBufferToBuffer(
         GraphicsBuffer* src,
         GraphicsBuffer* dst,

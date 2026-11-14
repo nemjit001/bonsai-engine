@@ -16,6 +16,15 @@ namespace Bonsai
         /// @brief Reset the command buffer.
         virtual void Reset() = 0;
 
+        virtual void PipelineBarrier(
+            GraphicsBarrier* globalBarriers,
+            size_t globalBarrierCount,
+            GraphicsBufferBarrier* bufferBarriers,
+            size_t bufferBarrierCount,
+            GraphicsTextureBarrier* textureBarriers,
+            size_t textureBarrierCount
+        ) = 0;
+
         virtual void CopyBufferToBuffer(
             GraphicsBuffer* src,
             GraphicsBuffer* dst,

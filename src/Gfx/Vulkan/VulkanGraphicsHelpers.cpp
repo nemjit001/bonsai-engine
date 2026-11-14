@@ -185,6 +185,35 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_IMAGE_TYPE_1D;
     }
 
+    VkImageLayout GetVulkanImageLayout(GraphicsTextureLayout const& textureLayout)
+    {
+        switch (textureLayout)
+        {
+        case GraphicsTextureLayout_Undefined:
+            return VK_IMAGE_LAYOUT_UNDEFINED;      
+        case GraphicsTextureLayout_General:
+            return VK_IMAGE_LAYOUT_GENERAL;
+        case GraphicsTextureLayout_RenderTarget:
+            return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        case GraphicsTextureLayout_DepthStencilTarget:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        case GraphicsTextureLayout_DepthStencilReadOnlyTarget:
+            return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        case GraphicsTextureLayout_ShaderReadOnly:
+            return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        case GraphicsTextureLayout_TransferSrc:
+            return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        case GraphicsTextureLayout_TransferDst:
+            return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        case GraphicsTextureLayout_Present:
+            return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        default:
+            break;
+        }
+
+        return VK_IMAGE_LAYOUT_UNDEFINED;
+    }
+
     VkImageTiling GetVulkanImageTiling(GraphicsTextureTiling const& textureTiling)
     {
         switch (textureTiling)

@@ -84,7 +84,7 @@ namespace Bonsai
         colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
         colorAttachmentInfo.clearValue = GraphicsClearValue{{{ 1.0F, 1.0F, 1.0F, 1.0F }}};
 
-        commandBuffer->BeginRendering(&colorAttachmentInfo, 1, nullptr);
+        // commandBuffer->BeginRendering(&colorAttachmentInfo, 1, nullptr);
 
         // Submit the active frame
         _graphicsDevice->SubmitFrame(_activeFrame);

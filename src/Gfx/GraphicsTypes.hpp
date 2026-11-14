@@ -21,6 +21,9 @@ namespace Bonsai
     {
         static constexpr uint32_t   MaxBoundRenderTargets       = 8u;
         static constexpr uint32_t   MaxBoundVertexBuffers       = 16u;
+        static constexpr uint32_t   MaxGlobalBarriers           = 64u;
+        static constexpr uint32_t   MaxBufferBarriers           = 64u;
+        static constexpr uint32_t   MaxTextureBarriers          = 64u;
         static constexpr uint32_t   MaxGraphicsCommandBuffers   = 32u;
 
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
@@ -196,6 +199,44 @@ namespace Bonsai
         GraphicsCompareOp_Always            = 8,
     };
 
+    /// @brief Enumeration of available graphics texture layouts.
+    enum GraphicsTextureLayout : uint32_t
+    {
+        GraphicsTextureLayout_Undefined                     = 0,
+        GraphicsTextureLayout_General                       = 1,
+        GraphicsTextureLayout_RenderTarget                  = 2,
+        GraphicsTextureLayout_DepthStencilTarget            = 3,
+        GraphicsTextureLayout_DepthStencilReadOnlyTarget    = 4,
+        GraphicsTextureLayout_ShaderReadOnly                = 5,
+        GraphicsTextureLayout_TransferSrc                   = 6,
+        GraphicsTextureLayout_TransferDst                   = 7,
+        GraphicsTextureLayout_Present                       = 8,
+    };
+
+    /// @brief Enumeration of available graphics resource state.
+    enum GraphicsResourceState : uint32_t
+    {
+        GraphicsResourceState_Common                    = 0,
+        GraphicsResourceState_IndirectBuffer_Read       = 1,
+        GraphicsResourceState_IndexBuffer_Read          = 2,
+        GraphicsResourceState_VertexBuffer_Read         = 3,
+        GraphicsResourceState_VertexShader_Read         = 4,
+        GraphicsResourceState_VertexShader_Write        = 5,
+        GraphicsResourceState_PixelShader_Read          = 6,
+        GraphicsResourceState_PixelShader_Write         = 7,
+        GraphicsResourceState_ComputeShader_Read        = 8,
+        GraphicsResourceState_ComputeShader_Write       = 9,
+        GraphicsResourceState_RenderTarget_Read         = 10,
+        GraphicsResourceState_RenderTarget_Write        = 11,
+        GraphicsResourceState_DepthStencilTarget_Read   = 12,
+        GraphicsResourceState_DepthStencilTarget_Write  = 13,
+        GraphicsResourceState_Transfer_Read             = 14,
+        GraphicsResourceState_Transfer_Write            = 15,
+        GraphicsResourceState_Host_Read                 = 16,
+        GraphicsResourceState_Host_Write                = 17,
+        GraphicsResourceState_Present                   = 18,
+    };
+
     /// @brief Enumeration of graphics texture aspect flag bits.
     enum GraphicsTextureAspectFlagBits : uint32_t
     {
@@ -292,13 +333,14 @@ namespace Bonsai
         GraphicsClearDepthStencilValue depthStencil;
     };
 
+    /// @brief Render attachment info for render and depth/stencil attachments.
     struct GraphicsRenderAttachmentInfo
     {
-        GraphicsTextureView* renderTarget;
-        GraphicsTextureView* resolveTarget;
-        GraphicsLoadOp loadOp;
-        GraphicsStoreOp storeOp;
-        GraphicsClearValue clearValue;
+        GraphicsTextureView* renderTarget = nullptr;
+        GraphicsTextureView* resolveTarget = nullptr;
+        GraphicsLoadOp loadOp = GraphicsLoadOp_Load;
+        GraphicsStoreOp storeOp = GraphicsStoreOp_Store;
+        GraphicsClearValue clearValue = GraphicsClearValue{};
     };
 
     /// @brief Subresource range for a graphics texture.
@@ -309,6 +351,34 @@ namespace Bonsai
         uint32_t levelCount = Graphics::RemainingMipLevels;
         uint32_t baseArrayLayer = 0;
         uint32_t layerCount = Graphics::RemainingArrayLayers;
+    };
+
+    /// @brief Barrier for general pipeline-wide resource states.
+    struct GraphicsBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+    };
+
+    /// @brief Barrier for buffer resource state transitions.
+    struct GraphicsBufferBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+        GraphicsBuffer* buffer = nullptr;
+        size_t offset = 0;
+        size_t size = 0;
+    };
+
+    /// @brief Barrier for texture resource state transitions.
+    struct GraphicsTextureBarrier
+    {
+        GraphicsResourceState srcResourceState = GraphicsResourceState_Common;
+        GraphicsResourceState dstResourceState = GraphicsResourceState_Common;
+        GraphicsTextureLayout srcLayout = GraphicsTextureLayout_Undefined;
+        GraphicsTextureLayout dstLayout = GraphicsTextureLayout_Undefined;
+        GraphicsTexture* texture = nullptr;
+        GraphicsTextureSubresourceRange subresource = GraphicsTextureSubresourceRange{};
     };
 
     /// @brief Graphics buffer description.

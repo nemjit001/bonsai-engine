@@ -12,24 +12,36 @@ namespace Bonsai
     {
         GraphicsCommandType_Undefined               = 0,
 
-        GraphicsCommandType_CopyBufferToBuffer      = 1,
-        GraphicsCommandType_CopyBufferToTexture     = 2,
-        GraphicsCommandType_CopyTextureToBuffer     = 3,
-        GraphicsCommandType_CopyTextureToTexture    = 4,
+        GraphicsCommandType_PipelineBarrier,
 
-        GraphicsCommandType_ClearRenderTarget       = 5,
-        GraphicsCommandType_ClearDepthStencilTarget = 6,
+        GraphicsCommandType_CopyBufferToBuffer,
+        GraphicsCommandType_CopyBufferToTexture,
+        GraphicsCommandType_CopyTextureToBuffer,
+        GraphicsCommandType_CopyTextureToTexture,
 
-        GraphicsCommandType_BindVertexBuffers       = 7,
-        GraphicsCommandType_BindIndexBuffer         = 8,
-        GraphicsCommandType_DrawIndexed             = 9,
-        GraphicsCommandType_DrawIndexedIndirect     = 10,
+        GraphicsCommandType_ClearRenderTarget,
+        GraphicsCommandType_ClearDepthStencilTarget,
 
-        GraphicsCommandType_Dispatch                = 11,
-        GraphicsCommandType_DispatchIndirect        = 12,
+        GraphicsCommandType_BindVertexBuffers,
+        GraphicsCommandType_BindIndexBuffer,
+        GraphicsCommandType_DrawIndexed,
+        GraphicsCommandType_DrawIndexedIndirect,
 
-        GraphicsCommandType_BeginRendering          = 13,
-        GraphicsCommandType_EndRendering            = 14,
+        GraphicsCommandType_Dispatch,
+        GraphicsCommandType_DispatchIndirect,
+
+        GraphicsCommandType_BeginRendering,
+        GraphicsCommandType_EndRendering,
+    };
+
+    struct GraphicsCommandPipelineBarrier
+    {
+        std::array<GraphicsBarrier, Graphics::MaxGlobalBarriers> globalBarriers;
+        size_t globalBarrierCount;
+        std::array<GraphicsBufferBarrier, Graphics::MaxBufferBarriers> bufferBarriers;
+        size_t bufferBarrierCount;
+        std::array<GraphicsTextureBarrier, Graphics::MaxTextureBarriers> textureBarriers;
+        size_t textureBarrierCount;
     };
 
     struct GraphicsCommandCopyBufferToBuffer
@@ -153,6 +165,7 @@ namespace Bonsai
         GraphicsCommandType type = GraphicsCommandType_Undefined;
         union GraphicsCommandData
         {
+            GraphicsCommandPipelineBarrier commandPipelineBarrier;
             GraphicsCommandCopyBufferToBuffer commandCopyBufferToBuffer;
             GraphicsCommandCopyBufferToTexture commandCopyBufferToTexture;
             GraphicsCommandCopyTextureToBuffer commandCopyTextureToBuffer;

@@ -26,6 +26,92 @@ namespace Bonsai
         case GraphicsCommandType_Undefined: {
             SPDLOG_WARN("Encountered GraphicsCommandType_Undefined!");
         } break;
+        case GraphicsCommandType_PipelineBarrier: {
+            GraphicsCommandPipelineBarrier const& commandData = command.data.commandPipelineBarrier;
+
+            // Set up barriers
+            std::array<VkMemoryBarrier2, Graphics::MaxGlobalBarriers> memoryBarriers;
+            for (size_t i = 0; i < commandData.globalBarrierCount; i++)
+            {
+                GraphicsBarrier const& graphicsBarrier = commandData.globalBarriers[i];
+                VulkanResourceAccessState const srcAccessState = GetVulkanResourceAccessState(graphicsBarrier.srcResourceState);
+                VulkanResourceAccessState const dstAccessState = GetVulkanResourceAccessState(graphicsBarrier.dstResourceState);
+
+                VkMemoryBarrier2& memoryBarrier = memoryBarriers[i];
+                memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+                memoryBarrier.pNext = nullptr;
+                memoryBarrier.srcStageMask = srcAccessState.stageMask;
+                memoryBarrier.srcAccessMask = srcAccessState.accessMask;
+                memoryBarrier.dstStageMask = dstAccessState.stageMask;
+                memoryBarrier.dstAccessMask = dstAccessState.accessMask;
+            }
+
+            std::array<VkBufferMemoryBarrier2, Graphics::MaxBufferBarriers> bufferMemoryBarriers;
+            for (size_t i = 0; i < commandData.bufferBarrierCount; i++)
+            {
+                GraphicsBufferBarrier const& graphicsBufferBarrier = commandData.bufferBarriers[i];
+                VulkanResourceAccessState const srcAccessState = GetVulkanResourceAccessState(graphicsBufferBarrier.srcResourceState);
+                VulkanResourceAccessState const dstAccessState = GetVulkanResourceAccessState(graphicsBufferBarrier.dstResourceState);
+                auto* vulkanBuffer = static_cast<VulkanBuffer*>(graphicsBufferBarrier.buffer);
+
+                VkBufferMemoryBarrier2& bufferMemoryBarrier = bufferMemoryBarriers[i];
+                bufferMemoryBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+                bufferMemoryBarrier.pNext = nullptr;
+                bufferMemoryBarrier.srcStageMask = srcAccessState.stageMask;
+                bufferMemoryBarrier.srcAccessMask = srcAccessState.accessMask;
+                bufferMemoryBarrier.dstStageMask = dstAccessState.stageMask;
+                bufferMemoryBarrier.dstAccessMask = dstAccessState.accessMask;
+                bufferMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferMemoryBarrier.buffer = vulkanBuffer->GetBuffer();
+                bufferMemoryBarrier.offset = graphicsBufferBarrier.offset;
+                bufferMemoryBarrier.size = graphicsBufferBarrier.size;
+            }
+
+            std::array<VkImageMemoryBarrier2, Graphics::MaxTextureBarriers> imageMemoryBarriers;
+            for (size_t i = 0; i < commandData.textureBarrierCount; i++)
+            {
+                GraphicsTextureBarrier const& graphicsTextureBarrier = commandData.textureBarriers[i];
+                VulkanResourceAccessState const srcAccessState = GetVulkanResourceAccessState(graphicsTextureBarrier.srcResourceState);
+                VulkanResourceAccessState const dstAccessState = GetVulkanResourceAccessState(graphicsTextureBarrier.dstResourceState);
+                auto* vulkanTexture = static_cast<VulkanTexture*>(graphicsTextureBarrier.texture);
+
+                VkImageSubresourceRange subresourceRange{};
+                subresourceRange.aspectMask = VulkanGraphicsHelpers::GetVulkanImageAspectFlags(graphicsTextureBarrier.subresource.aspectMask);
+                subresourceRange.baseMipLevel = graphicsTextureBarrier.subresource.baseMipLevel;
+                subresourceRange.levelCount = graphicsTextureBarrier.subresource.levelCount;
+                subresourceRange.baseArrayLayer = graphicsTextureBarrier.subresource.baseArrayLayer;
+                subresourceRange.layerCount = graphicsTextureBarrier.subresource.layerCount;
+
+                VkImageMemoryBarrier2& imageMemoryBarrier = imageMemoryBarriers[i];
+                imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+                imageMemoryBarrier.pNext = nullptr;
+                imageMemoryBarrier.srcStageMask = srcAccessState.stageMask;
+                imageMemoryBarrier.srcAccessMask = srcAccessState.accessMask;
+                imageMemoryBarrier.dstStageMask = dstAccessState.stageMask;
+                imageMemoryBarrier.dstAccessMask = dstAccessState.accessMask;
+                imageMemoryBarrier.oldLayout = VulkanGraphicsHelpers::GetVulkanImageLayout(graphicsTextureBarrier.srcLayout);
+                imageMemoryBarrier.newLayout = VulkanGraphicsHelpers::GetVulkanImageLayout(graphicsTextureBarrier.dstLayout);
+                imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                imageMemoryBarrier.image = vulkanTexture->GetImage();
+                imageMemoryBarrier.subresourceRange = subresourceRange;
+            }
+
+            // Set up dependency info
+            VkDependencyInfo dependencyInfo{};
+            dependencyInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            dependencyInfo.pNext = nullptr;
+            dependencyInfo.dependencyFlags = 0;
+            dependencyInfo.memoryBarrierCount = static_cast<uint32_t>(commandData.globalBarrierCount);
+            dependencyInfo.pMemoryBarriers = memoryBarriers.data();
+            dependencyInfo.bufferMemoryBarrierCount = static_cast<uint32_t>(commandData.bufferBarrierCount);
+            dependencyInfo.pBufferMemoryBarriers = bufferMemoryBarriers.data();
+            dependencyInfo.imageMemoryBarrierCount = static_cast<uint32_t>(commandData.textureBarrierCount);
+            dependencyInfo.pImageMemoryBarriers = imageMemoryBarriers.data();
+
+            vkCmdPipelineBarrier2(commandBuffer, &dependencyInfo);
+        } break;
         case GraphicsCommandType_CopyBufferToBuffer: {
             GraphicsCommandCopyBufferToBuffer const& commandData = command.data.commandCopyBufferToBuffer;
 
@@ -345,5 +431,54 @@ namespace Bonsai
             SPDLOG_WARN("Unknown GraphicsCommandType value: {}", static_cast<uint32_t>(command.type));
         } break;
         }
+    }
+
+    VulkanResourceAccessState VulkanCommandRecorder::GetVulkanResourceAccessState(GraphicsResourceState const& resourceState)
+    {
+        switch (resourceState)
+        {
+        case GraphicsResourceState_Common:
+            return { VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT };
+        case GraphicsResourceState_IndirectBuffer_Read:
+            return { VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT, VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT };
+        case GraphicsResourceState_IndexBuffer_Read:
+            return { VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT, VK_ACCESS_2_INDEX_READ_BIT };
+        case GraphicsResourceState_VertexBuffer_Read:
+            return { VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT, VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT };
+        case GraphicsResourceState_VertexShader_Read:
+            return { VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT };
+        case GraphicsResourceState_VertexShader_Write:
+            return { VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_SHADER_WRITE_BIT };
+        case GraphicsResourceState_PixelShader_Read:
+            return { VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT };
+        case GraphicsResourceState_PixelShader_Write:
+            return { VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_WRITE_BIT };
+        case GraphicsResourceState_ComputeShader_Read:
+            return { VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT, VK_ACCESS_2_UNIFORM_READ_BIT | VK_ACCESS_2_SHADER_READ_BIT };
+        case GraphicsResourceState_ComputeShader_Write:
+            return { VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT, VK_ACCESS_2_SHADER_WRITE_BIT };
+        case GraphicsResourceState_RenderTarget_Read:
+            return { VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT_KHR };
+        case GraphicsResourceState_RenderTarget_Write:
+            return { VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT_KHR };
+        case GraphicsResourceState_DepthStencilTarget_Read:
+            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT };
+        case GraphicsResourceState_DepthStencilTarget_Write:
+            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT };
+        case GraphicsResourceState_Transfer_Read:
+            return { VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT };
+        case GraphicsResourceState_Transfer_Write:
+            return { VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT };
+        case GraphicsResourceState_Host_Read:
+            return { VK_PIPELINE_STAGE_2_HOST_BIT, VK_ACCESS_2_MEMORY_READ_BIT };
+        case GraphicsResourceState_Host_Write:
+            return { VK_PIPELINE_STAGE_2_HOST_BIT, VK_ACCESS_2_MEMORY_WRITE_BIT };
+        case GraphicsResourceState_Present:
+            return { VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, 0 };
+        default:
+            break;
+        }
+
+        return { 0, 0 };
     }
 } // namespace Bonsai
