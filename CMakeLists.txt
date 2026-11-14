@@ -35,7 +35,6 @@ target_sources(BonsaiEngineLib
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
         src/Gfx/GraphicsCommandBuffer.hpp
-        src/Gfx/GraphicsCommands.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
         src/Math/Math.hpp
@@ -57,10 +56,12 @@ target_sources(BonsaiEngineLib
     PRIVATE
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
-        src/Gfx/GraphicsCommandBuffer.cpp
         src/Gfx/GraphicsDevice.cpp
-        src/Gfx/GraphicsTypesInternal.cpp
-        src/Gfx/GraphicsTypesInternal.hpp
+        src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
+        src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
+        src/Gfx/Internal/GraphicsCommands.hpp
+        src/Gfx/Internal/GraphicsTypesInternal.cpp
+        src/Gfx/Internal/GraphicsTypesInternal.hpp
         src/Gfx/Vulkan/VulkanCommandRecorder.cpp
         src/Gfx/Vulkan/VulkanCommandRecorder.hpp
         src/Gfx/Vulkan/VulkanGraphicsHelpers.cpp

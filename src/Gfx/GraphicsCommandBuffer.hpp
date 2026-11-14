@@ -2,9 +2,6 @@
 #ifndef BONSAI_GRAPHICS_COMMAND_BUFFER_HPP
 #define BONSAI_GRAPHICS_COMMAND_BUFFER_HPP
 
-#include <cstdint>
-#include <vector>
-#include "Gfx/GraphicsCommands.hpp"
 #include "Gfx/GraphicsTypes.hpp"
 
 namespace Bonsai
@@ -14,20 +11,20 @@ namespace Bonsai
     class GraphicsCommandBuffer
     {
     public:
-        GraphicsCommandBuffer();
-        
-        /// @brief Reset the command buffer.
-        void Reset();
+        virtual ~GraphicsCommandBuffer() = default;
 
-        void CopyBufferToBuffer(
+        /// @brief Reset the command buffer.
+        virtual void Reset() = 0;
+
+        virtual void CopyBufferToBuffer(
             GraphicsBuffer* src,
             GraphicsBuffer* dst,
             size_t size,
             size_t srcOffset,
             size_t dstOffset
-        );
+        ) = 0;
 
-        void CopyBufferToTexture(
+        virtual void CopyBufferToTexture(
             GraphicsBuffer* src,
             GraphicsTexture* dst,
             size_t bufferOffset,
@@ -36,9 +33,9 @@ namespace Bonsai
             GraphicsTextureSubresourceRange const& textureSubresource,
             Offset3D const& textureOffset,
             Extent3D const& textureExtent
-        );
+        ) = 0;
 
-        void CopyTextureToBuffer(
+        virtual void CopyTextureToBuffer(
             GraphicsTexture* src,
             GraphicsBuffer* dst,
             size_t bufferOffset,
@@ -47,9 +44,9 @@ namespace Bonsai
             GraphicsTextureSubresourceRange const& textureSubresource,
             Offset3D const& textureOffset,
             Extent3D const& textureExtent
-        );
+        ) = 0;
 
-        void CopyTextureToTexture(
+        virtual void CopyTextureToTexture(
             GraphicsTexture* src,
             GraphicsTexture* dst,
             Offset3D const& srcOffset,
@@ -57,74 +54,64 @@ namespace Bonsai
             Offset3D const& dstOffset,
             GraphicsTextureSubresourceRange const& dstSubresource,
             Extent3D const& extent
-        );
+        ) = 0;
 
-        void ClearRenderTarget(
+        virtual void ClearRenderTarget(
             GraphicsTextureView* textureView,
             GraphicsClearColorValue const& clearValue
-        );
+        ) = 0;
 
-        void ClearDepthStencilTarget(
+        virtual void ClearDepthStencilTarget(
             GraphicsTextureView* textureView,
             GraphicsClearDepthStencilValue const& clearValue
-        );
+        ) = 0;
 
-        void BindVertexBuffers(
+        virtual void BindVertexBuffers(
             size_t firstSlot,
             GraphicsBuffer** buffers,
             size_t bufferCount,
             size_t* offsets
-        );
+        ) = 0;
 
-        void BindIndexBuffer(
+        virtual void BindIndexBuffer(
             GraphicsBuffer* buffer,
             size_t offset,
             GraphicsIndexType indexType
-        );
+        ) = 0;
 
-        void DrawIndexed(
+        virtual void DrawIndexed(
             uint32_t indexCount,
             uint32_t instanceCount,
             uint32_t firstIndex,
             int32_t vertexOffset,
             uint32_t firstInstance
-        );
+        ) = 0;
 
-        void DrawIndexedIndirect(
+        virtual void DrawIndexedIndirect(
             GraphicsBuffer* buffer,
             size_t offset,
             uint32_t drawCount,
             uint32_t stride
-        );
+        ) = 0;
 
-        void Dispatch(
+        virtual void Dispatch(
             uint32_t sizeX,
             uint32_t sizeY,
             uint32_t sizeZ
-        );
+        ) = 0;
 
-        void DispatchIndirect(
+        virtual void DispatchIndirect(
             GraphicsBuffer* buffer,
             size_t offset
-        );
+        ) = 0;
 
-        void BeginRendering(
+        virtual void BeginRendering(
             GraphicsRenderAttachmentInfo* renderAttachments,
             size_t renderAttachmentCount,
             GraphicsRenderAttachmentInfo* depthStencilAttachment
-        );
+        ) = 0;
 
-        void EndRendering();
-
-        /// @brief Get the recorded commands for the command buffer.
-        /// @return The list of recorded commands.
-        std::vector<GraphicsCommand> const& GetRecordedCommands() const { return _commands; }
-
-    private:
-        /// @brief Expected number of commands recorded per command buffer.
-        static constexpr uint32_t ExpectedCommandsPerCommandBuffer = 512;
-
-        std::vector<GraphicsCommand> _commands; //< Commands recorded in command buffer
+        virtual void EndRendering() = 0;
     };
 } // namespace Bonsai
 

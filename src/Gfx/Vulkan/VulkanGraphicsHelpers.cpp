@@ -1,7 +1,5 @@
 #include "VulkanGraphicsHelpers.hpp"
 
-#include "Gfx/GraphicsTypesInternal.hpp"
-
 namespace Bonsai::VulkanGraphicsHelpers
 {
     uint32_t FindMemoryTypeIndex(

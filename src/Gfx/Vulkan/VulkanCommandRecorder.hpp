@@ -9,7 +9,7 @@
 namespace Bonsai
 {
     struct GraphicsCommand;
-    class GraphicsCommandBuffer;
+    class GraphicsCommandBufferImpl;
 
     /// @brief The VulkanGrapCommandRecorder records graphics command into a Vulkan command buffer.
     class VulkanCommandRecorder
@@ -21,7 +21,7 @@ namespace Bonsai
         /// @brief Record a Vulkan command buffer using a set of recorded graphics commands.
         /// @param commandBuffer Vulkan command buffer to record into.
         /// @param recordedCommands Recorded graphics commands.
-        static void RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBuffer const* recordedCommands);
+        static void RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBufferImpl const* recordedCommands);
 
     private:
         /// @brief Record a graphics command into a Vulkan command buffer.

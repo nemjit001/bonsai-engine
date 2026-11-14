@@ -3,13 +3,13 @@
 #include <cassert>
 #include <volk.h>
 #include "Core/Logger.hpp"
-#include "Gfx/GraphicsCommandBuffer.hpp"
+#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
 namespace Bonsai
 {
-    void VulkanCommandRecorder::RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBuffer const* recordedCommands)
+    void VulkanCommandRecorder::RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBufferImpl const* recordedCommands)
     {
         assert(commandBuffer != VK_NULL_HANDLE && "commandBuffer was VK_NULL_HANDLE!");
         assert(recordedCommands != nullptr && "recordedCommands was nullptr!");

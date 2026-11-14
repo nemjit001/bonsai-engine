@@ -4,8 +4,8 @@
 
 #include <array>
 #include <atomic>
-#include <Gfx/GraphicsCommandBuffer.hpp>
 #include "Gfx/GraphicsTypes.hpp"
+#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
 
 namespace Bonsai
 {
@@ -125,11 +125,11 @@ namespace Bonsai
         /// @brief Get the recorded command buffer at the given index.
         /// @param index Index of the recorded command buffer.
         /// @return The recorded command buffer.
-        GraphicsCommandBuffer const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
+        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
 
     private:
         uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBuffer, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 
     /// @brief The TransferBatch is used to store a batch of resource transfers.
@@ -159,11 +159,11 @@ namespace Bonsai
         /// @brief Get the recorded command buffer at the given index.
         /// @param index Index of the recorded command buffer.
         /// @return The recorded command buffer.
-        GraphicsCommandBuffer const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
+        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
 
     private:
         uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBuffer, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
     };
 } // namespace Bonsai
 

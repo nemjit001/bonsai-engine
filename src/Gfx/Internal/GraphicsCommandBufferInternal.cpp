@@ -1,21 +1,21 @@
-#include "GraphicsCommandBuffer.hpp"
+#include "GraphicsCommandBufferInternal.hpp"
 
 #include <algorithm>
 
 namespace Bonsai
 {
-    GraphicsCommandBuffer::GraphicsCommandBuffer()
+    GraphicsCommandBufferImpl::GraphicsCommandBufferImpl()
     {
         // Ensure to reserve at least enough space for the expected number of commands
         _commands.reserve(ExpectedCommandsPerCommandBuffer);
     }
 
-    void GraphicsCommandBuffer::Reset()
+    void GraphicsCommandBufferImpl::Reset()
     {
         _commands.clear();
     }
 
-    void GraphicsCommandBuffer::CopyBufferToBuffer(
+    void GraphicsCommandBufferImpl::CopyBufferToBuffer(
         GraphicsBuffer* src,
         GraphicsBuffer* dst,
         size_t size,
@@ -37,7 +37,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::CopyBufferToTexture(
+    void GraphicsCommandBufferImpl::CopyBufferToTexture(
         GraphicsBuffer* src,
         GraphicsTexture* dst,
         size_t bufferOffset,
@@ -65,7 +65,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::CopyTextureToBuffer(
+    void GraphicsCommandBufferImpl::CopyTextureToBuffer(
         GraphicsTexture* src,
         GraphicsBuffer* dst,
         size_t bufferOffset,
@@ -93,7 +93,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::CopyTextureToTexture(
+    void GraphicsCommandBufferImpl::CopyTextureToTexture(
         GraphicsTexture* src,
         GraphicsTexture* dst,
         Offset3D const& srcOffset,
@@ -119,7 +119,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::ClearRenderTarget(
+    void GraphicsCommandBufferImpl::ClearRenderTarget(
         GraphicsTextureView* textureView,
         GraphicsClearColorValue const& clearValue
     )
@@ -135,7 +135,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::ClearDepthStencilTarget(
+    void GraphicsCommandBufferImpl::ClearDepthStencilTarget(
         GraphicsTextureView* textureView,
         GraphicsClearDepthStencilValue const& clearValue
     )
@@ -151,7 +151,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::BindVertexBuffers(
+    void GraphicsCommandBufferImpl::BindVertexBuffers(
         size_t firstSlot,
         GraphicsBuffer** buffers,
         size_t bufferCount,
@@ -184,7 +184,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::BindIndexBuffer(
+    void GraphicsCommandBufferImpl::BindIndexBuffer(
         GraphicsBuffer* buffer,
         size_t offset,
         GraphicsIndexType indexType
@@ -202,7 +202,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::DrawIndexed(
+    void GraphicsCommandBufferImpl::DrawIndexed(
         uint32_t indexCount,
         uint32_t instanceCount,
         uint32_t firstIndex,
@@ -224,7 +224,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::DrawIndexedIndirect(
+    void GraphicsCommandBufferImpl::DrawIndexedIndirect(
         GraphicsBuffer* buffer,
         size_t offset,
         uint32_t drawCount,
@@ -244,7 +244,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::Dispatch(
+    void GraphicsCommandBufferImpl::Dispatch(
         uint32_t sizeX,
         uint32_t sizeY,
         uint32_t sizeZ
@@ -262,7 +262,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::DispatchIndirect(
+    void GraphicsCommandBufferImpl::DispatchIndirect(
         GraphicsBuffer* buffer,
         size_t offset
     )
@@ -278,7 +278,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::BeginRendering(
+    void GraphicsCommandBufferImpl::BeginRendering(
         GraphicsRenderAttachmentInfo* renderAttachments,
         size_t renderAttachmentCount,
         GraphicsRenderAttachmentInfo* depthStencilAttachment
@@ -310,7 +310,7 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
-    void GraphicsCommandBuffer::EndRendering()
+    void GraphicsCommandBufferImpl::EndRendering()
     {
         GraphicsCommand command{};
         command.type = GraphicsCommandType_EndRendering;

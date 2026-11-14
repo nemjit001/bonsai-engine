@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "Gfx/GraphicsTypesInternal.hpp"
+#include "Gfx/Internal/GraphicsTypesInternal.hpp"
 
 namespace Bonsai
 {

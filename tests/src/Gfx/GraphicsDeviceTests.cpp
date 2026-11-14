@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "Gfx/GraphicsDevice.hpp"
-#include "Gfx/GraphicsTypesInternal.hpp"
+#include "Gfx/Internal/GraphicsTypesInternal.hpp"
 
 class GraphicsDeviceTests : public testing::Test
 {
