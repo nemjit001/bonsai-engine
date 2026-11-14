@@ -8,13 +8,14 @@
 
 namespace Bonsai
 {
+    /// @brief The Vulkan render context manages the Vulkan frame lifecycle.
     class VulkanRenderContext
     {
     private:
         VulkanRenderContext(
             VkDevice device,
             VulkanSharedDeviceState* sharedDeviceState,
-            std::vector<VulkanFrameContext> const& frames
+            std::vector<VulkanFrameContext>&& frames
         );
 
     public:
@@ -39,20 +40,27 @@ namespace Bonsai
         VulkanFrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
         /// @brief Record a Vulkan frame.
-        /// @param frameContext Frame context for the frame.
+        /// @param frameContext Frame context to record.
         void RecordFrame(VulkanFrameContext* frameContext);
 
         /// @brief Submit a Vulkan frame.
-        /// @param frameContext Frame context for the frame.
+        /// @param frameContext Frame context to submit.
         void SubmitFrame(VulkanFrameContext* frameContext);
 
         /// @brief Wait for all frames to finish executing.
         void waitForAllFrames();
 
     private:
-        /// @brief Wait for a single frame to finish executing.
+        /// @brief Wait for a frame to finish executing. This will release frame resources
+        /// that were acquired during previous exeuction.
         /// @param frameContext Frame context to wait on.
-        void waitForFrame(VulkanFrameContext const& frameContext);
+        /// @return A boolean indicating success.
+        bool waitForFrame(VulkanFrameContext& frameContext);
+
+        /// @brief Prepare a frame for rendering.
+        /// @param frameContext Frame context to prepare for rendering.
+        /// @return A boolean indicating success.
+        bool prepareFrame(VulkanFrameContext& frameContext);
 
     private:
         VkDevice _device;

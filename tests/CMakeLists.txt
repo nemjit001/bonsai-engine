@@ -6,9 +6,12 @@ find_package(GTest CONFIG REQUIRED)
 
 # Set up test target
 add_executable(BonsaiEngineTests)
+target_copy_runtime_dlls(BonsaiEngineTests)
+target_extended_warnings(BonsaiEngineTests)
 target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
+        src/Gfx/GraphicsDeviceTests.cpp
         src/Assets/AssetManagerTests.cpp
         src/Assets/MeshTests.cpp
         src/Camera/CameraTests.cpp

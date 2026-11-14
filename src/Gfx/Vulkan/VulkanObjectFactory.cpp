@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
@@ -41,6 +42,179 @@ namespace Bonsai
         return new VulkanObjectFactory(instance, physicalDevice, device, sharedDeviceState);
     }
     
+    VulkanBuffer* VulkanObjectFactory::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
+    {
+        // Create vulkan buffer
+        VkBufferCreateInfo bufferCreateInfo{};
+        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferCreateInfo.pNext = nullptr;
+        bufferCreateInfo.flags = 0;
+        bufferCreateInfo.size = static_cast<uint32_t>(bufferDesc.size);
+        bufferCreateInfo.usage = VulkanGraphicsHelpers::GetVulkanBufferUsageFlags(bufferDesc.usage);
+        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        bufferCreateInfo.queueFamilyIndexCount = 0;
+        bufferCreateInfo.pQueueFamilyIndices = nullptr;
+
+        VkBuffer buffer = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateBuffer(_device, &bufferCreateInfo, nullptr, &buffer))) {
+            return nullptr;
+        }
+
+        // Query buffer memory requirements
+        VkMemoryRequirements memoryRequirements{};
+        vkGetBufferMemoryRequirements(_device, buffer, &memoryRequirements);
+
+        // Try to allocate memory
+        std::optional<VkDeviceMemory> memory = TryAllocateMemory(bufferDesc.heapType, memoryRequirements);
+        if (!memory.has_value())
+        {
+            vkDestroyBuffer(_device, buffer, nullptr);
+            return nullptr;
+        }
+
+        // Bind buffer memory
+        if (VK_CHECK_FAILED(vkBindBufferMemory(_device, buffer, memory.value(), 0)))
+        {
+            vkDestroyBuffer(_device, buffer, nullptr);
+            vkFreeMemory(_device, memory.value(), nullptr);
+            return nullptr;
+        }
+
+        // Create buffer
+        return new VulkanBuffer(_device, memory.value(), buffer);
+    }
+    
+    VulkanTexture* VulkanObjectFactory::CreateTexture(GraphicsTextureDesc const& textureDesc)
+    {
+        // Set texture depth and layers based on texture type
+        uint32_t const depth = textureDesc.textureType == GraphicsTextureType_3D ? textureDesc.depthOrLayers : 1;
+        uint32_t const layers = textureDesc.textureType != GraphicsTextureType_3D ? textureDesc.depthOrLayers : 1;
+
+        // Create Vulkan image
+        VkImageCreateInfo imageCreateInfo{};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.pNext = nullptr;
+        imageCreateInfo.flags = 0;
+        imageCreateInfo.imageType = VulkanGraphicsHelpers::GetVulkanImageType(textureDesc.textureType);
+        imageCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureDesc.textureFormat);
+        imageCreateInfo.extent.width = textureDesc.width;
+        imageCreateInfo.extent.height = textureDesc.height;
+        imageCreateInfo.extent.depth = depth;
+        imageCreateInfo.arrayLayers = layers;
+        imageCreateInfo.mipLevels = textureDesc.mipLevels;
+        imageCreateInfo.samples = VulkanGraphicsHelpers::GetVulkanSampleCountFlagBits(textureDesc.sampleCount);
+        imageCreateInfo.tiling = VulkanGraphicsHelpers::GetVulkanImageTiling(textureDesc.tilingMode);
+        imageCreateInfo.usage = VulkanGraphicsHelpers::GetVulkanImageUsageFlags(textureDesc.usage);
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.queueFamilyIndexCount = 0;
+        imageCreateInfo.pQueueFamilyIndices = nullptr;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        VkImage image = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateImage(_device, &imageCreateInfo, nullptr, &image))) {
+            return nullptr;
+        }
+
+        // Query image memory requirements
+        VkMemoryRequirements memoryRequirements{};
+        vkGetImageMemoryRequirements(_device, image, &memoryRequirements);
+
+        // Try to allocate memory
+        std::optional<VkDeviceMemory> memory = TryAllocateMemory(textureDesc.heapType, memoryRequirements);
+        if (!memory.has_value())
+        {
+            vkDestroyImage(_device, image, nullptr);
+            return nullptr;
+        }
+
+        // Bind image memory
+        if (VK_CHECK_FAILED(vkBindImageMemory(_device, image, memory.value(), 0)))
+        {
+            vkDestroyImage(_device, image, nullptr);
+            vkFreeMemory(_device, memory.value(), nullptr);
+            return nullptr;
+        }
+
+        return new VulkanTexture(_device, memory.value(), image);
+    }
+
+    VulkanTextureView* VulkanObjectFactory::CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc)
+    {
+        // Check if texture is valid
+        auto* vulkanTexture = static_cast<VulkanTexture*>(textureViewDesc.texture);
+        if (vulkanTexture == nullptr) {
+            return nullptr;
+        }
+
+        // Create component mapping
+        VkComponentMapping components{};
+        components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        // Get actual layer and level counts
+        uint32_t const levelCount = textureViewDesc.subresourceRange.levelCount == Graphics::RemainingMipLevels ?
+            VK_REMAINING_MIP_LEVELS : textureViewDesc.subresourceRange.levelCount;
+        uint32_t const layerCount = textureViewDesc.subresourceRange.layerCount == Graphics::RemainingArrayLayers ?
+            VK_REMAINING_ARRAY_LAYERS : textureViewDesc.subresourceRange.layerCount;
+
+        // Set up subresource range
+        VkImageSubresourceRange subresourceRange{};
+        subresourceRange.aspectMask = VulkanGraphicsHelpers::GetVulkanImageAspectFlags(textureViewDesc.subresourceRange.aspectMask);
+        subresourceRange.baseMipLevel = textureViewDesc.subresourceRange.baseMipLevel;
+        subresourceRange.levelCount = levelCount;
+        subresourceRange.baseArrayLayer = textureViewDesc.subresourceRange.baseArrayLayer;
+        subresourceRange.layerCount = layerCount;
+
+        // Create image view
+        VkImageViewCreateInfo imageViewCreateInfo{};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.pNext = nullptr;
+        imageViewCreateInfo.flags = 0;
+        imageViewCreateInfo.image = vulkanTexture->GetImage();
+        imageViewCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureViewDesc.viewFormat);
+        imageViewCreateInfo.components = components;
+        imageViewCreateInfo.subresourceRange = subresourceRange;
+
+        VkImageView imageView = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView))) {
+            return nullptr;
+        }
+
+        return new VulkanTextureView(vulkanTexture, _device, imageView);
+    }
+
+    VulkanSampler* VulkanObjectFactory::CreateSampler(GraphicsSamplerDesc const& samplerDesc)
+    {
+        // Create sampler
+        VkSamplerCreateInfo samplerCreateInfo{};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.pNext = nullptr;
+        samplerCreateInfo.flags = 0;
+        samplerCreateInfo.magFilter = VulkanGraphicsHelpers::GetVulkanFilter(samplerDesc.magFilter);
+        samplerCreateInfo.minFilter = VulkanGraphicsHelpers::GetVulkanFilter(samplerDesc.minFilter);
+        samplerCreateInfo.mipmapMode = VulkanGraphicsHelpers::GetVulkanSamplerMipmapMode(samplerDesc.mipmapMode);
+        samplerCreateInfo.addressModeU = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeU);
+        samplerCreateInfo.addressModeV = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeV);
+        samplerCreateInfo.addressModeW = VulkanGraphicsHelpers::GetVulkanSamplerAddressMode(samplerDesc.addressModeW);
+        samplerCreateInfo.anisotropyEnable = samplerDesc.maxAnisotropy > 0 ? VK_TRUE : VK_FALSE;
+        samplerCreateInfo.maxAnisotropy = static_cast<float>(samplerDesc.maxAnisotropy);
+        samplerCreateInfo.compareEnable = samplerDesc.compareOp != GraphicsCompareOp_Undefined ? VK_TRUE : VK_FALSE;
+        samplerCreateInfo.compareOp = VulkanGraphicsHelpers::GetVulkanCompareOp(samplerDesc.compareOp);
+        samplerCreateInfo.minLod = samplerDesc.minLod;
+        samplerCreateInfo.maxLod = samplerDesc.maxLod == Graphics::LODClampNone ? VK_LOD_CLAMP_NONE : samplerDesc.maxLod;
+        samplerCreateInfo.borderColor = VulkanGraphicsHelpers::GetVulkanBorderColor(samplerDesc.borderColor);
+        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+
+        VkSampler sampler = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateSampler(_device, &samplerCreateInfo, nullptr, &sampler))) {
+            return nullptr;
+        }
+
+        return new VulkanSampler(_device, sampler);
+    }
+
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         // Create swapchain
@@ -58,10 +232,43 @@ namespace Bonsai
 
         if (!swapchain->Configure(vulkanSwapchainDesc))
         {
-            delete swapchain;
+            swapchain->ReleaseRef();
             return nullptr;
         }
 
         return swapchain;
+    }
+
+    std::optional<VkDeviceMemory> VulkanObjectFactory::TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements)
+    {
+        // Get required memory property flags
+        VkMemoryPropertyFlags const requiredMemoryProperties = VulkanGraphicsHelpers::GetVulkanMemoryPropertyFlags(heapType);
+        if (requiredMemoryProperties == 0) {
+            return {};
+        }
+
+        // Get memory type index
+        uint32_t const memoryTypeIndex = VulkanGraphicsHelpers::FindMemoryTypeIndex(
+            _sharedDeviceState->physicalDeviceMemoryProperties2.memoryProperties,
+            memoryRequirements.memoryTypeBits,
+            requiredMemoryProperties
+        );
+        if (memoryTypeIndex == UINT32_MAX) {
+            return {};
+        }
+
+        // Allocate device memory
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.pNext = nullptr;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = memoryTypeIndex;
+
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkAllocateMemory(_device, &memoryAllocateInfo, nullptr, &memory))) {
+            return {};
+        }
+
+        return memory;
     }
 } // namespace Bonsai

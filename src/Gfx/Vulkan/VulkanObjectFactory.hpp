@@ -4,6 +4,7 @@
 
 #define VK_NO_PROTOTYPES
 
+#include <optional>
 #include <vulkan/vulkan.h>
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
@@ -39,10 +40,37 @@ namespace Bonsai
             VulkanSharedDeviceState* sharedDeviceState
         );
 
+        /// @brief Create a Vulkan buffer.
+        /// @param bufferDesc Buffer description to use for creation.
+        /// @return A new Vulkan buffer.
+        VulkanBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
+
+        /// @brief Create a Vulkan texture.
+        /// @param textureDesc Texture description to use for creation.
+        /// @return A new Vulkan texture.
+        VulkanTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
+
+        /// @brief Create a Vulkan texture view.
+        /// @param textureViewDesc Texture view description to use for creation.
+        /// @return A new Vulkan texture view.
+        VulkanTextureView* CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc);
+
+        /// @brief Create a Vulkan sampler.
+        /// @param samplerDesc Sampler description to use for creation.
+        /// @return A new Vulkan sampler.
+        VulkanSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
+
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
         /// @return A new Vulkan swapchain.
         VulkanSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
+
+    private:
+        /// @brief Attempt to allocate device memory.
+        /// @param heapType Heap type to allocate memory from.
+        /// @param memoryRequirements Memory requirements as queried from the resource.
+        /// @return An optional Vulkan device memory allocation.
+        std::optional<VkDeviceMemory> TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements);
 
     private:
         VkInstance _instance;

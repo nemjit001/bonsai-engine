@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
@@ -9,12 +10,12 @@ namespace Bonsai
     VulkanRenderContext::VulkanRenderContext(
         VkDevice device,
         VulkanSharedDeviceState* sharedDeviceState,
-        std::vector<VulkanFrameContext> const& frames
+        std::vector<VulkanFrameContext>&& frames
     )
         :
         _device(device),
         _sharedDeviceState(sharedDeviceState),
-        _frames(frames),
+        _frames(std::move(frames)),
         _currentFrameIndex(0)
     {
         //
@@ -22,7 +23,7 @@ namespace Bonsai
 
     VulkanRenderContext::~VulkanRenderContext()
     {
-        for (auto const& frame : _frames)
+        for (auto& frame : _frames)
         {
             vkDestroyCommandPool(_device, frame.graphicsCommandPool, nullptr);
             vkDestroySemaphore(_device, frame.renderingFinishedSemaphore, nullptr);
@@ -96,36 +97,29 @@ namespace Bonsai
             frame.frameCommandBuffer = frameCommandBuffer;
         }
 
-        return new VulkanRenderContext(device, sharedDeviceState, frames);
+        return new VulkanRenderContext(device, sharedDeviceState, std::move(frames));
     }
 
     VulkanFrameContext* VulkanRenderContext::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
     {
-        // Acquire the frame by waiting on the frame fence
+        // Acquire the next frame
         VulkanFrameContext& frame = _frames[_currentFrameIndex % _sharedDeviceState->framesInFlight];
-        waitForFrame(frame);
-        
-        // Bump frame index to next frame
-        _currentFrameIndex++;
-
-        // Reset fence and command buffer
-        if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frame.frameReadyFence))
-            || VK_CHECK_FAILED(vkResetCommandBuffer(frame.frameCommandBuffer, 0))
-        ) {
+        if (!waitForFrame(frame)) {
             return nullptr;
         }
 
-        // Clear old swapchain data
-        frame.participatingSwapchains.clear();
-        frame.swapchainInfo.swapchains.clear();
-        frame.swapchainInfo.imageAvailableSemaphores.clear();
-        frame.swapchainInfo.dstWaitStageMasks.clear();
-        frame.swapchainInfo.imageIndices.clear();
+        // Prepare the frame for rendering
+        if (!prepareFrame(frame)) {
+            return nullptr;
+        }
+
+        // Bump frame index to next frame
+        _currentFrameIndex++;
 
         // Acquire all participating swapchain images
         for (size_t i = 0; i < swapchainCount; i++)
         {
-            auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchains[i]);
+            auto* vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchains[i]);
             if (vulkanSwapchain == nullptr) {
                 continue;
             }
@@ -137,6 +131,9 @@ namespace Bonsai
 
             // Add swapchain to frame swapchain info
             vulkanSwapchain->RegisterWithFrame(frame.swapchainInfo);
+
+            // Register swapchain with frame
+            frame.AddResourceRef(vulkanSwapchain);
             frame.participatingSwapchains.push_back(vulkanSwapchain);
         }
 
@@ -165,6 +162,9 @@ namespace Bonsai
         for (auto const& swapchain : frameContext->participatingSwapchains) {
             swapchain->PrepareForRendering(frameContext->frameCommandBuffer);
         }
+        
+        // Record frame commands
+        // TODO(nemjit001): Record frame commands here
 
         // Prepare all swapchains for presentation
         for (auto const& swapchain : frameContext->participatingSwapchains) {
@@ -184,29 +184,28 @@ namespace Bonsai
             return;
         }
 
-        // Get reference to frame
-        VulkanFrameContext const& frame = *frameContext;
-        bool const hasParticipatingSwapchains = !frame.participatingSwapchains.empty();
+        // Check for participating swapchains
+        bool const hasParticipatingSwapchains = !frameContext->participatingSwapchains.empty();
 
         // Submit frame
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
-        submitInfo.waitSemaphoreCount = static_cast<uint32_t>(frame.swapchainInfo.imageAvailableSemaphores.size());
-        submitInfo.pWaitSemaphores = frame.swapchainInfo.imageAvailableSemaphores.data();
-        submitInfo.pWaitDstStageMask = frame.swapchainInfo.dstWaitStageMasks.data();
+        submitInfo.waitSemaphoreCount = static_cast<uint32_t>(frameContext->swapchainInfo.imageAvailableSemaphores.size());
+        submitInfo.pWaitSemaphores = frameContext->swapchainInfo.imageAvailableSemaphores.data();
+        submitInfo.pWaitDstStageMask = frameContext->swapchainInfo.dstWaitStageMasks.data();
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &frame.frameCommandBuffer;
+        submitInfo.pCommandBuffers = &frameContext->frameCommandBuffer;
         submitInfo.signalSemaphoreCount = 0;
         submitInfo.pSignalSemaphores = nullptr;
 
         if (hasParticipatingSwapchains)
         {
             submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores = &frame.renderingFinishedSemaphore;
+            submitInfo.pSignalSemaphores = &frameContext->renderingFinishedSemaphore;
         }
 
-        if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frame.frameReadyFence))) {
+        if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frameContext->frameReadyFence))) {
             return;
         }
 
@@ -217,10 +216,10 @@ namespace Bonsai
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             presentInfo.pNext = nullptr;
             presentInfo.waitSemaphoreCount = 1;
-            presentInfo.pWaitSemaphores = &frame.renderingFinishedSemaphore;
-            presentInfo.swapchainCount = static_cast<uint32_t>(frame.swapchainInfo.swapchains.size());
-            presentInfo.pSwapchains = frame.swapchainInfo.swapchains.data();
-            presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
+            presentInfo.pWaitSemaphores = &frameContext->renderingFinishedSemaphore;
+            presentInfo.swapchainCount = static_cast<uint32_t>(frameContext->swapchainInfo.swapchains.size());
+            presentInfo.pSwapchains = frameContext->swapchainInfo.swapchains.data();
+            presentInfo.pImageIndices = frameContext->swapchainInfo.imageIndices.data();
             presentInfo.pResults = nullptr;
 
             if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {
@@ -231,15 +230,40 @@ namespace Bonsai
 
     void VulkanRenderContext::waitForAllFrames()
     {
-        for (auto const& frame : _frames) {
+        for (auto& frame : _frames) {
             waitForFrame(frame);
         }
     }
 
-    void VulkanRenderContext::waitForFrame(VulkanFrameContext const& frameContext)
+    bool VulkanRenderContext::waitForFrame(VulkanFrameContext& frameContext)
     {
+        // Acquire the frame fence
         if (VK_CHECK_FAILED(vkWaitForFences(_device, 1, &frameContext.frameReadyFence, VK_TRUE, UINT64_MAX))) {
-            return;
+            return false;
         }
+
+        // Release referenced resources
+        frameContext.ReleaseResourceRefs();
+
+        // Clear old swapchain data
+        frameContext.participatingSwapchains.clear();
+        frameContext.swapchainInfo.swapchains.clear();
+        frameContext.swapchainInfo.imageAvailableSemaphores.clear();
+        frameContext.swapchainInfo.dstWaitStageMasks.clear();
+        frameContext.swapchainInfo.imageIndices.clear();
+
+        return true;
+    }
+
+    bool VulkanRenderContext::prepareFrame(VulkanFrameContext& frameContext)
+    {
+        // Reset fence and command buffer
+        if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frameContext.frameReadyFence))
+            || VK_CHECK_FAILED(vkResetCommandBuffer(frameContext.frameCommandBuffer, 0))
+        ) {
+            return false;
+        }
+
+        return true;
     }
 } // namespace Bonsai

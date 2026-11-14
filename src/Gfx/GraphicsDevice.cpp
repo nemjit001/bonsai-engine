@@ -7,9 +7,11 @@
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
+#include "Gfx/Vulkan/VulkanTransferContext.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
@@ -119,6 +121,7 @@ namespace Bonsai
         VulkanDeviceState const& deviceState,
         std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
         std::unique_ptr<VulkanRenderContext>&& renderContext,
+        std::unique_ptr<VulkanTransferContext>&& transferContext,
         std::unique_ptr<VulkanObjectFactory>&& objectFactory
     )
         :
@@ -127,6 +130,7 @@ namespace Bonsai
         _deviceState(deviceState),
         _sharedDeviceState(std::move(sharedDeviceState)),
         _renderContext(std::move(renderContext)),
+        _transferContext(std::move(transferContext)),
         _objectFactory(std::move(objectFactory))
     {
         //
@@ -139,6 +143,7 @@ namespace Bonsai
 
         // Clean up Vulkan state
         _objectFactory.reset();
+        _transferContext.reset();
         _renderContext.reset();
         _sharedDeviceState.reset();
         DestroyDeviceState(_deviceState);
@@ -189,6 +194,7 @@ namespace Bonsai
         // Create shared device state
         auto sharedDeviceState = std::make_unique<VulkanSharedDeviceState>();
         sharedDeviceState->framesInFlight = FramesInFlight;
+        sharedDeviceState->physicalDeviceMemoryProperties2 = physicalDeviceInfo->physicalDeviceMemoryProperties2;
         sharedDeviceState->graphicsQueueFamily = physicalDeviceInfo->graphicsQueueFamily;
         sharedDeviceState->presentQueueFamily = physicalDeviceInfo->presentQueueFamily;
         sharedDeviceState->computeQueueFamily = physicalDeviceInfo->computeQueueFamily;
@@ -203,6 +209,16 @@ namespace Bonsai
         if (!renderContext)
         {
             SPDLOG_ERROR("Failed to create Vulkan render context");
+            DestroyDeviceState(deviceState.value());
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
+        // Create Vulkan transfer context
+        auto transferContext = std::unique_ptr<VulkanTransferContext>(VulkanTransferContext::TryCreate(deviceState->device, sharedDeviceState.get()));
+        if (!transferContext)
+        {
+            SPDLOG_ERROR("Failed to create Vulkan transfer context");
             DestroyDeviceState(deviceState.value());
             DestroyInstanceState(instanceState.value());
             return nullptr;
@@ -225,8 +241,29 @@ namespace Bonsai
             deviceState.value(),
             std::move(sharedDeviceState),
             std::move(renderContext),
+            std::move(transferContext),
             std::move(objectFactory)
         );
+    }
+
+    GraphicsBuffer* GraphicsDevice::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
+    {
+        return _objectFactory->CreateBuffer(bufferDesc);
+    }
+
+    GraphicsTexture* GraphicsDevice::CreateTexture(GraphicsTextureDesc const& textureDesc)
+    {
+        return _objectFactory->CreateTexture(textureDesc);
+    }
+
+    GraphicsTextureView* GraphicsDevice::CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc)
+    {
+        return _objectFactory->CreateTextureView(textureViewDesc);
+    }
+
+    GraphicsSampler* GraphicsDevice::CreateSampler(GraphicsSamplerDesc const& samplerDesc)
+    {
+        return _objectFactory->CreateSampler(samplerDesc);
     }
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
@@ -234,9 +271,39 @@ namespace Bonsai
         return _objectFactory->CreateSwapchain(swapchainDesc);
     }
 
+    void GraphicsDevice::DestroyBuffer(GraphicsBuffer* buffer)
+    {
+        if (buffer != nullptr) {
+            buffer->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyTexture(GraphicsTexture* texture)
+    {
+        if (texture != nullptr) {
+            texture->ReleaseRef();
+        }
+    }
+    
+    void GraphicsDevice::DestroyTextureView(GraphicsTextureView* textureView)
+    {
+        if (textureView != nullptr) {
+            textureView->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroySampler(GraphicsSampler* sampler)
+    {
+        if (sampler != nullptr) {
+            sampler->ReleaseRef();
+        }
+    }
+
     void GraphicsDevice::DestroySwapchain(GraphicsSwapchain* swapchain)
     {
-        delete swapchain;
+        if (swapchain != nullptr) {
+            swapchain->ReleaseRef();
+        }
     }
 
     FrameContext* GraphicsDevice::StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount)
@@ -246,14 +313,32 @@ namespace Bonsai
 
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
     {
-        auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        auto* vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
         _renderContext->RecordFrame(vulkanFrameContext);
         _renderContext->SubmitFrame(vulkanFrameContext);
     }
 
+    TransferBatch* GraphicsDevice::StartTransferBatch()
+    {
+        return _transferContext->StartTransferBatch();
+    }
+
+    void GraphicsDevice::SubmitTransferBatch(TransferBatch* transferBatch)
+    {
+        auto* vulkanTransferBatch = static_cast<VulkanTransferBatch*>(transferBatch);
+        _transferContext->RecordTransferBatch(vulkanTransferBatch);
+        _transferContext->SubmitTransferBatch(vulkanTransferBatch);
+    }
+
+    void GraphicsDevice::WaitForTransferBatch(TransferBatch* transferBatch)
+    {
+        auto* vulkanTransferBatch = static_cast<VulkanTransferBatch*>(transferBatch);
+        _transferContext->WaitForTransferBatch(vulkanTransferBatch);
+    }
+
     void GraphicsDevice::ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height)
     {
-        auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+        auto* vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
         if (vulkanSwapchain == nullptr) {
             return;
         }
@@ -413,12 +498,18 @@ namespace Bonsai
             VulkanPhysicalDeviceInfo& physicalDeviceInfo = physicalDeviceInfos[i];
             physicalDeviceInfo.physicalDevice = physicalDevices[i];
             physicalDeviceInfo.isSupported = false;
-            
+
             // Get physical device properties
             physicalDeviceInfo.physicalDeviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
             physicalDeviceInfo.physicalDeviceProperties2.pNext = nullptr;
 
             vkGetPhysicalDeviceProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceProperties2);
+
+            // Get physical device memory properties
+            physicalDeviceInfo.physicalDeviceMemoryProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+            physicalDeviceInfo.physicalDeviceMemoryProperties2.pNext = nullptr;
+
+            vkGetPhysicalDeviceMemoryProperties2(physicalDeviceInfo.physicalDevice, &physicalDeviceInfo.physicalDeviceMemoryProperties2);
 
             // Get physical device features
             physicalDeviceInfo.physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;

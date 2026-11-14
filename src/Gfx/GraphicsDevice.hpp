@@ -14,8 +14,9 @@
 namespace Bonsai
 {
     struct VulkanSharedDeviceState;
-    class VulkanRenderContext;
     class VulkanObjectFactory;
+    class VulkanRenderContext;
+    class VulkanTransferContext;
 
     class GraphicsDevice
     {
@@ -29,6 +30,7 @@ namespace Bonsai
         /// @param physicalDeviceInfo Initialized physical device info.
         /// @param deviceState Initialized device state.
         /// @param renderContext Initialized render context.
+        /// @param transferContext Initialized transfer context.
         /// @param objectFactory Initialized object factory.
         GraphicsDevice(
             VulkanInstanceState const& instanceState,
@@ -36,6 +38,7 @@ namespace Bonsai
             VulkanDeviceState const& deviceState,
             std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
             std::unique_ptr<VulkanRenderContext>&& renderContext,
+        std::unique_ptr<VulkanTransferContext>&& transferContext,
             std::unique_ptr<VulkanObjectFactory>&& objectFactory
         );
 
@@ -49,10 +52,46 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
-        /// @brief Create a swapchain on this graphics device.
+        /// @brief Create a buffer using this graphics device.
+        /// @param bufferDesc Buffer description.
+        /// @return A new graphics buffer, or nullptr on failure.
+        [[nodiscard]] GraphicsBuffer* CreateBuffer(GraphicsBufferDesc const& bufferDesc);
+
+        /// @brief Create a texture using this graphics device.
+        /// @param textureDesc Texture description.
+        /// @return A new graphics texture, or nullptr on failure.
+        [[nodiscard]] GraphicsTexture* CreateTexture(GraphicsTextureDesc const& textureDesc);
+
+        /// @brief Create a texture view using this graphics device.
+        /// @param textureViewDesc Texture view description.
+        /// @return A new graphics texture view, or nullptr on failure.
+        [[nodiscard]] GraphicsTextureView* CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc);
+
+        /// @brief Create a sampler using this graphics device.
+        /// @param samplerDesc Sampler description.
+        /// @return A new graphics sampler, or nullptr on failure.
+        [[nodiscard]] GraphicsSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
+
+        /// @brief Create a swapchain using this graphics device.
         /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
         [[nodiscard]] GraphicsSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
+
+        /// @brief Destroy a buffer.
+        /// @param buffer Buffer to destroy.
+        void DestroyBuffer(GraphicsBuffer* buffer);
+
+        /// @brief Destroy a texture.
+        /// @param texture Texture to destroy.
+        void DestroyTexture(GraphicsTexture* texture);
+
+        /// @brief Destroy a texture view.
+        /// @param textureView Texture view to destroy.
+        void DestroyTextureView(GraphicsTextureView* textureView);
+
+        /// @brief Destroy a sampler.
+        /// @param sampler Sampler to destroy.
+        void DestroySampler(GraphicsSampler* sampler);
 
         /// @brief Destroy a swapchain.
         /// @param swapchain Swapchain to destroy.
@@ -67,6 +106,18 @@ namespace Bonsai
         /// @brief Submit a frame to the graphics device.
         /// @param frameContext Frame context to submit.
         void SubmitFrame(FrameContext* frameContext);
+
+        /// @brief Start a new transfer batch on the graphics device.
+        /// @return The new transfer batch.
+        [[nodiscard]] TransferBatch* StartTransferBatch();
+
+        /// @brief Submit a transfer batch to the graphics device.
+        /// @param transferBatch Transfer batch to submit.
+        void SubmitTransferBatch(TransferBatch* transferBatch);
+
+        /// @brief Wait for a transfer batch to complete.
+        /// @param transferBatch Transfer batch to wait for.
+        void WaitForTransferBatch(TransferBatch* transferBatch);
 
         /// @brief Resize a swapchain.
         /// @param swapchain Swapchain to resize.
@@ -96,6 +147,7 @@ namespace Bonsai
             VkPhysicalDevice physicalDevice;
             bool isSupported;
             VkPhysicalDeviceProperties2 physicalDeviceProperties2;
+            VkPhysicalDeviceMemoryProperties2 physicalDeviceMemoryProperties2;
             VkPhysicalDeviceFeatures2 physicalDeviceFeatures2;
             VkPhysicalDeviceVulkan11Features physicalDeviceVulkan11Features;
             VkPhysicalDeviceVulkan12Features physicalDeviceVulkan12Features;
@@ -149,6 +201,7 @@ namespace Bonsai
         VulkanDeviceState _deviceState;
         std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
         std::unique_ptr<VulkanRenderContext> _renderContext;
+        std::unique_ptr<VulkanTransferContext> _transferContext;
         std::unique_ptr<VulkanObjectFactory> _objectFactory;
     };
 } // namespace Bonsai

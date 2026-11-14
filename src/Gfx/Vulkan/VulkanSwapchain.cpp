@@ -5,6 +5,7 @@
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
 #include "Core/Logger.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
 namespace Bonsai
 {
