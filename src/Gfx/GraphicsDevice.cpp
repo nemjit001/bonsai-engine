@@ -11,6 +11,7 @@
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
 #include "Gfx/Vulkan/VulkanRenderContext.hpp"
+#include "Gfx/Vulkan/VulkanTransferContext.hpp"
 #include "Gfx/Vulkan/VulkanSwapchain.hpp"
 
 namespace Bonsai
@@ -120,6 +121,7 @@ namespace Bonsai
         VulkanDeviceState const& deviceState,
         std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
         std::unique_ptr<VulkanRenderContext>&& renderContext,
+        std::unique_ptr<VulkanTransferContext>&& transferContext,
         std::unique_ptr<VulkanObjectFactory>&& objectFactory
     )
         :
@@ -128,6 +130,7 @@ namespace Bonsai
         _deviceState(deviceState),
         _sharedDeviceState(std::move(sharedDeviceState)),
         _renderContext(std::move(renderContext)),
+        _transferContext(std::move(transferContext)),
         _objectFactory(std::move(objectFactory))
     {
         //
@@ -140,6 +143,7 @@ namespace Bonsai
 
         // Clean up Vulkan state
         _objectFactory.reset();
+        _transferContext.reset();
         _renderContext.reset();
         _sharedDeviceState.reset();
         DestroyDeviceState(_deviceState);
@@ -210,6 +214,16 @@ namespace Bonsai
             return nullptr;
         }
 
+        // Create Vulkan transfer context
+        auto transferContext = std::unique_ptr<VulkanTransferContext>(VulkanTransferContext::TryCreate(deviceState->device, sharedDeviceState.get()));
+        if (!transferContext)
+        {
+            SPDLOG_ERROR("Failed to create Vulkan transfer context");
+            DestroyDeviceState(deviceState.value());
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
         // Create Vulkan object factory
         auto objectFactory = std::unique_ptr<VulkanObjectFactory>(VulkanObjectFactory::TryCreate(instanceState->instance, physicalDeviceInfo->physicalDevice, deviceState->device, sharedDeviceState.get()));
         if (!objectFactory)
@@ -227,6 +241,7 @@ namespace Bonsai
             deviceState.value(),
             std::move(sharedDeviceState),
             std::move(renderContext),
+            std::move(transferContext),
             std::move(objectFactory)
         );
     }
@@ -298,24 +313,32 @@ namespace Bonsai
 
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
     {
-        auto vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        auto* vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
         _renderContext->RecordFrame(vulkanFrameContext);
         _renderContext->SubmitFrame(vulkanFrameContext);
     }
 
     TransferBatch* GraphicsDevice::StartTransferBatch()
     {
-        return nullptr;
+        return _transferContext->StartTransferBatch();
     }
 
     void GraphicsDevice::SubmitTransferBatch(TransferBatch* transferBatch)
     {
-        //
+        auto* vulkanTransferBatch = static_cast<VulkanTransferBatch*>(transferBatch);
+        _transferContext->RecordTransferBatch(vulkanTransferBatch);
+        _transferContext->SubmitTransferBatch(vulkanTransferBatch);
+    }
+
+    void GraphicsDevice::WaitForTransferBatch(TransferBatch* transferBatch)
+    {
+        auto* vulkanTransferBatch = static_cast<VulkanTransferBatch*>(transferBatch);
+        _transferContext->WaitForTransferBatch(vulkanTransferBatch);
     }
 
     void GraphicsDevice::ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height)
     {
-        auto vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
+        auto* vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);
         if (vulkanSwapchain == nullptr) {
             return;
         }

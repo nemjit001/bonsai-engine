@@ -8,6 +8,7 @@
 
 namespace Bonsai
 {
+    /// @brief The Vulkan render context manages the Vulkan frame lifecycle.
     class VulkanRenderContext
     {
     private:
@@ -39,11 +40,11 @@ namespace Bonsai
         VulkanFrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
         /// @brief Record a Vulkan frame.
-        /// @param frameContext Frame context for the frame.
+        /// @param frameContext Frame context to record.
         void RecordFrame(VulkanFrameContext* frameContext);
 
         /// @brief Submit a Vulkan frame.
-        /// @param frameContext Frame context for the frame.
+        /// @param frameContext Frame context to submit.
         void SubmitFrame(VulkanFrameContext* frameContext);
 
         /// @brief Wait for all frames to finish executing.

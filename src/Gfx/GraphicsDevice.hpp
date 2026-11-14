@@ -14,8 +14,9 @@
 namespace Bonsai
 {
     struct VulkanSharedDeviceState;
-    class VulkanRenderContext;
     class VulkanObjectFactory;
+    class VulkanRenderContext;
+    class VulkanTransferContext;
 
     class GraphicsDevice
     {
@@ -29,6 +30,7 @@ namespace Bonsai
         /// @param physicalDeviceInfo Initialized physical device info.
         /// @param deviceState Initialized device state.
         /// @param renderContext Initialized render context.
+        /// @param transferContext Initialized transfer context.
         /// @param objectFactory Initialized object factory.
         GraphicsDevice(
             VulkanInstanceState const& instanceState,
@@ -36,6 +38,7 @@ namespace Bonsai
             VulkanDeviceState const& deviceState,
             std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
             std::unique_ptr<VulkanRenderContext>&& renderContext,
+        std::unique_ptr<VulkanTransferContext>&& transferContext,
             std::unique_ptr<VulkanObjectFactory>&& objectFactory
         );
 
@@ -111,6 +114,10 @@ namespace Bonsai
         /// @brief Submit a transfer batch to the graphics device.
         /// @param transferBatch Transfer batch to submit.
         void SubmitTransferBatch(TransferBatch* transferBatch);
+
+        /// @brief Wait for a transfer batch to complete.
+        /// @param transferBatch Transfer batch to wait for.
+        void WaitForTransferBatch(TransferBatch* transferBatch);
 
         /// @brief Resize a swapchain.
         /// @param swapchain Swapchain to resize.
@@ -194,6 +201,7 @@ namespace Bonsai
         VulkanDeviceState _deviceState;
         std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
         std::unique_ptr<VulkanRenderContext> _renderContext;
+        std::unique_ptr<VulkanTransferContext> _transferContext;
         std::unique_ptr<VulkanObjectFactory> _objectFactory;
     };
 } // namespace Bonsai

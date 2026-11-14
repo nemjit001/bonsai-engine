@@ -23,7 +23,7 @@ namespace Bonsai
 
     VulkanRenderContext::~VulkanRenderContext()
     {
-        for (auto const& frame : _frames)
+        for (auto& frame : _frames)
         {
             vkDestroyCommandPool(_device, frame.graphicsCommandPool, nullptr);
             vkDestroySemaphore(_device, frame.renderingFinishedSemaphore, nullptr);
@@ -162,6 +162,9 @@ namespace Bonsai
         for (auto const& swapchain : frameContext->participatingSwapchains) {
             swapchain->PrepareForRendering(frameContext->frameCommandBuffer);
         }
+        
+        // Record frame commands
+        // TODO(nemjit001): Record frame commands here
 
         // Prepare all swapchains for presentation
         for (auto const& swapchain : frameContext->participatingSwapchains) {
@@ -181,29 +184,28 @@ namespace Bonsai
             return;
         }
 
-        // Get reference to frame
-        VulkanFrameContext const& frame = *frameContext;
-        bool const hasParticipatingSwapchains = !frame.participatingSwapchains.empty();
+        // Check for participating swapchains
+        bool const hasParticipatingSwapchains = !frameContext->participatingSwapchains.empty();
 
         // Submit frame
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = nullptr;
-        submitInfo.waitSemaphoreCount = static_cast<uint32_t>(frame.swapchainInfo.imageAvailableSemaphores.size());
-        submitInfo.pWaitSemaphores = frame.swapchainInfo.imageAvailableSemaphores.data();
-        submitInfo.pWaitDstStageMask = frame.swapchainInfo.dstWaitStageMasks.data();
+        submitInfo.waitSemaphoreCount = static_cast<uint32_t>(frameContext->swapchainInfo.imageAvailableSemaphores.size());
+        submitInfo.pWaitSemaphores = frameContext->swapchainInfo.imageAvailableSemaphores.data();
+        submitInfo.pWaitDstStageMask = frameContext->swapchainInfo.dstWaitStageMasks.data();
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &frame.frameCommandBuffer;
+        submitInfo.pCommandBuffers = &frameContext->frameCommandBuffer;
         submitInfo.signalSemaphoreCount = 0;
         submitInfo.pSignalSemaphores = nullptr;
 
         if (hasParticipatingSwapchains)
         {
             submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores = &frame.renderingFinishedSemaphore;
+            submitInfo.pSignalSemaphores = &frameContext->renderingFinishedSemaphore;
         }
 
-        if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frame.frameReadyFence))) {
+        if (VK_CHECK_FAILED(vkQueueSubmit(_sharedDeviceState->graphicsQueue, 1, &submitInfo, frameContext->frameReadyFence))) {
             return;
         }
 
@@ -214,10 +216,10 @@ namespace Bonsai
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             presentInfo.pNext = nullptr;
             presentInfo.waitSemaphoreCount = 1;
-            presentInfo.pWaitSemaphores = &frame.renderingFinishedSemaphore;
-            presentInfo.swapchainCount = static_cast<uint32_t>(frame.swapchainInfo.swapchains.size());
-            presentInfo.pSwapchains = frame.swapchainInfo.swapchains.data();
-            presentInfo.pImageIndices = frame.swapchainInfo.imageIndices.data();
+            presentInfo.pWaitSemaphores = &frameContext->renderingFinishedSemaphore;
+            presentInfo.swapchainCount = static_cast<uint32_t>(frameContext->swapchainInfo.swapchains.size());
+            presentInfo.pSwapchains = frameContext->swapchainInfo.swapchains.data();
+            presentInfo.pImageIndices = frameContext->swapchainInfo.imageIndices.data();
             presentInfo.pResults = nullptr;
 
             if (VK_CHECK_FAILED(vkQueuePresentKHR(_sharedDeviceState->presentQueue, &presentInfo))) {

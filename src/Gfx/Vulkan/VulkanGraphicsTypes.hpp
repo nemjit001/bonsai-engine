@@ -109,7 +109,7 @@ namespace Bonsai
         std::vector<uint32_t> imageIndices;
     };
     
-    /// @brief Vulkan frame context implementation. Exposes Vulkan frame state as public member variables.
+    /// @brief Vulkan frame context implementation. Exposes Vulkan frame state.
     class VulkanFrameContext : public FrameContext
     {
     public:
@@ -119,6 +119,16 @@ namespace Bonsai
         VkCommandBuffer frameCommandBuffer;
         std::vector<VulkanSwapchain*> participatingSwapchains;
         VulkanFrameSwapchainInfo swapchainInfo;
+    };
+
+    /// @brief Vulkan transfer batch implementation, Exposes Vulkan transfer batch state.
+    class VulkanTransferBatch : public TransferBatch
+    {
+    public:
+        uint32_t batchIndex;
+        VkFence transferFinishedFence;
+        VkCommandPool transferCommandPool;
+        VkCommandBuffer transferCommandBuffer;
     };
 } // namespace Bonsai
 

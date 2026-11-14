@@ -109,7 +109,15 @@ namespace Bonsai
     /// @brief The TransferBatch is used to store a batch of resource transfers.
     class TransferBatch
     {
-        //
+    public:
+        TransferBatch() = default;
+        virtual ~TransferBatch() = default;
+
+        TransferBatch(TransferBatch const&) = delete;
+        TransferBatch& operator=(TransferBatch const&) = delete;
+
+        TransferBatch(TransferBatch&&) = default;
+        TransferBatch& operator=(TransferBatch&&) = default;
     };
 } // namespace Bonsai
 
