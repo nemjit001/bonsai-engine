@@ -50,6 +50,7 @@ target_sources(BonsaiEngineLib
         src/Components/RenderMeshComponent.hpp
         src/Components/TransformComponent.hpp
         src/Systems/ECSSystem.hpp
+        src/Systems/MeshUploadSystem.hpp
         src/Systems/SystemRegistry.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
@@ -87,6 +88,7 @@ target_sources(BonsaiEngineLib
         src/Components/ParentComponent.cpp
         src/Components/RenderMeshComponent.cpp
         src/Components/TransformComponent.cpp
+        src/Systems/MeshUploadSystem.cpp
         src/Systems/SystemRegistry.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp

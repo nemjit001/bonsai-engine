@@ -34,6 +34,14 @@ namespace Bonsai
         Mesh() = default;
         Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<SubMesh> const& subMeshes);
 
+        /// @brief Get the dirty flag for the mesh. This will be set when host-side data is updated.
+        /// @return The dirty flag for the mesh.
+        bool GetDirtyFlag() const { return _isDirty; }
+
+        /// @brief Set the dirty flag for the mesh.
+        /// @param isDirty The new dirty flag value for the mesh.
+        void SetDirtyFlag(bool isDirty) { _isDirty = isDirty; }
+
         /// @brief Get the mesh vertex buffer.
         /// @return The mesh vertices.
         std::vector<Vertex> const& GetVertices() const { return _vertices; }
@@ -42,7 +50,12 @@ namespace Bonsai
         /// @return The mesh indices.
         std::vector<uint32_t> const& GetIndices() const { return _indices; }
 
+        /// @brief Get the submeshes that make up the mesh.
+        /// @return The list of submeshes.
+        std::vector<SubMesh> const& GetSubmeshes() const { return _subMeshes; }
+
     private:
+        bool _isDirty = true;
         std::vector<Vertex> _vertices;
         std::vector<uint32_t> _indices;
         std::vector<SubMesh> _subMeshes;

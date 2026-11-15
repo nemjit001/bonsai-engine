@@ -29,6 +29,10 @@ namespace Bonsai
         /// @param event 
         void HandlePlatformEvent(SDL_Event const& event);
 
+        /// @brief Get the graphics device for the render manager.
+        /// @return The stored graphics device.
+        GraphicsDevice* GetGraphicsDevice() { return _graphicsDevice; }
+
     private:
         SDL_Window* _window = nullptr;
         GraphicsDevice* _graphicsDevice = nullptr;
