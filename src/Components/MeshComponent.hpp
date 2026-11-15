@@ -8,7 +8,7 @@ namespace Bonsai
 {
     class Mesh;
 
-    /// @brief The Mesh Component stores a mesh for an entity.
+    /// @brief The Mesh Component stores a host-side mesh for an entity.
     struct MeshComponent
     {
         AssetHandle<Mesh> MeshHandle = AssetHandle<Mesh>();

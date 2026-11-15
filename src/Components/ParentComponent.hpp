@@ -6,7 +6,7 @@
 
 namespace Bonsai
 {
-    /// @brief The Parent Component parents one entity to another.
+    /// @brief The ParentComponent parents one entity to another.
     /// This component should be attached to the child entity.
     struct ParentComponent
     {
