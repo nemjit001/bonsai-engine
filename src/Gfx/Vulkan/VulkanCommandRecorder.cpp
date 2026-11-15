@@ -404,12 +404,19 @@ namespace Bonsai
                 };
             }
 
+            // Set up render area
+            VkRect2D renderArea{};
+            renderArea.offset = VkOffset2D{ commandData.renderArea.offset.x, commandData.renderArea.offset.y };
+            renderArea.extent = VkExtent2D{ commandData.renderArea.extent.width, commandData.renderArea.extent.height };
+
+            // Set up rendering info
             VkRenderingInfo renderingInfo{};
             renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
             renderingInfo.pNext = nullptr;
             renderingInfo.flags = 0;
-            renderingInfo.layerCount = 0;
-            renderingInfo.viewMask = UINT32_MAX;
+            renderingInfo.renderArea = renderArea;
+            renderingInfo.layerCount = 1;
+            renderingInfo.viewMask = 0;
             renderingInfo.colorAttachmentCount = commandData.renderAttachmentCount;
             renderingInfo.pColorAttachments = colorAttachments.data();
             renderingInfo.pDepthAttachment = nullptr;
@@ -462,9 +469,9 @@ namespace Bonsai
         case GraphicsResourceState_RenderTarget_Write:
             return { VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT_KHR };
         case GraphicsResourceState_DepthStencilTarget_Read:
-            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT };
+            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT };
         case GraphicsResourceState_DepthStencilTarget_Write:
-            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT };
+            return { VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT, VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT };
         case GraphicsResourceState_Transfer_Read:
             return { VK_PIPELINE_STAGE_2_TRANSFER_BIT, VK_ACCESS_2_TRANSFER_READ_BIT };
         case GraphicsResourceState_Transfer_Write:
@@ -474,7 +481,7 @@ namespace Bonsai
         case GraphicsResourceState_Host_Write:
             return { VK_PIPELINE_STAGE_2_HOST_BIT, VK_ACCESS_2_MEMORY_WRITE_BIT };
         case GraphicsResourceState_Present:
-            return { VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, 0 };
+            return { VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, VK_ACCESS_2_NONE };
         default:
             break;
         }

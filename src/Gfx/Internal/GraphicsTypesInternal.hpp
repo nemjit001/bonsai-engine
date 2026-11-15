@@ -95,7 +95,38 @@ namespace Bonsai
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.
     class GraphicsSwapchain : public GraphicsResource
     {
-        //
+    public:
+        GraphicsSwapchain() = default;
+
+    protected:
+        ~GraphicsSwapchain();
+
+    public:
+        /// @brief Set the swapchain extent.
+        /// @param extent New extent.
+        virtual void SetExtent(Extent2D const& extent) { _extent = extent; }
+
+        /// @brief Get the swapchain extent.
+        /// @return The current swapchain extent.
+        virtual Extent2D GetExtent() const { return _extent; }
+
+        /// @brief Get the backbuffer texture view for the swapchain.
+        /// @return The graphics texture view.
+        virtual GraphicsTexture* GetBackbuffer() final { return _backbuffer; }
+
+        /// @brief Get the backbuffer texture view for the swapchain.
+        /// @return The graphics texture view.
+        virtual GraphicsTextureView* GetBackbufferView() final { return _backbufferView; }
+
+        /// @brief Set the backbuffer texture and view for the swapchain.
+        /// @param texture Texture to set.
+        /// @param textureView Texture view to set.
+        virtual void SetBackbufferData(GraphicsTexture* texture, GraphicsTextureView* textureView) final { _backbuffer = texture; _backbufferView = textureView; }
+
+    protected:
+        Extent2D _extent = { 0, 0 };
+        GraphicsTexture* _backbuffer = nullptr;
+        GraphicsTextureView* _backbufferView = nullptr;
     };
 
     /// @brief The FrameContext is used to store per-frame resources.

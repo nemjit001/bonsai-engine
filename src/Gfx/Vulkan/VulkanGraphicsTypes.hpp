@@ -46,6 +46,11 @@ namespace Bonsai
         /// @return The Vulkan image.
         VkImage GetImage() const { return _image; }
 
+        /// @brief Set the underlying image handle. This is useful for externally managed images.
+        /// Only use this if you know what you are doing.
+        /// @param image Image handle to set.
+        void SetImage(VkImage image) { _image = image; }
+
     private:
         VkDevice _device;
         VkDeviceMemory _memory;
@@ -65,6 +70,11 @@ namespace Bonsai
         /// @brief Get the Vulkan image view handle.
         /// @return The Vulkan image view.
         VkImageView GetImageView() const { return _imageView; }
+
+        /// @brief Set the underlying image view handle. This is useful for externally managed image views.
+        /// Only use this if you know what you are doing.
+        /// @param imageView Image view handle to set.
+        void SetImageView(VkImageView imageView) { _imageView = imageView; }
 
     private:
         VkDevice _device;

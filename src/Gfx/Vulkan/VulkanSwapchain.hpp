@@ -132,6 +132,13 @@ namespace Bonsai
         /// @param swapchainData Swapchain data to destroy.
         void DestroyConfiguredSwapchain(ConfiguredSwapchainData const& swapchainData);
 
+        /// @brief Update the internal backbuffer texture and view handles.
+        /// @param imageIndex Current image index.
+        void UpdateBackbufferData(uint32_t imageIndex);
+
+        /// @brief Clear the internal backbuffer texture and view handles.
+        void ClearBackbufferData();
+
         VkInstance _instance;
         VkPhysicalDevice _physicalDevice;
         VkDevice _device;

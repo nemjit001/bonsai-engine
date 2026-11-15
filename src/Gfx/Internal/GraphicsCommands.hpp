@@ -147,6 +147,7 @@ namespace Bonsai
 
     struct GraphicsCommandBeginRendering
     {
+        Rect2D renderArea;
         std::array<GraphicsRenderAttachmentInfo, Graphics::MaxBoundRenderTargets> renderAttachments;
         size_t renderAttachmentCount;
         bool hasDepthStencilAttachment;

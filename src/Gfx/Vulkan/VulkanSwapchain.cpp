@@ -18,6 +18,7 @@ namespace Bonsai
         VkSurfaceKHR surface
     )
         :
+        GraphicsSwapchain(),
         _instance(instance),
         _physicalDevice(physicalDevice),
         _device(device),
@@ -29,7 +30,10 @@ namespace Bonsai
         _currentSwapchainDesc(),
         _swapchainData()
     {
-        //
+        // Set the null textures for the swapchain backbuffer
+        VulkanTexture* backbufferTexture = new VulkanTexture(_device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+        VulkanTextureView* backbufferView = new VulkanTextureView(backbufferTexture, _device, VK_NULL_HANDLE);
+        SetBackbufferData(backbufferTexture, backbufferView);
     }
 
     VulkanSwapchain::~VulkanSwapchain()
@@ -106,8 +110,7 @@ namespace Bonsai
         _swapchainData = swapchainData;
 
         // Cache actual swap image extent
-        _currentSwapchainDesc->width = swapchainCreateInfo.imageExtent.width;
-        _currentSwapchainDesc->height = swapchainCreateInfo.imageExtent.height;
+        SetExtent(Extent2D{ _currentSwapchainDesc->width, _currentSwapchainDesc->height });
 
         SPDLOG_TRACE("Configured swapchain");
         return true;
@@ -142,6 +145,11 @@ namespace Bonsai
             SPDLOG_WARN("Attempting to reconfigure an unconfigured swapchain!");
             return false;
         }
+
+        // Update the desc with the cached extent
+        Extent2D const currentExtent = GetExtent();
+        _currentSwapchainDesc->width = currentExtent.width;
+        _currentSwapchainDesc->height = currentExtent.height;
 
         // Reconfigure with current desc
         return Configure(_currentSwapchainDesc.value());
@@ -187,6 +195,7 @@ namespace Bonsai
         // Update swapchain state
         _currentImageSemaphoreIndex = currentImageSemaphoreIndex;
         _currentImageIndex = imageIndex;
+        UpdateBackbufferData(imageIndex);
         return true;
     }
 
@@ -263,7 +272,7 @@ namespace Bonsai
         swapPresentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
         swapPresentBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
         swapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR;
-        swapPresentBarrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+        swapPresentBarrier.dstAccessMask = VK_ACCESS_2_NONE;
         swapPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         swapPresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         swapPresentBarrier.srcQueueFamilyIndex = _sharedDeviceState->graphicsQueueFamily;
@@ -550,5 +559,30 @@ namespace Bonsai
 
         // Destroy swapchain
         vkDestroySwapchainKHR(_device, swapchainData.swapchain, nullptr);
+
+        // Clear invalidated backbuffer data
+        ClearBackbufferData();
+    }
+
+    void VulkanSwapchain::UpdateBackbufferData(uint32_t imageIndex)
+    {
+        ClearBackbufferData();
+        if (_swapchainData.has_value())
+        {
+            auto* vulkanBackbuffer = static_cast<VulkanTexture*>(_backbuffer);
+            auto* vulkanBackbufferView = static_cast<VulkanTextureView*>(_backbufferView);
+
+            vulkanBackbuffer->SetImage(_swapchainData->swapchainImages[imageIndex]);
+            vulkanBackbufferView->SetImageView(_swapchainData->swapchainImageViews[imageIndex]);
+        }
+    }
+
+    void VulkanSwapchain::ClearBackbufferData()
+    {
+        auto* vulkanBackbuffer = static_cast<VulkanTexture*>(_backbuffer);
+        auto* vulkanBackbufferView = static_cast<VulkanTextureView*>(_backbufferView);
+        
+        vulkanBackbuffer->SetImage(VK_NULL_HANDLE);
+        vulkanBackbufferView->SetImageView(VK_NULL_HANDLE);
     }
 } // namespace Bonsai
