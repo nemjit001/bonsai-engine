@@ -50,6 +50,7 @@ target_sources(BonsaiEngineLib
         src/Components/ParentComponent.hpp
         src/Components/RenderMeshComponent.hpp
         src/Components/TransformComponent.hpp
+        src/Systems/CameraInitSystem.hpp
         src/Systems/CameraUploadSystem.hpp
         src/Systems/ECSSystem.hpp
         src/Systems/MeshUploadSystem.hpp
@@ -90,6 +91,7 @@ target_sources(BonsaiEngineLib
         src/Components/ParentComponent.cpp
         src/Components/RenderMeshComponent.cpp
         src/Components/TransformComponent.cpp
+        src/Systems/CameraInitSystem.cpp
         src/Systems/CameraUploadSystem.cpp
         src/Systems/MeshUploadSystem.cpp
         src/Systems/SystemRegistry.cpp
