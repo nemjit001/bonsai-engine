@@ -4,7 +4,6 @@
 #include <cassert>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
-#include <vulkan/vk_enum_string_helper.h>
 #include "Core/Logger.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
@@ -452,7 +451,6 @@ namespace Bonsai
         }
 
         SPDLOG_TRACE("Populated swapchain create info:");
-        SPDLOG_TRACE("\tsurface format: {}", string_VkFormat(swapchainCreateInfo.imageFormat));
         SPDLOG_TRACE("\timage count: {}", imageCount);
         SPDLOG_TRACE("\timage extent: {} x {}", width, height);
         return true;
