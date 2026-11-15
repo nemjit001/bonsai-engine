@@ -33,6 +33,10 @@ namespace Bonsai
         /// @return The stored graphics device.
         GraphicsDevice* GetGraphicsDevice() { return _graphicsDevice; }
 
+        /// @brief Get the current window resolution.
+        /// @return The current window resolution in pixels.
+        Extent2D GetWindowResolution() const;
+
     private:
         SDL_Window* _window = nullptr;
         GraphicsDevice* _graphicsDevice = nullptr;

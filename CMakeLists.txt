@@ -43,12 +43,15 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
+        src/Renderer/CameraConstantBuffer.hpp
         src/Renderer/RenderManager.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
         src/Components/RenderMeshComponent.hpp
         src/Components/TransformComponent.hpp
+        src/Systems/CameraInitSystem.hpp
+        src/Systems/CameraUploadSystem.hpp
         src/Systems/ECSSystem.hpp
         src/Systems/MeshUploadSystem.hpp
         src/Systems/SystemRegistry.hpp
@@ -88,6 +91,8 @@ target_sources(BonsaiEngineLib
         src/Components/ParentComponent.cpp
         src/Components/RenderMeshComponent.cpp
         src/Components/TransformComponent.cpp
+        src/Systems/CameraInitSystem.cpp
+        src/Systems/CameraUploadSystem.cpp
         src/Systems/MeshUploadSystem.cpp
         src/Systems/SystemRegistry.cpp
         src/Scene/Scene.cpp
