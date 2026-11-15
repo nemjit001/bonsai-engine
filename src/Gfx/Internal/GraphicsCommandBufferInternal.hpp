@@ -123,6 +123,7 @@ namespace Bonsai
         ) override final;
 
         void BeginRendering(
+            Rect2D const& renderArea,
             GraphicsRenderAttachmentInfo* renderAttachments,
             size_t renderAttachmentCount,
             GraphicsRenderAttachmentInfo* depthStencilAttachment

@@ -325,6 +325,7 @@ namespace Bonsai
     }
 
     void GraphicsCommandBufferImpl::BeginRendering(
+        Rect2D const& renderArea,
         GraphicsRenderAttachmentInfo* renderAttachments,
         size_t renderAttachmentCount,
         GraphicsRenderAttachmentInfo* depthStencilAttachment
@@ -341,6 +342,7 @@ namespace Bonsai
 
         // Set up command state
         GraphicsCommandBeginRendering commandBeginRendering{};
+        commandBeginRendering.renderArea = renderArea;
         commandBeginRendering.renderAttachments = boundRenderAttachments;
         commandBeginRendering.renderAttachmentCount = renderAttachmentCount;
         if (depthStencilAttachment != nullptr)

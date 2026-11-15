@@ -115,6 +115,7 @@ namespace Bonsai
         ) = 0;
 
         virtual void BeginRendering(
+            Rect2D const& renderArea,
             GraphicsRenderAttachmentInfo* renderAttachments,
             size_t renderAttachmentCount,
             GraphicsRenderAttachmentInfo* depthStencilAttachment

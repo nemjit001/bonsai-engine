@@ -38,6 +38,8 @@ namespace Bonsai
         SPDLOG_TRACE("Creating graphics swapchain");
         GraphicsSwapchainDesc swapchainDesc{};
         swapchainDesc.window = _window;
+        swapchainDesc.preferredformat = GraphicsFormat_RGBA8_UNorm_SRGB;
+        swapchainDesc.fallbackFormat = GraphicsFormat_BGRA8_UNorm_SRGB;
         swapchainDesc.width = DefaultWindowWidth;
         swapchainDesc.height = DefaultWindowHeight;
         swapchainDesc.syncInterval = 0;
@@ -77,16 +79,23 @@ namespace Bonsai
     {
         // Record frame commands
         GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginGraphicsCommandBuffer(_activeFrame);
-        
+        GraphicsTextureView* swapTextureView = _graphicsDevice->GetSwapchainBackbufferView(_swapchain);
+
         GraphicsRenderAttachmentInfo colorAttachmentInfo{};
-        colorAttachmentInfo.renderTarget = nullptr; // FIXME(nemjit001): Set to swap backbuffer
+        colorAttachmentInfo.renderTarget = swapTextureView;
         colorAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
         colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
-        colorAttachmentInfo.clearValue = GraphicsClearValue{{{ 1.0F, 1.0F, 1.0F, 1.0F }}};
+        colorAttachmentInfo.clearValue = GraphicsClearValue{{{ 0.5F, 0.5, 0.5F, 0.5F }}};
 
-        // commandBuffer->BeginRendering(&colorAttachmentInfo, 1, nullptr);
+        Rect2D renderArea{};
+        renderArea.offset = Offset2D{ 0, 0 };
+        renderArea.extent = _graphicsDevice->GetSwapchainExtent(_swapchain);
+
+        commandBuffer->BeginRendering(renderArea, &colorAttachmentInfo, 1, nullptr);
+        commandBuffer->EndRendering();
 
         // Submit the active frame
+        _graphicsDevice->DestroyTextureView(swapTextureView);
         _graphicsDevice->SubmitFrame(_activeFrame);
     }
 

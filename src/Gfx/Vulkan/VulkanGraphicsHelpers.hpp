@@ -54,6 +54,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @return The Vulkan format.
     [[nodiscard]] VkFormat GetVulkanFormat(GraphicsFormat const& format);
 
+    /// @brief Get the graphics format for a given Vulkan format.
+    /// @param format Format to translate.
+    /// @return The graphics format.
+    [[nodiscard]] GraphicsFormat GetGraphicsFormat(VkFormat const& format);
+
     /// @brief Get the Vulkan image type for a given graphics texture type.
     /// @param textureType Texture type to translate.
     /// @return The Vulkan image type.

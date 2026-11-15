@@ -168,6 +168,61 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_FORMAT_UNDEFINED;
     }
 
+    GraphicsFormat GetGraphicsFormat(VkFormat const& format)
+    {
+        switch (format)
+        {
+        case VK_FORMAT_UNDEFINED: return GraphicsFormat_Unknown;
+        case VK_FORMAT_R8_UNORM: return GraphicsFormat_R8_UNorm;
+        case VK_FORMAT_R8_SNORM: return GraphicsFormat_R8_SNorm;
+        case VK_FORMAT_R8_UINT: return GraphicsFormat_R8_UInt;
+        case VK_FORMAT_R8_SINT: return GraphicsFormat_R8_SInt;
+        case VK_FORMAT_R8G8_UNORM: return GraphicsFormat_RG8_UNorm;
+        case VK_FORMAT_R8G8_SNORM: return GraphicsFormat_RG8_SNorm;
+        case VK_FORMAT_R8G8_UINT: return GraphicsFormat_RG8_UInt;
+        case VK_FORMAT_R8G8_SINT: return GraphicsFormat_RG8_SInt;
+        case VK_FORMAT_R8G8B8A8_UNORM: return GraphicsFormat_RGBA8_UNorm;
+        case VK_FORMAT_R8G8B8A8_SNORM: return GraphicsFormat_RGBA8_SNorm;
+        case VK_FORMAT_R8G8B8A8_UINT: return GraphicsFormat_RGBA8_UInt;
+        case VK_FORMAT_R8G8B8A8_SINT: return GraphicsFormat_RGBA8_SInt;
+        case VK_FORMAT_R8G8B8A8_SRGB: return GraphicsFormat_RGBA8_UNorm_SRGB;
+        case VK_FORMAT_B8G8R8_UNORM: return GraphicsFormat_BGRA8_UNorm;
+        case VK_FORMAT_B8G8R8_SRGB: return GraphicsFormat_BGRA8_UNorm_SRGB;
+        case VK_FORMAT_R16_UNORM: return GraphicsFormat_R16_UNorm;
+        case VK_FORMAT_R16_SNORM: return GraphicsFormat_R16_SNorm;
+        case VK_FORMAT_R16_UINT: return GraphicsFormat_R16_UInt;
+        case VK_FORMAT_R16_SINT: return GraphicsFormat_R16_SInt;
+        case VK_FORMAT_R16_SFLOAT: return GraphicsFormat_R16_SFloat;
+        case VK_FORMAT_R16G16_UNORM: return GraphicsFormat_RG16_UNorm;
+        case VK_FORMAT_R16G16_SNORM: return GraphicsFormat_RG16_SNorm;
+        case VK_FORMAT_R16G16_UINT: return GraphicsFormat_RG16_UInt;
+        case VK_FORMAT_R16G16_SINT: return GraphicsFormat_RG16_SInt;
+        case VK_FORMAT_R16G16_SFLOAT: return GraphicsFormat_RG16_SFloat;
+        case VK_FORMAT_R16G16B16A16_UNORM: return GraphicsFormat_RGBA16_UNorm;
+        case VK_FORMAT_R16G16B16A16_SNORM: return GraphicsFormat_RGBA16_SNorm;
+        case VK_FORMAT_R16G16B16A16_UINT: return GraphicsFormat_RGBA16_UInt;
+        case VK_FORMAT_R16G16B16A16_SINT: return GraphicsFormat_RGBA16_SInt;
+        case VK_FORMAT_R16G16B16A16_SFLOAT: return GraphicsFormat_RGBA16_SFloat;
+        case VK_FORMAT_R32_UINT: return GraphicsFormat_R32_UInt;
+        case VK_FORMAT_R32_SINT: return GraphicsFormat_R32_SInt;
+        case VK_FORMAT_R32_SFLOAT: return GraphicsFormat_R32_SFloat;
+        case VK_FORMAT_R32G32_UINT: return GraphicsFormat_RG32_UInt;
+        case VK_FORMAT_R32G32_SINT: return GraphicsFormat_RG32_SInt;
+        case VK_FORMAT_R32G32_SFLOAT: return GraphicsFormat_RG32_SFloat;
+        case VK_FORMAT_R32G32B32_UINT: return GraphicsFormat_RGB32_UInt;
+        case VK_FORMAT_R32G32B32_SINT: return GraphicsFormat_RGB32_SInt;
+        case VK_FORMAT_R32G32B32_SFLOAT: return GraphicsFormat_RGB32_SFloat;
+        case VK_FORMAT_R32G32B32A32_UINT: return GraphicsFormat_RGBA32_UInt;
+        case VK_FORMAT_R32G32B32A32_SINT: return GraphicsFormat_RGBA32_SInt;
+        case VK_FORMAT_R32G32B32A32_SFLOAT: return GraphicsFormat_RGBA32_SFloat;
+        case VK_FORMAT_D16_UNORM: return GraphicsFormat_D16_UNorm;
+        case VK_FORMAT_D24_UNORM_S8_UINT: return GraphicsFormat_D24_UNorm_S8_UInt;
+        case VK_FORMAT_D32_SFLOAT: return GraphicsFormat_D32_SFloat;
+        }
+
+        return GraphicsFormat_Unknown;
+    }
+
     VkImageType GetVulkanImageType(GraphicsTextureType const& textureType)
     {
         switch (textureType)

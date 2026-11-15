@@ -144,6 +144,21 @@ namespace Bonsai
         /// @param transferBatch Transfer batch to wait for.
         void WaitForTransferBatch(TransferBatch* transferBatch);
 
+        /// @brief Get the active backbuffer texture for a swapchain.
+        /// @param swapchain Swapchain to query. MUST be participating in the active frame.
+        /// @return The graphics texture for the swapchain backbuffer.
+        GraphicsTexture* GetSwapchainBackbuffer(GraphicsSwapchain* swapchain);
+
+        /// @brief Get the active backbuffer texture view for a swapchain.
+        /// @param swapchain Swapchain to query. MUST be participating in the active frame.
+        /// @return The graphics texture view for the swapchain backbuffer.
+        GraphicsTextureView* GetSwapchainBackbufferView(GraphicsSwapchain* swapchain);
+
+        /// @brief Get the extent for a swapchain.
+        /// @param swapchain Swapchain to query extent for.
+        /// @return The swapchain extent.
+        Extent2D GetSwapchainExtent(GraphicsSwapchain* swapchain);
+
         /// @brief Resize a swapchain.
         /// @param swapchain Swapchain to resize.
         /// @param width New swapchain width.

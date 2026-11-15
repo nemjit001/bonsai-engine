@@ -17,6 +17,7 @@ namespace Bonsai
         VkSurfaceKHR surface
     )
         :
+        GraphicsSwapchain(),
         _instance(instance),
         _physicalDevice(physicalDevice),
         _device(device),
@@ -28,7 +29,10 @@ namespace Bonsai
         _currentSwapchainDesc(),
         _swapchainData()
     {
-        //
+        // Set the null textures for the swapchain backbuffer
+        VulkanTexture* backbufferTexture = new VulkanTexture(_device, VK_NULL_HANDLE, VK_NULL_HANDLE);
+        VulkanTextureView* backbufferView = new VulkanTextureView(backbufferTexture, _device, VK_NULL_HANDLE);
+        SetBackbufferData(backbufferTexture, backbufferView);
     }
 
     VulkanSwapchain::~VulkanSwapchain()
@@ -105,8 +109,7 @@ namespace Bonsai
         _swapchainData = swapchainData;
 
         // Cache actual swap image extent
-        _currentSwapchainDesc->width = swapchainCreateInfo.imageExtent.width;
-        _currentSwapchainDesc->height = swapchainCreateInfo.imageExtent.height;
+        SetExtent(Extent2D{ _currentSwapchainDesc->width, _currentSwapchainDesc->height });
 
         SPDLOG_TRACE("Configured swapchain");
         return true;
@@ -141,6 +144,11 @@ namespace Bonsai
             SPDLOG_WARN("Attempting to reconfigure an unconfigured swapchain!");
             return false;
         }
+
+        // Update the desc with the cached extent
+        Extent2D const currentExtent = GetExtent();
+        _currentSwapchainDesc->width = currentExtent.width;
+        _currentSwapchainDesc->height = currentExtent.height;
 
         // Reconfigure with current desc
         return Configure(_currentSwapchainDesc.value());
@@ -186,6 +194,7 @@ namespace Bonsai
         // Update swapchain state
         _currentImageSemaphoreIndex = currentImageSemaphoreIndex;
         _currentImageIndex = imageIndex;
+        UpdateBackbufferData(imageIndex);
         return true;
     }
 
@@ -260,9 +269,9 @@ namespace Bonsai
         swapPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
         swapPresentBarrier.pNext = nullptr;
         swapPresentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        swapPresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        swapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        swapPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        swapPresentBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        swapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR;
+        swapPresentBarrier.dstAccessMask = VK_ACCESS_2_NONE;
         swapPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         swapPresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         swapPresentBarrier.srcQueueFamilyIndex = _sharedDeviceState->graphicsQueueFamily;
@@ -292,6 +301,28 @@ namespace Bonsai
         }
 
         return std::min(swapImageCount, surfaceCapabilities.maxImageCount);
+    }
+
+    std::optional<GraphicsFormat> VulkanSwapchain::DetermineSurfaceFormat(std::vector<VkSurfaceFormatKHR> const& availableSurfaceFormats, GraphicsFormat preferredFormat, GraphicsFormat fallbackFormat)
+    {
+        // Try for preferred present mode
+        for (auto const& surfaceFormat : availableSurfaceFormats)
+        {
+            if (surfaceFormat.format == VulkanGraphicsHelpers::GetVulkanFormat(preferredFormat) && surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return preferredFormat;
+            }
+        }
+
+        // Try for fallback present mode
+        for (auto const& surfaceFormat : availableSurfaceFormats)
+        {
+            if (surfaceFormat.format == VulkanGraphicsHelpers::GetVulkanFormat(fallbackFormat) && surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return fallbackFormat;
+            }
+        }
+
+        // Return none
+        return {};
     }
 
     VkPresentModeKHR VulkanSwapchain::DeterminePresentMode(std::vector<VkPresentModeKHR> const& supportedPresentModes, uint32_t syncInterval, bool allowTearing)
@@ -383,8 +414,12 @@ namespace Bonsai
         }
 
         // Get surface format
-        // TODO(nemjit001): Use a more sophisticated method to find required surface formats (reqs texture formats in graphics API wrapper)
-        VkSurfaceFormatKHR const surfaceFormat = supportedSurfaceFormats[0];
+        std::optional<GraphicsFormat> const surfaceFormat = DetermineSurfaceFormat(supportedSurfaceFormats, swapchainDesc.preferredFormat, swapchainDesc.fallbackFormat);
+        if (!surfaceFormat.has_value())
+        {
+            SPDLOG_WARN("Preferred and fallback formats are both unsupported!");
+            return false;
+        }
 
         // Get the requested present mode from supported present modes
         VkPresentModeKHR const presentMode = DeterminePresentMode(supportedPresentModes, swapchainDesc.syncInterval, swapchainDesc.allowTearing);
@@ -395,8 +430,8 @@ namespace Bonsai
         swapchainCreateInfo.flags = 0;
         swapchainCreateInfo.surface = _surface;
         swapchainCreateInfo.minImageCount = imageCount;
-        swapchainCreateInfo.imageFormat = surfaceFormat.format;
-        swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+        swapchainCreateInfo.imageFormat = VulkanGraphicsHelpers::GetVulkanFormat(surfaceFormat.value());
+        swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; //< We always work in SRGB space
         swapchainCreateInfo.imageExtent.width = width;
         swapchainCreateInfo.imageExtent.height = height;
         swapchainCreateInfo.imageArrayLayers = 1;
@@ -429,6 +464,9 @@ namespace Bonsai
             return {};
         }
 
+        // Get swap format
+        GraphicsFormat const swapFormat = VulkanGraphicsHelpers::GetGraphicsFormat(swapchainCreateInfo.imageFormat);
+
         // Get swapchain images
         std::vector<VkImage> const swapchainImages = [this, &swapchain]() {
             uint32_t imageCount = 0;
@@ -437,6 +475,42 @@ namespace Bonsai
             vkGetSwapchainImagesKHR(_device, swapchain, &imageCount, swapchainImages.data());
             return swapchainImages;
         }();
+
+        // Create swapchain image views
+        std::vector<VkImageView> swapchainImageViews;
+        swapchainImageViews.reserve(swapchainImages.size());
+        for (size_t i = 0; i < swapchainImages.size(); i++)
+        {
+            VkComponentMapping components{};
+            components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            VkImageSubresourceRange subresourceRange{};
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.levelCount = 1;
+            subresourceRange.baseArrayLayer = 0;
+            subresourceRange.layerCount = 1;
+
+            VkImageViewCreateInfo imageViewCreateInfo{};
+            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageViewCreateInfo.pNext = nullptr;
+            imageViewCreateInfo.flags = 0;
+            imageViewCreateInfo.image = swapchainImages[i];
+            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageViewCreateInfo.format = swapchainCreateInfo.imageFormat;
+            imageViewCreateInfo.components = components;
+            imageViewCreateInfo.subresourceRange = subresourceRange;
+
+            VkImageView imageView = VK_NULL_HANDLE;
+            if (VK_CHECK_FAILED(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView))) {
+                return {};
+            }
+
+            swapchainImageViews.push_back(imageView);
+        }
 
         // Create image semaphores
         std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -458,8 +532,10 @@ namespace Bonsai
 
         // Construct configured swapchain data
         return ConfiguredSwapchainData {
+            swapFormat,
             swapchain,
             swapchainImages,
+            swapchainImageViews,
             imageAvailableSemaphores,
         };
     }
@@ -474,7 +550,37 @@ namespace Bonsai
             vkDestroySemaphore(_device, imageSemaphore, nullptr);
         }
 
+        // Clean up image views
+        for (auto const& imageView : swapchainData.swapchainImageViews) {
+            vkDestroyImageView(_device, imageView, nullptr);
+        }
+
         // Destroy swapchain
         vkDestroySwapchainKHR(_device, swapchainData.swapchain, nullptr);
+
+        // Clear invalidated backbuffer data
+        ClearBackbufferData();
+    }
+
+    void VulkanSwapchain::UpdateBackbufferData(uint32_t imageIndex)
+    {
+        ClearBackbufferData();
+        if (_swapchainData.has_value())
+        {
+            auto* vulkanBackbuffer = static_cast<VulkanTexture*>(_backbuffer);
+            auto* vulkanBackbufferView = static_cast<VulkanTextureView*>(_backbufferView);
+
+            vulkanBackbuffer->SetImage(_swapchainData->swapchainImages[imageIndex]);
+            vulkanBackbufferView->SetImageView(_swapchainData->swapchainImageViews[imageIndex]);
+        }
+    }
+
+    void VulkanSwapchain::ClearBackbufferData()
+    {
+        auto* vulkanBackbuffer = static_cast<VulkanTexture*>(_backbuffer);
+        auto* vulkanBackbufferView = static_cast<VulkanTextureView*>(_backbufferView);
+        
+        vulkanBackbuffer->SetImage(VK_NULL_HANDLE);
+        vulkanBackbufferView->SetImageView(VK_NULL_HANDLE);
     }
 } // namespace Bonsai

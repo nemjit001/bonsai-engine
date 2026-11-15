@@ -378,6 +378,39 @@ namespace Bonsai
         _transferContext->WaitForTransferBatch(vulkanTransferBatch);
     }
 
+    GraphicsTexture* GraphicsDevice::GetSwapchainBackbuffer(GraphicsSwapchain* swapchain)
+    {
+        if (swapchain == nullptr) {
+            return nullptr;
+        }
+
+        // Return the backbuffer texture
+        GraphicsTexture* backbuffer = swapchain->GetBackbuffer();
+        backbuffer->AddRef();
+        return backbuffer;
+    }
+
+    GraphicsTextureView* GraphicsDevice::GetSwapchainBackbufferView(GraphicsSwapchain* swapchain)
+    {
+        if (swapchain == nullptr) {
+            return nullptr;
+        }
+
+        // Return the backbuffer view
+        GraphicsTextureView* backbufferView = swapchain->GetBackbufferView();
+        backbufferView->AddRef();
+        return backbufferView;
+    }
+
+    Extent2D GraphicsDevice::GetSwapchainExtent(GraphicsSwapchain* swapchain)
+    {
+        if (swapchain == nullptr) {
+            return { 0, 0 };
+        }
+
+        return swapchain->GetExtent();
+    }
+
     void GraphicsDevice::ResizeSwapchain(GraphicsSwapchain* swapchain, uint32_t width, uint32_t height)
     {
         auto* vulkanSwapchain = static_cast<VulkanSwapchain*>(swapchain);

@@ -53,6 +53,17 @@ namespace Bonsai
         _parentTexture->ReleaseRef();
     }
 
+    GraphicsSwapchain::~GraphicsSwapchain()
+    {
+        if (_backbufferView != nullptr) {
+            _backbufferView->ReleaseRef();
+        }
+
+        if (_backbuffer != nullptr) {
+            _backbuffer->ReleaseRef();
+        }
+    }
+
     void FrameContext::Reset()
     {
         _nextCommandBuffer = 0;
