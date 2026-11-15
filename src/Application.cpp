@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include "Core/Logger.hpp"
+#include "Systems/CameraUploadSystem.hpp"
 #include "Systems/MeshUploadSystem.hpp"
 
 namespace Bonsai
@@ -29,6 +30,7 @@ namespace Bonsai
         }
 
         // Register ECS systems
+        _systemRegistry.AddSystem<CameraUploadSystem>(&_renderManager);
         _systemRegistry.AddSystem<MeshUploadSystem>(&_renderManager);
 
         // Initialized!

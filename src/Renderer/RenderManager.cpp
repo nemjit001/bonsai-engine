@@ -109,10 +109,20 @@ namespace Bonsai
         }
         else if (event.type == SDL_EVENT_WINDOW_RESTORED)
         {
-            int32_t width = 0;
-            int32_t height = 0;
-            SDL_GetWindowSizeInPixels(_window, &width, &height);
-            _graphicsDevice->ResizeSwapchain(_swapchain, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+            Extent2D const extent = GetWindowResolution();
+            _graphicsDevice->ResizeSwapchain(_swapchain, extent.width, extent.height);
         }
+    }
+
+    Extent2D RenderManager::GetWindowResolution() const
+    {
+        int32_t width = 0;
+        int32_t height = 0;
+        SDL_GetWindowSizeInPixels(_window, &width, &height);
+
+        return Extent2D {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height),
+        };
     }
 } // namespace Bonsai

@@ -13,7 +13,7 @@ namespace Bonsai
     public:
         MeshUploadSystem(RenderManager* renderManager);
 
-        virtual void Run(entt::registry& registry);
+        void Run(entt::registry& registry) override;
 
     private:
         RenderManager* _renderManager = nullptr;
