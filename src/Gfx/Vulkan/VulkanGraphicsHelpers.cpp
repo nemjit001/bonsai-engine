@@ -163,6 +163,8 @@ namespace Bonsai::VulkanGraphicsHelpers
         case GraphicsFormat_D16_UNorm: return VK_FORMAT_D16_UNORM;
         case GraphicsFormat_D24_UNorm_S8_UInt: return VK_FORMAT_D24_UNORM_S8_UINT;
         case GraphicsFormat_D32_SFloat: return VK_FORMAT_D32_SFLOAT;
+        default:
+            break;
         }
 
         return VK_FORMAT_UNDEFINED;
@@ -218,6 +220,8 @@ namespace Bonsai::VulkanGraphicsHelpers
         case VK_FORMAT_D16_UNORM: return GraphicsFormat_D16_UNorm;
         case VK_FORMAT_D24_UNORM_S8_UINT: return GraphicsFormat_D24_UNorm_S8_UInt;
         case VK_FORMAT_D32_SFLOAT: return GraphicsFormat_D32_SFloat;
+        default:
+            break;
         }
 
         return GraphicsFormat_Unknown;
