@@ -457,6 +457,9 @@ namespace Bonsai
             return {};
         }
 
+        // Get swap format
+        GraphicsFormat const swapFormat = VulkanGraphicsHelpers::GetGraphicsFormat(swapchainCreateInfo.imageFormat);
+
         // Get swapchain images
         std::vector<VkImage> const swapchainImages = [this, &swapchain]() {
             uint32_t imageCount = 0;
@@ -522,6 +525,7 @@ namespace Bonsai
 
         // Construct configured swapchain data
         return ConfiguredSwapchainData {
+            swapFormat,
             swapchain,
             swapchainImages,
             swapchainImageViews,

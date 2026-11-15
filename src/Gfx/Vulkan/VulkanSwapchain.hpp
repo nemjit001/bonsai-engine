@@ -91,6 +91,7 @@ namespace Bonsai
         /// @brief Data for a configured swapchain.
         struct ConfiguredSwapchainData
         {
+            GraphicsFormat swapFormat;
             VkSwapchainKHR swapchain;
             std::vector<VkImage> swapchainImages;
             std::vector<VkImageView> swapchainImageViews;
