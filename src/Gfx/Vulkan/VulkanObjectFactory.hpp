@@ -60,17 +60,50 @@ namespace Bonsai
         /// @return A new Vulkan sampler.
         VulkanSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
 
+        /// @brief Create a Vulkan render pipeline.
+        /// @param renderPipelineDesc Render pipeline description to use for creation.
+        /// @return A new Vulkan render pipeline.
+        VulkanRenderPipeline* CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc);
+
+        /// @brief Create a Vulkan compute pipeline.
+        /// @param computePipelineDesc Compute pipeline description to use for creation.
+        /// @return A new Vulkan compute pipeline.
+        VulkanComputePipeline* CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc);
+
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
         /// @return A new Vulkan swapchain.
         VulkanSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
 
     private:
+        /// @brief Compiled pipeline stages for render pipelines.
+        struct CompiledRenderPipelineStages
+        {
+            VkShaderModule vertexShader;
+            VkShaderModule tessControlShader;
+            VkShaderModule tessEvalShader;
+            VkShaderModule fragmentShader;
+        };
+
+        /// @brief Compiled pipeline stages for compute pipelines.
+        struct CompiledComputePipelineStages
+        {
+            VkShaderModule computeShader;
+        };
+
         /// @brief Attempt to allocate device memory.
         /// @param heapType Heap type to allocate memory from.
         /// @param memoryRequirements Memory requirements as queried from the resource.
         /// @return An optional Vulkan device memory allocation.
         std::optional<VkDeviceMemory> TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements);
+
+        std::optional<CompiledRenderPipelineStages> TryCompileRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc);
+
+        void DestroyRenderPipelineStages(CompiledRenderPipelineStages const& renderPipelineStages);
+
+        std::optional<CompiledComputePipelineStages> TryCompileComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc);
+
+        void DestroyComputePipelineStages(CompiledComputePipelineStages const& computePipelineStages);
 
     private:
         VkInstance _instance;

@@ -61,7 +61,7 @@ namespace Bonsai
     class VulkanTextureView : public GraphicsTextureView
     {
     public:
-        VulkanTextureView(VulkanTexture* parentTexture, VkDevice device, VkImageView imageView);
+        VulkanTextureView(VkDevice device, VkImageView imageView);
 
     protected:
         ~VulkanTextureView() override;
@@ -93,6 +93,53 @@ namespace Bonsai
     private:
         VkDevice _device;
         VkSampler _sampler;
+    };
+
+    /// @brief Vulkan pipeline layout implementation.
+    class VulkanPipelineLayout : public GraphicsPipelineLayout
+    {
+    public:
+        VulkanPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout);
+
+    protected:
+        ~VulkanPipelineLayout() override;
+
+    public:
+        /// @brief Get the Vulkan pipeline layout handle.
+        /// @return The Vulkan pipeline layout.
+        VkPipelineLayout GetPipelineLayout() const { return _pipelineLayout; }
+
+    private:
+        VkDevice _device;
+        VkPipelineLayout _pipelineLayout;
+    };
+
+    /// @brief Vulkan render pipeline implementation.
+    class VulkanRenderPipeline : public GraphicsRenderPipeline
+    {
+    public:
+        VulkanRenderPipeline(VkDevice device, VkPipeline pipeline);
+
+    protected:
+        ~VulkanRenderPipeline() override;
+
+    private:
+        VkDevice _device;
+        VkPipeline _pipeline;
+    };
+
+    /// @brief Vulkan compute pipeline implementation.
+    class VulkanComputePipeline : public GraphicsComputePipeline
+    {
+    public:
+        VulkanComputePipeline(VkDevice device, VkPipeline pipeline);
+
+    protected:
+        ~VulkanComputePipeline() override;
+
+    private:
+        VkDevice _device;
+        VkPipeline _pipeline;
     };
 
     /// @brief Shared state for Vulkan devices.

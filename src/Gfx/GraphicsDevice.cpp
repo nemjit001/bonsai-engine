@@ -274,12 +274,12 @@ namespace Bonsai
 
     GraphicsRenderPipeline* GraphicsDevice::CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateRenderPipeline(renderPipelineDesc);
     }
 
     GraphicsComputePipeline* GraphicsDevice::CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateComputePipeline(computePipelineDesc);
     }
 
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)

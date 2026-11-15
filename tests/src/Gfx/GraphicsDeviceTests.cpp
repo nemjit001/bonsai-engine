@@ -110,6 +110,94 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
     _graphicsDevice->DestroySampler(sampler);
 }
 
+TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
+{
+    // Create pipeline layout
+    Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
+
+    auto pipelineLayout = _graphicsDevice->CreatePipelineLayout(pipelineLayoutDesc);
+    ASSERT_NE(pipelineLayout, nullptr);
+
+    // Set up vertex input
+    Bonsai::GraphicsVertexBinding vertexBindings[] = {
+        Bonsai::GraphicsVertexBinding{ 0, 3 * sizeof(float), Bonsai::GraphicsVertexInputRate_PerVertex },
+    };
+    Bonsai::GraphicsVertexAttribute vertexAttributes[] = {
+        Bonsai::GraphicsVertexAttribute{ 0, 0, Bonsai::GraphicsFormat_RGBA32_SFloat, 0 },
+    };
+
+    // Create render pipeline
+    Bonsai::GraphicsRenderPipelineDesc renderPipelineDesc{};
+    renderPipelineDesc.pipelineLayout = pipelineLayout;
+
+    renderPipelineDesc.vertexShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "VSMain", 6 };
+    renderPipelineDesc.fragmentShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "PSMain", 6 };
+    renderPipelineDesc.vertexShaderBytecode = {};
+    renderPipelineDesc.fragmentShaderBytecode = {};
+
+    renderPipelineDesc.vertexInputState.vertexBindingCount = 1;
+    renderPipelineDesc.vertexInputState.vertexBindings = vertexBindings;
+    renderPipelineDesc.vertexInputState.vertexAttributeCount = 1;
+    renderPipelineDesc.vertexInputState.vertexAttributes = vertexAttributes;
+
+    renderPipelineDesc.primitiveTopology = Bonsai::GraphicsPrimitiveTopology_TriangleList;
+    renderPipelineDesc.stripCutValue = Bonsai::GraphicsIndexBufferStripCutValue_None;
+
+    renderPipelineDesc.rasterState.polygonMode = Bonsai::GraphicsPolygonMode_Fill;
+    renderPipelineDesc.rasterState.cullMode = Bonsai::GraphicsCullMode_None;
+    renderPipelineDesc.rasterState.frontCounterClockwise = false;
+    renderPipelineDesc.rasterState.depthClampEnable = false;
+    renderPipelineDesc.rasterState.depthBiasEnable = false;
+    renderPipelineDesc.rasterState.depthBiasConstantFactor = 0.0F;
+    renderPipelineDesc.rasterState.depthBiasClamp = 0.0F;
+    renderPipelineDesc.rasterState.depthBiasSlopeFactor = 0.0F;
+
+    renderPipelineDesc.multisampleState.sampleCount = 1;
+    renderPipelineDesc.multisampleState.sampleMask = 0;
+    renderPipelineDesc.multisampleState.alphaToCoverage = false;
+    renderPipelineDesc.multisampleState.alphaToOne = false;
+
+    renderPipelineDesc.depthStencilState.depthTest = true;
+    renderPipelineDesc.depthStencilState.depthWrite = true;
+    renderPipelineDesc.depthStencilState.depthCompareOp = Bonsai::GraphicsCompareOp_Less;
+    renderPipelineDesc.depthStencilState.stencilTest = false;
+
+    renderPipelineDesc.blendState.logicOp = Bonsai::GraphicsLogicOp_Undefined;
+    renderPipelineDesc.blendState.renderTargets[0].blendEnable = false;
+    renderPipelineDesc.blendState.renderTargets[0].colorWriteMask = Bonsai::GraphicsColorComponent_All;
+
+    renderPipelineDesc.renderTargetCount = 1;
+    renderPipelineDesc.renderTargetFormats[0] = Bonsai::GraphicsFormat_RGBA8_UNorm_SRGB;
+    renderPipelineDesc.depthStencilFormat = Bonsai::GraphicsFormat_D24_UNorm_S8_UInt;
+
+    auto renderPipeline = _graphicsDevice->CreateRenderPipeline(renderPipelineDesc);
+    ASSERT_NE(renderPipeline, nullptr);
+
+    _graphicsDevice->DestroyRenderPipeline(renderPipeline);
+    _graphicsDevice->DestroyPipelineLayout(pipelineLayout);
+}
+
+TEST_F(GraphicsDeviceTests, TestCreateComputePipeline)
+{
+    // Create pipeline layout
+    Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
+
+    auto pipelineLayout = _graphicsDevice->CreatePipelineLayout(pipelineLayoutDesc);
+    ASSERT_NE(pipelineLayout, nullptr);
+
+    // Create compute pipeline
+    Bonsai::GraphicsComputePipelineDesc computePipelineDesc{};
+    computePipelineDesc.pipelineLayout = pipelineLayout;
+    computePipelineDesc.computeShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "CSMain", 6 };
+    computePipelineDesc.computeShaderBytecode = {};
+
+    auto computePipeline = _graphicsDevice->CreateComputePipeline(computePipelineDesc);
+    ASSERT_NE(computePipeline, nullptr);
+
+    _graphicsDevice->DestroyComputePipeline(computePipeline);
+    _graphicsDevice->DestroyPipelineLayout(pipelineLayout);
+}
+
 TEST_F(GraphicsDeviceTests, TestStartAndSubmitEmptyTransferBatch)
 {
     Bonsai::TransferBatch* batch = _graphicsDevice->StartTransferBatch();

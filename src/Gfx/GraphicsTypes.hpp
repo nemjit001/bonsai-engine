@@ -313,7 +313,7 @@ namespace Bonsai
         GraphicsBlendFactor_OneMinusConstantColor   = 11,
         GraphicsBlendFactor_ConstantAlpha           = 12,
         GraphicsBlendFactor_OneMinusConstantAlpha   = 13,
-        GraphicsBlendFactor_AlphaSaturate           = 14,
+        GraphicsBlendFactor_SrcAlphaSaturate        = 14,
         GraphicsBlendFactor_Src1Color               = 15,
         GraphicsBlendFactor_OneMinusSrc1Color       = 16,
         GraphicsBlendFactor_Src1Alpha               = 17,
@@ -396,16 +396,16 @@ namespace Bonsai
     using GraphicsTextureUsageFlags = uint32_t;
 
     /// @brief Enumeration of graphics color write flag bits.
-    enum GraphicsColorWriteFlagBits : uint32_t
+    enum GraphicsColorComponentFlagBits : uint32_t
     {
-        GraphicsColorWrite_None     = 0x00000000,
-        GraphicsColorWrite_Red      = 0x00000001,
-        GraphicsColorWrite_Green    = 0x00000002,
-        GraphicsColorWrite_Blue     = 0x00000004,
-        GraphicsColorWrite_Alpha    = 0x00000008,
-        GraphicsColorWrite_All      = 0xFFFFFFFF,
+        GraphicsColorComponent_None     = 0x00000000,
+        GraphicsColorComponent_Red      = 0x00000001,
+        GraphicsColorComponent_Green    = 0x00000002,
+        GraphicsColorComponent_Blue     = 0x00000004,
+        GraphicsColorComponent_Alpha    = 0x00000008,
+        GraphicsColorComponent_All      = 0xFFFFFFFF,
     };
-    using GraphicsColorWriteFlags = uint32_t;
+    using GraphicsColorComponentFlags = uint32_t;
 
     /// @brief 2D offset into a resource.
     struct Offset2D
@@ -509,23 +509,23 @@ namespace Bonsai
     /// @brief Blend state for render target color blending.
     struct GraphicsRenderTargetBlendState
     {
-        bool blend = false;
+        bool blendEnable = false;
         GraphicsBlendFactor srcColorBlendFactor = GraphicsBlendFactor_Zero;
         GraphicsBlendFactor dstColorBlendFactor = GraphicsBlendFactor_Zero;
         GraphicsBlendOp colorBlendOp = GraphicsBlendOp_Add;
         GraphicsBlendFactor srcAlphaBlendFactor = GraphicsBlendFactor_Zero;
         GraphicsBlendFactor dstAlphaBlendFactor = GraphicsBlendFactor_Zero;
         GraphicsBlendOp alphaBlendOp = GraphicsBlendOp_Add;
-        GraphicsColorWriteFlags colorWriteMask = GraphicsColorWrite_None;
+        GraphicsColorComponentFlags colorWriteMask = GraphicsColorComponent_None;
     };
 
     /// @brief Vertex input state for render pipelines.
     struct GraphicsVertexInputState
     {
         size_t vertexBindingCount = 0;
-        GraphicsVertexBinding vertexBindings[Graphics::MaxBoundVertexBuffers];
+        GraphicsVertexBinding* vertexBindings = nullptr;
         size_t vertexAttributeCount= 0;
-        GraphicsVertexAttribute vertexAttributes[Graphics::MaxBoundVertexAttributes];
+        GraphicsVertexAttribute* vertexAttributes = nullptr;
     };
 
     /// @brief Raster state for render pipelines.
@@ -534,8 +534,8 @@ namespace Bonsai
         GraphicsPolygonMode polygonMode = GraphicsPolygonMode_Fill;
         GraphicsCullMode cullMode = GraphicsCullMode_None;
         bool frontCounterClockwise = false;
-        bool depthClamp = false;
-        bool depthBias = false;
+        bool depthClampEnable = false;
+        bool depthBiasEnable = false;
         float depthBiasConstantFactor = 0.0F;
         float depthBiasSlopeFactor = 0.0F;
         float depthBiasClamp = 0.0F;
@@ -545,7 +545,7 @@ namespace Bonsai
     struct GraphicsMultisampleState
     {
         size_t sampleCount = 1;
-        uint32_t sampleMask = UINT32_MAX;
+        uint32_t sampleMask = 0;
         bool alphaToCoverage = false;
         bool alphaToOne = false;
     };
@@ -688,6 +688,7 @@ namespace Bonsai
         GraphicsShaderBytecode tessEvalShaderBytecode;
         GraphicsShaderBytecode fragmentShaderBytecode;
 
+        GraphicsVertexInputState vertexInputState;
         GraphicsPrimitiveTopology primitiveTopology = GraphicsPrimitiveTopology_PointList;
         GraphicsIndexBufferStripCutValue stripCutValue = GraphicsIndexBufferStripCutValue_None;
         GraphicsRasterState rasterState;

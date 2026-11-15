@@ -34,9 +34,8 @@ namespace Bonsai
         vkFreeMemory(_device, _memory, nullptr);
     }
 
-    VulkanTextureView::VulkanTextureView(VulkanTexture* parentTexture, VkDevice device, VkImageView imageView)
+    VulkanTextureView::VulkanTextureView(VkDevice device, VkImageView imageView)
         :
-        GraphicsTextureView(parentTexture),
         _device(device),
         _imageView(imageView)
     {
@@ -59,5 +58,44 @@ namespace Bonsai
     VulkanSampler::~VulkanSampler()
     {
         vkDestroySampler(_device, _sampler, nullptr);
+    }
+
+    VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout)
+        :
+        _device(device),
+        _pipelineLayout(pipelineLayout)
+    {
+        //
+    }
+
+    VulkanPipelineLayout::~VulkanPipelineLayout()
+    {
+        vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
+    }
+
+    VulkanRenderPipeline::VulkanRenderPipeline(VkDevice device, VkPipeline pipeline)
+        :
+        _device(device),
+        _pipeline(pipeline)
+    {
+        //
+    }
+
+    VulkanRenderPipeline::~VulkanRenderPipeline()
+    {
+        vkDestroyPipeline(_device, _pipeline, nullptr);
+    }
+
+    VulkanComputePipeline::VulkanComputePipeline(VkDevice device, VkPipeline pipeline)
+        :
+        _device(device),
+        _pipeline(pipeline)
+    {
+        //
+    }
+
+    VulkanComputePipeline::~VulkanComputePipeline()
+    {
+        vkDestroyPipeline(_device, _pipeline, nullptr);
     }
 } // namespace Bonsai

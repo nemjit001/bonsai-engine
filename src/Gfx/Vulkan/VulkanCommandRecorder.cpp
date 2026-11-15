@@ -258,14 +258,16 @@ namespace Bonsai
 
             auto* textureView = static_cast<VulkanTextureView*>(commandData.textureView);
             auto* parentTexture = static_cast<VulkanTexture*>(textureView->GetParentTexture());
+            GraphicsTextureDesc const parentTextureDesc = parentTexture->GetDesc();
 
             VkClearDepthStencilValue const clearDepthStencil{
                 commandData.clearValue.depth,
                 commandData.clearValue.stencil,
             };
 
+            GraphicsTextureAspectFlags const aspectMask = GraphicsHelpers::GetGraphicsTextureAspectFlags(parentTextureDesc.textureFormat);
             VkImageSubresourceRange subresource{};
-            subresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT; // FIXME(nemjit001): Check texture format for aspect flags (depth, stencil, depth + stencil)
+            subresource.aspectMask = VulkanGraphicsHelpers::GetVulkanImageAspectFlags(aspectMask);
             subresource.baseMipLevel = 0;
             subresource.levelCount = VK_REMAINING_MIP_LEVELS;
             subresource.baseArrayLayer = 0;
@@ -424,9 +426,11 @@ namespace Bonsai
 
             if (commandData.hasDepthStencilAttachment)
             {
-                // TODO(nemjit001): Set depth and/or stencil attachment based on texture format
-                renderingInfo.pDepthAttachment = &depthStencilAttachment;
-                renderingInfo.pStencilAttachment = &depthStencilAttachment;
+                auto* vulkanRenderTarget = static_cast<VulkanTextureView*>(commandData.depthStencilAttachment.renderTarget);
+                GraphicsTextureViewDesc const renderTargetDesc = vulkanRenderTarget->GetDesc();
+
+                renderingInfo.pDepthAttachment = GraphicsHelpers::IsDepthFormat(renderTargetDesc.viewFormat) ? &depthStencilAttachment : nullptr;
+                renderingInfo.pStencilAttachment = GraphicsHelpers::IsStencilFormat(renderTargetDesc.viewFormat) ? &depthStencilAttachment : nullptr;
             }
 
             vkCmdBeginRendering(commandBuffer, &renderingInfo);
