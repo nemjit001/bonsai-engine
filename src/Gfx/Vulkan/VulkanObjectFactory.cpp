@@ -239,6 +239,8 @@ namespace Bonsai
         
         // Configure swapchain
         VulkanSwapchainDesc vulkanSwapchainDesc{};
+        vulkanSwapchainDesc.preferredFormat = swapchainDesc.preferredformat;
+        vulkanSwapchainDesc.fallbackFormat = swapchainDesc.fallbackFormat;
         vulkanSwapchainDesc.width = swapchainDesc.width;
         vulkanSwapchainDesc.height = swapchainDesc.height;
         vulkanSwapchainDesc.syncInterval = swapchainDesc.syncInterval;

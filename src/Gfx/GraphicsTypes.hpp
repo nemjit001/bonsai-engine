@@ -433,6 +433,8 @@ namespace Bonsai
     struct GraphicsSwapchainDesc
     {
         SDL_Window* window;
+        GraphicsFormat preferredformat;
+        GraphicsFormat fallbackFormat;
         uint32_t width;
         uint32_t height;
         uint32_t syncInterval;

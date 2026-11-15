@@ -14,6 +14,8 @@ namespace Bonsai
 {
     struct VulkanSwapchainDesc
     {
+        GraphicsFormat preferredFormat;
+        GraphicsFormat fallbackFormat;
         uint32_t width;
         uint32_t height;
         uint32_t syncInterval;
@@ -98,6 +100,13 @@ namespace Bonsai
         /// @param surfaceCapabilities Current surface capabilities.
         /// @return The number of required swap images.
         [[nodiscard]] static uint32_t DetermineSwapImageCount(VkSurfaceCapabilitiesKHR const& surfaceCapabilities);
+
+        /// @brief Determine the surface format based on a preferred and fallback format.
+        /// @param availableSurfaceFormats Supported formats.
+        /// @param preferredFormat First choice.
+        /// @param fallbackFormat Fallback choice.
+        /// @return An optional surface format.
+        [[nodiscard]] static std::optional<GraphicsFormat> DetermineSurfaceFormat(std::vector<VkSurfaceFormatKHR> const& availableSurfaceFormats, GraphicsFormat preferredFormat, GraphicsFormat fallbackFormat);
 
         /// @brief Determine the swap present mode based on support.
         /// @param availablePresentModes Supported modes.

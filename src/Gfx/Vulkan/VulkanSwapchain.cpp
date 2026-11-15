@@ -4,6 +4,7 @@
 #include <cassert>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
+#include <vulkan/vk_enum_string_helper.h>
 #include "Core/Logger.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
@@ -260,9 +261,9 @@ namespace Bonsai
         swapPresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
         swapPresentBarrier.pNext = nullptr;
         swapPresentBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        swapPresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        swapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-        swapPresentBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        swapPresentBarrier.srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+        swapPresentBarrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR;
+        swapPresentBarrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
         swapPresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         swapPresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         swapPresentBarrier.srcQueueFamilyIndex = _sharedDeviceState->graphicsQueueFamily;
@@ -292,6 +293,28 @@ namespace Bonsai
         }
 
         return std::min(swapImageCount, surfaceCapabilities.maxImageCount);
+    }
+
+    std::optional<GraphicsFormat> VulkanSwapchain::DetermineSurfaceFormat(std::vector<VkSurfaceFormatKHR> const& availableSurfaceFormats, GraphicsFormat preferredFormat, GraphicsFormat fallbackFormat)
+    {
+        // Try for preferred present mode
+        for (auto const& surfaceFormat : availableSurfaceFormats)
+        {
+            if (surfaceFormat.format == VulkanGraphicsHelpers::GetVulkanFormat(preferredFormat) && surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return preferredFormat;
+            }
+        }
+
+        // Try for fallback present mode
+        for (auto const& surfaceFormat : availableSurfaceFormats)
+        {
+            if (surfaceFormat.format == VulkanGraphicsHelpers::GetVulkanFormat(fallbackFormat) && surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return fallbackFormat;
+            }
+        }
+
+        // Return none
+        return {};
     }
 
     VkPresentModeKHR VulkanSwapchain::DeterminePresentMode(std::vector<VkPresentModeKHR> const& supportedPresentModes, uint32_t syncInterval, bool allowTearing)
@@ -383,8 +406,12 @@ namespace Bonsai
         }
 
         // Get surface format
-        // TODO(nemjit001): Use a more sophisticated method to find required surface formats (reqs texture formats in graphics API wrapper)
-        VkSurfaceFormatKHR const surfaceFormat = supportedSurfaceFormats[0];
+        std::optional<GraphicsFormat> const surfaceFormat = DetermineSurfaceFormat(supportedSurfaceFormats, swapchainDesc.preferredFormat, swapchainDesc.fallbackFormat);
+        if (!surfaceFormat.has_value())
+        {
+            SPDLOG_WARN("Preferred and fallback formats are both unsupported!");
+            return false;
+        }
 
         // Get the requested present mode from supported present modes
         VkPresentModeKHR const presentMode = DeterminePresentMode(supportedPresentModes, swapchainDesc.syncInterval, swapchainDesc.allowTearing);
@@ -395,8 +422,8 @@ namespace Bonsai
         swapchainCreateInfo.flags = 0;
         swapchainCreateInfo.surface = _surface;
         swapchainCreateInfo.minImageCount = imageCount;
-        swapchainCreateInfo.imageFormat = surfaceFormat.format;
-        swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+        swapchainCreateInfo.imageFormat = VulkanGraphicsHelpers::GetVulkanFormat(surfaceFormat.value());
+        swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; //< We always work in SRGB space
         swapchainCreateInfo.imageExtent.width = width;
         swapchainCreateInfo.imageExtent.height = height;
         swapchainCreateInfo.imageArrayLayers = 1;
@@ -416,6 +443,7 @@ namespace Bonsai
         }
 
         SPDLOG_TRACE("Populated swapchain create info:");
+        SPDLOG_TRACE("\tsurface format: {}", string_VkFormat(swapchainCreateInfo.imageFormat));
         SPDLOG_TRACE("\timage count: {}", imageCount);
         SPDLOG_TRACE("\timage extent: {} x {}", width, height);
         return true;

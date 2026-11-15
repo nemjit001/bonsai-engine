@@ -38,6 +38,8 @@ namespace Bonsai
         SPDLOG_TRACE("Creating graphics swapchain");
         GraphicsSwapchainDesc swapchainDesc{};
         swapchainDesc.window = _window;
+        swapchainDesc.preferredformat = GraphicsFormat_RGBA8_UNorm_SRGB;
+        swapchainDesc.fallbackFormat = GraphicsFormat_BGRA8_UNorm_SRGB;
         swapchainDesc.width = DefaultWindowWidth;
         swapchainDesc.height = DefaultWindowHeight;
         swapchainDesc.syncInterval = 0;
