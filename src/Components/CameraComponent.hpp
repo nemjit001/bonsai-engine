@@ -6,7 +6,7 @@
 
 namespace Bonsai
 {
-    /// @brief The Camera Component attaches a virtual camera to an entity, to be used for rendering.
+    /// @brief The CameraComponent attaches a virtual camera to an entity, to be used for rendering.
     struct CameraComponent
     {
         Camera camera = Camera();

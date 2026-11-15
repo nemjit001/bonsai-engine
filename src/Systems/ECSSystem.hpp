@@ -7,10 +7,10 @@
 namespace Bonsai
 {
     /// @brief The ECS System interface provides an abstract interface for implementing component behaviour.
-    class IECSSystem
+    class ECSSystem
     {
     public:
-        virtual ~IECSSystem() = default;
+        virtual ~ECSSystem() = default;
 
         /// @brief Run the ECS system on an EnTT registry.
         /// @param registry Registry to run the system on.

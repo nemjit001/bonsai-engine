@@ -3,17 +3,17 @@
 #include "Systems/SystemRegistry.hpp"
 
 /// @brief Mocks ECS system interface.
-class MockSystem : public Bonsai::IECSSystem
+class MockSystem : public Bonsai::ECSSystem
 {
 public:
     MOCK_METHOD(void, Run, (entt::registry&), (override));
 };
 
 /// @brief Wraps an ECS system.
-class ECSSystemWrapper : public Bonsai::IECSSystem
+class ECSSystemWrapper : public Bonsai::ECSSystem
 {
 public:
-    explicit ECSSystemWrapper(Bonsai::IECSSystem* wrappee)
+    explicit ECSSystemWrapper(Bonsai::ECSSystem* wrappee)
         : _wrappee(wrappee) {}
 
     void Run(entt::registry& registry) override
@@ -22,7 +22,7 @@ public:
     }
 
 private:
-    Bonsai::IECSSystem* _wrappee = nullptr;
+    Bonsai::ECSSystem* _wrappee = nullptr;
 };
 
 TEST(SystemRegistryTests, TestAddSystem)

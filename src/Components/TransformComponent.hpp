@@ -6,7 +6,7 @@
 
 namespace Bonsai
 {
-    /// @brief The Transform Component contains a TRS transform for entities that places them in  the scene.
+    /// @brief The TransformComponent contains a TRS transform for entities that places them in  the scene.
     /// An entity without a TransformComponent is assumed to have the identity transform.
     struct TransformComponent
     {

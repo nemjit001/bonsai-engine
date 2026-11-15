@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include "Core/Logger.hpp"
+#include "Systems/MeshUploadSystem.hpp"
 
 namespace Bonsai
 {
@@ -26,6 +27,9 @@ namespace Bonsai
             SPDLOG_ERROR("Failed to initialize RenderManager");
             return false;
         }
+
+        // Register ECS systems
+        _systemRegistry.AddSystem<MeshUploadSystem>(&_renderManager);
 
         // Initialized!
         SPDLOG_INFO("Initialized Bonsai!");

@@ -25,13 +25,13 @@ namespace Bonsai
         void RunSystems(entt::registry& registry) const;
 
     private:
-        std::vector<std::unique_ptr<IECSSystem>> _systems{};
+        std::vector<std::unique_ptr<ECSSystem>> _systems{};
     };
 
     template<typename SystemType, typename... Args>
     void SystemRegistry::AddSystem(Args&&... args)
     {
-        static_assert(std::is_base_of_v<IECSSystem, SystemType>, "SystemType must inherit from IECSSystem!");
+        static_assert(std::is_base_of_v<ECSSystem, SystemType>, "SystemType must inherit from ECSSystem!");
         _systems.emplace_back(std::make_unique<SystemType>(std::forward<Args>(args)...));
     }
 } // namespace Bonsai
