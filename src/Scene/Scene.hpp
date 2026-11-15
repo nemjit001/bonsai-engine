@@ -22,6 +22,10 @@ namespace Bonsai
         template<typename Archive>
         void serialize(Archive& archive);
 
+        /// @brief Get the underlying scene ECS registry.
+        /// @return The scene ECS registry.
+        entt::registry& GetRegistry() { return _registry; }
+
     private:
         entt::registry _registry{};
     };

@@ -57,6 +57,7 @@ target_sources(BonsaiEngineLib
         src/Systems/SystemRegistry.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
+        src/Application/FileDropHandler.hpp
         src/Application.hpp
     PRIVATE
         src/Core/Filesystem.cpp
@@ -97,6 +98,7 @@ target_sources(BonsaiEngineLib
         src/Systems/SystemRegistry.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
+        src/Application/FileDropHandler.cpp
         src/Application.cpp
 )
 target_compile_features(BonsaiEngineLib

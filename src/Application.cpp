@@ -5,6 +5,7 @@
 #include "Systems/CameraInitSystem.hpp"
 #include "Systems/CameraUploadSystem.hpp"
 #include "Systems/MeshUploadSystem.hpp"
+#include "Application/FileDropHandler.hpp"
 
 namespace Bonsai
 {
@@ -64,6 +65,12 @@ namespace Bonsai
         // Handle quit event
         if (event.type == SDL_EVENT_QUIT) {
             _isRunning = false;
+        }
+        else if (event.type == SDL_EVENT_DROP_FILE)
+        {
+            Filesystem::Path const droppedFile{event.drop.data};
+            SPDLOG_TRACE("Received dropped file: {}", droppedFile.string());
+            FileDropHandler::HandleDroppedFile(droppedFile, _assetManager, _sceneManager);
         }
     }
 
