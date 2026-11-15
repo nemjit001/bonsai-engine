@@ -466,6 +466,42 @@ namespace Bonsai
             return swapchainImages;
         }();
 
+        // Create swapchain image views
+        std::vector<VkImageView> swapchainImageViews;
+        swapchainImageViews.reserve(swapchainImages.size());
+        for (size_t i = 0; i < swapchainImages.size(); i++)
+        {
+            VkComponentMapping components{};
+            components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            VkImageSubresourceRange subresourceRange{};
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.levelCount = 1;
+            subresourceRange.baseArrayLayer = 0;
+            subresourceRange.layerCount = 1;
+
+            VkImageViewCreateInfo imageViewCreateInfo{};
+            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageViewCreateInfo.pNext = nullptr;
+            imageViewCreateInfo.flags = 0;
+            imageViewCreateInfo.image = swapchainImages[i];
+            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageViewCreateInfo.format = swapchainCreateInfo.imageFormat;
+            imageViewCreateInfo.components = components;
+            imageViewCreateInfo.subresourceRange = subresourceRange;
+
+            VkImageView imageView = VK_NULL_HANDLE;
+            if (VK_CHECK_FAILED(vkCreateImageView(_device, &imageViewCreateInfo, nullptr, &imageView))) {
+                return {};
+            }
+
+            swapchainImageViews.push_back(imageView);
+        }
+
         // Create image semaphores
         std::vector<VkSemaphore> imageAvailableSemaphores;
         imageAvailableSemaphores.reserve(swapchainImages.size());
@@ -488,6 +524,7 @@ namespace Bonsai
         return ConfiguredSwapchainData {
             swapchain,
             swapchainImages,
+            swapchainImageViews,
             imageAvailableSemaphores,
         };
     }
@@ -500,6 +537,11 @@ namespace Bonsai
         // Clean up image semaphores
         for (auto const& imageSemaphore : swapchainData.imageAvailableSemaphores) {
             vkDestroySemaphore(_device, imageSemaphore, nullptr);
+        }
+
+        // Clean up image views
+        for (auto const& imageView : swapchainData.swapchainImageViews) {
+            vkDestroyImageView(_device, imageView, nullptr);
         }
 
         // Destroy swapchain

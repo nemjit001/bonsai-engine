@@ -93,6 +93,7 @@ namespace Bonsai
         {
             VkSwapchainKHR swapchain;
             std::vector<VkImage> swapchainImages;
+            std::vector<VkImageView> swapchainImageViews;
             std::vector<VkSemaphore> imageAvailableSemaphores;
         };
 
