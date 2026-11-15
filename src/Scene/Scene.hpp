@@ -16,6 +16,9 @@ namespace Bonsai
         /// @param systemRegistry System registry to use for scene updates.
         void Tick(SystemRegistry const& systemRegistry);
 
+        /// @brief Clear the scene data, resulting in an empty scene.
+        void Clear();
+
         /// @brief Serialization function for scene data. Used with serialization archives.
         /// @tparam Archive 
         /// @param archive 

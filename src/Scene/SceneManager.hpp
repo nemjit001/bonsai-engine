@@ -10,6 +10,13 @@ namespace Bonsai
     class SceneManager
     {
     public:
+        /// @brief Initialize the scene manager.
+        /// @return A boolean indicating success.
+        bool Initialize();
+
+        /// @brief Shut down the scene manager.
+        void Shutdown();
+
         /// @brief Get the active scene from the scene manager.
         /// @return 
         Scene& GetActiveScene() { return _activeScene; }

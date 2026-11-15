@@ -8,4 +8,9 @@ namespace Bonsai
     {
         systemRegistry.RunSystems(_registry);
     }
+
+    void Scene::Clear()
+    {
+        _registry.clear();
+    }
 } // namespace Bonsai

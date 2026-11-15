@@ -30,6 +30,14 @@ namespace Bonsai
             return false;
         }
 
+        // Initialize the scene manager
+        SPDLOG_TRACE("Initializing SceneManager");
+        if (!_sceneManager.Initialize())
+        {
+            SPDLOG_ERROR("Failed to initialize SceneManager");
+            return false;
+        }
+
         // Register ECS systems
         _systemRegistry.AddSystem<CameraInitSystem>();
         _systemRegistry.AddSystem<CameraUploadSystem>(&_renderManager);
@@ -44,6 +52,7 @@ namespace Bonsai
     void Application::Shutdown()
     {
         _isRunning = false;
+        _sceneManager.Shutdown();
         _renderManager.Shutdown();
         SDL_Quit();
         SPDLOG_INFO("Shutdown complete, goodbye!");
