@@ -267,6 +267,21 @@ namespace Bonsai
         return _objectFactory->CreateSampler(samplerDesc);
     }
 
+    GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
+    {
+        return nullptr;
+    }
+
+    GraphicsRenderPipeline* GraphicsDevice::CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)
+    {
+        return nullptr;
+    }
+
+    GraphicsComputePipeline* GraphicsDevice::CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc)
+    {
+        return nullptr;
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
@@ -297,6 +312,27 @@ namespace Bonsai
     {
         if (sampler != nullptr) {
             sampler->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyPipelineLayout(GraphicsPipelineLayout* pipelineLayout)
+    {
+        if (pipelineLayout != nullptr) {
+            pipelineLayout->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyRenderPipeline(GraphicsRenderPipeline* renderPipeline)
+    {
+        if (renderPipeline != nullptr) {
+            renderPipeline->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyComputePipeline(GraphicsComputePipeline* computePipeline)
+    {
+        if (computePipeline != nullptr) {
+            computePipeline->ReleaseRef();
         }
     }
 

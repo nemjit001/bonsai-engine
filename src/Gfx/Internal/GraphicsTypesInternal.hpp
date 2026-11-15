@@ -92,6 +92,24 @@ namespace Bonsai
         //
     };
 
+    /// @brief The GraphicsPipelineLayout is a graphics resource containing pipeline layout data.
+    class GraphicsPipelineLayout : public GraphicsResource
+    {
+        //
+    };
+
+    /// @brief The GraphicsRenderPipeline is a graphics resource containing render pipeline data.
+    class GraphicsRenderPipeline : public GraphicsResource
+    {
+        //
+    };
+
+    /// @brief The GraphicsComputePipeline is a graphics resource containing compute pipeline data.
+    class GraphicsComputePipeline : public GraphicsResource
+    {
+        //
+    };
+
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.
     class GraphicsSwapchain : public GraphicsResource
     {
