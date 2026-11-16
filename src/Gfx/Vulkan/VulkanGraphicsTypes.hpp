@@ -61,7 +61,7 @@ namespace Bonsai
     class VulkanTextureView : public GraphicsTextureView
     {
     public:
-        VulkanTextureView(VulkanTexture* parentTexture, VkDevice device, VkImageView imageView);
+        VulkanTextureView(VkDevice device, VkImageView imageView);
 
     protected:
         ~VulkanTextureView() override;
@@ -90,9 +90,90 @@ namespace Bonsai
     protected:
         ~VulkanSampler() override;
 
+    public:
+        /// @brief Get the Vulkan sampler handle.
+        /// @return The Vulkan sampler.
+        VkSampler GetSampler() const { return _sampler; }
+
     private:
         VkDevice _device;
         VkSampler _sampler;
+    };
+
+    /// @brief Vulkan descriptor set layout implementation.
+    class VulkanDescriptorSetLayout : public GraphicsDescriptorSetLayout
+    {
+    public:
+        VulkanDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout);
+
+    protected:
+        ~VulkanDescriptorSetLayout() override;
+
+    public:
+        /// @brief Get the Vulkan descriptor set layout handle.
+        /// @return The Vulkan descriptor set layout.
+        VkDescriptorSetLayout GetDescriptorSetLayout() const { return _descriptorSetLayout; }
+
+    private:
+        VkDevice _device;
+        VkDescriptorSetLayout _descriptorSetLayout;
+    };
+
+    /// @brief Vulkan pipeline layout implementation.
+    class VulkanPipelineLayout : public GraphicsPipelineLayout
+    {
+    public:
+        VulkanPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout);
+
+    protected:
+        ~VulkanPipelineLayout() override;
+
+    public:
+        /// @brief Get the Vulkan pipeline layout handle.
+        /// @return The Vulkan pipeline layout.
+        VkPipelineLayout GetPipelineLayout() const { return _pipelineLayout; }
+
+    private:
+        VkDevice _device;
+        VkPipelineLayout _pipelineLayout;
+    };
+
+    /// @brief Vulkan render pipeline implementation.
+    class VulkanRenderPipeline : public GraphicsRenderPipeline
+    {
+    public:
+        VulkanRenderPipeline(VkDevice device, VkPipeline pipeline);
+
+    protected:
+        ~VulkanRenderPipeline() override;
+
+    public:
+        /// @brief Get the Vulkan pieline handle.
+        /// @return The Vulkan pipeline handle.
+        VkPipeline GetPipeline() const { return _pipeline; }
+
+    private:
+        VkDevice _device;
+        VkPipeline _pipeline;
+    };
+
+    /// @brief Vulkan compute pipeline implementation.
+    class VulkanComputePipeline : public GraphicsComputePipeline
+    {
+    public:
+        VulkanComputePipeline(VkDevice device, VkPipeline pipeline);
+
+    protected:
+        ~VulkanComputePipeline() override;
+
+    public:
+        /// @brief Get the Vulkan pieline handle.
+        /// @return The Vulkan pipeline handle.
+        VkPipeline GetPipeline() const { return _pipeline; }
+
+    private:
+        VkDevice _device;
+        VkPipeline _pipeline;
     };
 
     /// @brief Shared state for Vulkan devices.

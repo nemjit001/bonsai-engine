@@ -59,6 +59,26 @@ namespace Bonsai
         /// @param samplerDesc Sampler description to use for creation.
         /// @return A new Vulkan sampler.
         VulkanSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
+        
+        /// @brief Create a Vulkan descriptor set layout.
+        /// @param descriptorSetLayoutDesc Descriptor set layout description to use for creation.
+        /// @return A new Vulkan descriptor set layout.
+        VulkanDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
+
+        /// @brief Create a Vulkan pipeline layout.
+        /// @param pipelineLayoutDesc Pipeline layout description to use for creation.
+        /// @return A new Vulkan pipeline layout.
+        VulkanPipelineLayout* CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc);
+
+        /// @brief Create a Vulkan render pipeline.
+        /// @param renderPipelineDesc Render pipeline description to use for creation.
+        /// @return A new Vulkan render pipeline.
+        VulkanRenderPipeline* CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc);
+
+        /// @brief Create a Vulkan compute pipeline.
+        /// @param computePipelineDesc Compute pipeline description to use for creation.
+        /// @return A new Vulkan compute pipeline.
+        VulkanComputePipeline* CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc);
 
         /// @brief Create a Vulkan swapchain.
         /// @param swapchainDesc Swapchain description to use for creation.
@@ -66,11 +86,44 @@ namespace Bonsai
         VulkanSwapchain* CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc);
 
     private:
+        /// @brief Compiled pipeline stages for render pipelines.
+        struct CompiledRenderPipelineStages
+        {
+            VkShaderModule vertexShader;
+            VkShaderModule tessControlShader;
+            VkShaderModule tessEvalShader;
+            VkShaderModule fragmentShader;
+        };
+
+        /// @brief Compiled pipeline stages for compute pipelines.
+        struct CompiledComputePipelineStages
+        {
+            VkShaderModule computeShader;
+        };
+
         /// @brief Attempt to allocate device memory.
         /// @param heapType Heap type to allocate memory from.
         /// @param memoryRequirements Memory requirements as queried from the resource.
         /// @return An optional Vulkan device memory allocation.
         std::optional<VkDeviceMemory> TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements);
+
+        /// @brief Try to compile a render pipeline.
+        /// @param renderPipelineDesc Render pipeline description to compile shaders for.
+        /// @return An optional compiled render pipeline.
+        std::optional<CompiledRenderPipelineStages> TryCompileRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc);
+
+        /// @brief Destroy compiled render pipeline stages.
+        /// @param renderPipelineStages Render pipeline stages to destroy.
+        void DestroyRenderPipelineStages(CompiledRenderPipelineStages const& renderPipelineStages);
+        
+        /// @brief Try to compile a compute pipeline.
+        /// @param computePipelineDesc Compute pipeline description to compiled shaders for.
+        /// @return An optional compiled compute pipeline.
+        std::optional<CompiledComputePipelineStages> TryCompileComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc);
+
+        /// @brief Destroy compiled compute pipeline stages.
+        /// @param computePipelineStages Compute pipeline stages to destroy.
+        void DestroyComputePipelineStages(CompiledComputePipelineStages const& computePipelineStages);
 
     private:
         VkInstance _instance;

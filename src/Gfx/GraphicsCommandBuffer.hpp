@@ -75,6 +75,37 @@ namespace Bonsai
             GraphicsClearDepthStencilValue const& clearValue
         ) = 0;
 
+        virtual void SetViewport(
+            GraphicsViewport const& viewport
+        ) = 0;
+
+        virtual void SetScissorRect(
+            Rect2D const& scissorRect
+        ) = 0;
+
+        virtual void SetLineWidth(
+            float lineWidth
+        ) = 0;
+
+        virtual void SetBlendConstants(
+            float r,
+            float g,
+            float b,
+            float a
+        ) = 0;
+
+        virtual void SetStencilReference(
+            uint32_t stencilReference
+        ) = 0;
+
+        virtual void BindRenderPipeline(
+            GraphicsRenderPipeline* renderPipeline
+        ) = 0;
+
+        virtual void BindComputePipeline(
+            GraphicsComputePipeline* computePipeline
+        ) = 0;
+
         virtual void BindVertexBuffers(
             size_t firstSlot,
             GraphicsBuffer** buffers,

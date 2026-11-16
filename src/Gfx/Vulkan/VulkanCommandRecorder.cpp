@@ -258,14 +258,16 @@ namespace Bonsai
 
             auto* textureView = static_cast<VulkanTextureView*>(commandData.textureView);
             auto* parentTexture = static_cast<VulkanTexture*>(textureView->GetParentTexture());
+            GraphicsTextureDesc const parentTextureDesc = parentTexture->GetDesc();
 
             VkClearDepthStencilValue const clearDepthStencil{
                 commandData.clearValue.depth,
                 commandData.clearValue.stencil,
             };
 
+            GraphicsTextureAspectFlags const aspectMask = GraphicsHelpers::GetGraphicsTextureAspectFlags(parentTextureDesc.textureFormat);
             VkImageSubresourceRange subresource{};
-            subresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT; // FIXME(nemjit001): Check texture format for aspect flags (depth, stencil, depth + stencil)
+            subresource.aspectMask = VulkanGraphicsHelpers::GetVulkanImageAspectFlags(aspectMask);
             subresource.baseMipLevel = 0;
             subresource.levelCount = VK_REMAINING_MIP_LEVELS;
             subresource.baseArrayLayer = 0;
@@ -280,10 +282,56 @@ namespace Bonsai
                 &subresource
             );
         } break;
+        case GraphicsCommandType_SetViewport: {
+            GraphicsCommandSetViewport const& commandData = command.data.commandSetViewport;
+
+            VkViewport viewport{};
+            viewport.x = commandData.viewport.x;
+            viewport.y = commandData.viewport.y;
+            viewport.width = commandData.viewport.width;
+            viewport.height = commandData.viewport.height;
+            viewport.minDepth = commandData.viewport.minDepth;
+            viewport.maxDepth = commandData.viewport.maxDepth;
+
+            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        } break;
+        case GraphicsCommandType_SetScissorRect: {
+            GraphicsCommandSetScissorRect const& commandData = command.data.commandSetScissorRect;
+
+            VkRect2D scissorRect{};
+            scissorRect.offset = VkOffset2D{ commandData.scissorRect.offset.x, commandData.scissorRect.offset.y };
+            scissorRect.extent = VkExtent2D{ commandData.scissorRect.extent.width, commandData.scissorRect.extent.height };
+
+            vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+        } break;
+        case GraphicsCommandType_SetLineWidth: {
+            GraphicsCommandSetLineWidth const& commandData = command.data.commandSetLineWidth;
+            vkCmdSetLineWidth(commandBuffer, commandData.lineWidth);
+        } break;
+        case GraphicsCommandType_SetBlendConstants: {
+            GraphicsCommandSetBlendConstants const& commandData = command.data.commandSetBlendConstants;
+            vkCmdSetBlendConstants(commandBuffer, commandData.blendConstants);
+        } break;
+        case GraphicsCommandType_SetStencilReference: {
+            GraphicsCommandSetStencilReference const& commandData = command.data.commandSetStencilReference;
+            vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, commandData.stencilReference);
+        } break;
+        case GraphicsCommandType_BindRenderPipeline: {
+            GraphicsCommandBindRenderPipeline const& commandData = command.data.commandBindRenderPipeline;
+
+            auto* vulkanRenderPipeline = static_cast<VulkanRenderPipeline*>(commandData.renderPipeline);
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderPipeline->GetPipeline());
+        } break;
+        case GraphicsCommandType_BindComputePipeline: {
+            GraphicsCommandBindComputePipeline const& commandData = command.data.commandBindComputePipeline;
+
+            auto* vulkanComputePipeline = static_cast<VulkanComputePipeline*>(commandData.computePipeline);
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanComputePipeline->GetPipeline());
+        } break;
         case GraphicsCommandType_BindVertexBuffers: {
             GraphicsCommandBindVertexBuffers const& commandData = command.data.commandBindVertexBuffers;
             
-            std::array<VkBuffer, Graphics::MaxBoundVertexBuffers> vertexBuffers;
+            std::array<VkBuffer, Graphics::MaxVertexInputBindings> vertexBuffers;
             for (size_t i = 0; i < commandData.bufferCount; i++) {
                 auto* vulkanBuffer = static_cast<VulkanBuffer*>(commandData.buffers[i]);
                 vertexBuffers[i] = vulkanBuffer->GetBuffer();
@@ -356,7 +404,7 @@ namespace Bonsai
             GraphicsCommandBeginRendering const& commandData = command.data.commandBeginRendering;
 
             // Set up color targets
-            std::array<VkRenderingAttachmentInfo, Graphics::MaxBoundRenderTargets> colorAttachments;
+            std::array<VkRenderingAttachmentInfo, Graphics::MaxRenderTargets> colorAttachments;
             for (size_t i = 0; i < commandData.renderAttachmentCount; i++)
             {
                 GraphicsRenderAttachmentInfo const& renderAttachmentInfo = commandData.renderAttachments[i];
@@ -424,9 +472,11 @@ namespace Bonsai
 
             if (commandData.hasDepthStencilAttachment)
             {
-                // TODO(nemjit001): Set depth and/or stencil attachment based on texture format
-                renderingInfo.pDepthAttachment = &depthStencilAttachment;
-                renderingInfo.pStencilAttachment = &depthStencilAttachment;
+                auto* vulkanRenderTarget = static_cast<VulkanTextureView*>(commandData.depthStencilAttachment.renderTarget);
+                GraphicsTextureViewDesc const renderTargetDesc = vulkanRenderTarget->GetDesc();
+
+                renderingInfo.pDepthAttachment = GraphicsHelpers::IsDepthFormat(renderTargetDesc.viewFormat) ? &depthStencilAttachment : nullptr;
+                renderingInfo.pStencilAttachment = GraphicsHelpers::IsStencilFormat(renderTargetDesc.viewFormat) ? &depthStencilAttachment : nullptr;
             }
 
             vkCmdBeginRendering(commandBuffer, &renderingInfo);

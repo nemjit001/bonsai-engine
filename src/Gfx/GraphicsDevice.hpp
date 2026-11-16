@@ -73,6 +73,26 @@ namespace Bonsai
         /// @return A new graphics sampler, or nullptr on failure.
         [[nodiscard]] GraphicsSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
 
+        /// @brief Create a descriptor set layout using this graphics device.
+        /// @param descriptorSetLayoutDesc Descriptor set layout description.
+        /// @return A new descriptor set layout, or nullptr on failure.
+        [[nodiscard]] GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
+
+        /// @brief Create a pipeline layout using this graphics device.
+        /// @param pipelineLayoutDesc Pipeline description.
+        /// @return A new graphics pipeline layout, or nullptr on failure.
+        [[nodiscard]] GraphicsPipelineLayout* CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc);
+
+        /// @brief Create a render pipeline using this graphics device.
+        /// @param renderPipelineDesc Render pipeline description.
+        /// @return A new graphics render pipeline, or nullptr on failure.
+        [[nodiscard]] GraphicsRenderPipeline* CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc);
+
+        /// @brief Create a compute pipeline using this graphics device.
+        /// @param computePipelineDesc Compute pipeline description.
+        /// @return A new graphics compute pipeline, or nullptr on failure.
+        [[nodiscard]] GraphicsComputePipeline* CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc);
+
         /// @brief Create a swapchain using this graphics device.
         /// @param swapchainDesc Swapchain description.
         /// @return A new graphics swapchain, or nullptr on failure.
@@ -93,6 +113,22 @@ namespace Bonsai
         /// @brief Destroy a sampler.
         /// @param sampler Sampler to destroy.
         void DestroySampler(GraphicsSampler* sampler);
+
+        /// @brief Destroy a descriptor set layout.
+        /// @param descriptorSetLayout Descriptor set layout to destroy.
+        void DestroyDescriptorSetLayout(GraphicsDescriptorSetLayout* descriptorSetLayout);
+
+        /// @brief Destroy a pipeline layout.
+        /// @param pipelineLayout Pipeline layout to destroy.
+        void DestroyPipelineLayout(GraphicsPipelineLayout* pipelineLayout);
+
+        /// @brief Destroy a render pipeline.
+        /// @param renderPipeline Render pipeline to destroy.
+        void DestroyRenderPipeline(GraphicsRenderPipeline* renderPipeline);
+
+        /// @brief Destroy a compute pipeline.
+        /// @param computePipeline Compute pipeline to destroy.
+        void DestroyComputePipeline(GraphicsComputePipeline* computePipeline);
 
         /// @brief Destroy a swapchain.
         /// @param swapchain Swapchain to destroy.

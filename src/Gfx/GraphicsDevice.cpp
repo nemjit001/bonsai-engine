@@ -267,6 +267,26 @@ namespace Bonsai
         return _objectFactory->CreateSampler(samplerDesc);
     }
 
+    GraphicsDescriptorSetLayout* GraphicsDevice::CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc)
+    {
+        return _objectFactory->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
+    }
+
+    GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
+    {
+        return _objectFactory->CreatePipelineLayout(pipelineLayoutDesc);
+    }
+
+    GraphicsRenderPipeline* GraphicsDevice::CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)
+    {
+        return _objectFactory->CreateRenderPipeline(renderPipelineDesc);
+    }
+
+    GraphicsComputePipeline* GraphicsDevice::CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc)
+    {
+        return _objectFactory->CreateComputePipeline(computePipelineDesc);
+    }
+
     GraphicsSwapchain* GraphicsDevice::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
     {
         return _objectFactory->CreateSwapchain(swapchainDesc);
@@ -297,6 +317,34 @@ namespace Bonsai
     {
         if (sampler != nullptr) {
             sampler->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyDescriptorSetLayout(GraphicsDescriptorSetLayout* descriptorSetLayout)
+    {
+        if (descriptorSetLayout != nullptr) {
+            descriptorSetLayout->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyPipelineLayout(GraphicsPipelineLayout* pipelineLayout)
+    {
+        if (pipelineLayout != nullptr) {
+            pipelineLayout->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyRenderPipeline(GraphicsRenderPipeline* renderPipeline)
+    {
+        if (renderPipeline != nullptr) {
+            renderPipeline->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyComputePipeline(GraphicsComputePipeline* computePipeline)
+    {
+        if (computePipeline != nullptr) {
+            computePipeline->ReleaseRef();
         }
     }
 

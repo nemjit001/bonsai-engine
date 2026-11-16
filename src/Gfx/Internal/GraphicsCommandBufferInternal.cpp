@@ -197,6 +197,110 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
+    void GraphicsCommandBufferImpl::SetViewport(
+        GraphicsViewport const& viewport
+    )
+    {
+        GraphicsCommandSetViewport commandSetViewport{};
+        commandSetViewport.viewport = viewport;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetViewport;
+        command.data.commandSetViewport = commandSetViewport;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetScissorRect(
+        Rect2D const& scissorRect
+    )
+    {
+        GraphicsCommandSetScissorRect commandSetScissorRect{};
+        commandSetScissorRect.scissorRect = scissorRect;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetScissorRect;
+        command.data.commandSetScissorRect = commandSetScissorRect;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetLineWidth(
+        float lineWidth
+    )
+    {
+        GraphicsCommandSetLineWidth commandSetLineWidth{};
+        commandSetLineWidth.lineWidth = lineWidth;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetLineWidth;
+        command.data.commandSetLineWidth = commandSetLineWidth;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetBlendConstants(
+        float r,
+        float g,
+        float b,
+        float a
+    )
+    {
+        GraphicsCommandSetBlendConstants commandSetBlendConstants{};
+        commandSetBlendConstants.blendConstants[0] = r;
+        commandSetBlendConstants.blendConstants[1] = g;
+        commandSetBlendConstants.blendConstants[2] = b;
+        commandSetBlendConstants.blendConstants[3] = a;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetBlendConstants;
+        command.data.commandSetBlendConstants = commandSetBlendConstants;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetStencilReference(
+        uint32_t stencilReference
+    )
+    {
+        GraphicsCommandSetStencilReference commandSetStencilReference{};
+        commandSetStencilReference.stencilReference = stencilReference;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetStencilReference;
+        command.data.commandSetStencilReference = commandSetStencilReference;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindRenderPipeline(
+        GraphicsRenderPipeline* renderPipeline
+    )
+    {
+        GraphicsCommandBindRenderPipeline commandBindRenderPipeline{};
+        commandBindRenderPipeline.renderPipeline = renderPipeline;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindRenderPipeline;
+        command.data.commandBindRenderPipeline = commandBindRenderPipeline;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindComputePipeline(
+        GraphicsComputePipeline* computePipeline
+    )
+    {
+        GraphicsCommandBindComputePipeline commandBindComputePipeline{};
+        commandBindComputePipeline.computePipeline = computePipeline;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindComputePipeline;
+        command.data.commandBindComputePipeline = commandBindComputePipeline;
+
+        _commands.push_back(command);
+    }
+
     void GraphicsCommandBufferImpl::BindVertexBuffers(
         size_t firstSlot,
         GraphicsBuffer** buffers,
@@ -205,11 +309,11 @@ namespace Bonsai
     )
     {
         // Ensure vertex buffer count does not exceed allowed maximum
-        bufferCount = std::min(bufferCount, static_cast<size_t>(Graphics::MaxBoundVertexBuffers));
+        bufferCount = std::min(bufferCount, static_cast<size_t>(Graphics::MaxVertexInputBindings));
 
         // Copy over binding data
-        std::array<GraphicsBuffer*, Graphics::MaxBoundVertexBuffers> vertexBuffers;
-        std::array<size_t, Graphics::MaxBoundVertexBuffers> vertexOffsets;
+        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> vertexBuffers;
+        std::array<size_t, Graphics::MaxVertexInputBindings> vertexOffsets;
         for (size_t i = 0; i < bufferCount; i++)
         {
             vertexBuffers[i] = buffers[i];
@@ -332,10 +436,10 @@ namespace Bonsai
     )
     {
         // Ensure render attachment count does not exceed allowed maximum
-        renderAttachmentCount = std::min(renderAttachmentCount, static_cast<size_t>(Graphics::MaxBoundRenderTargets));
+        renderAttachmentCount = std::min(renderAttachmentCount, static_cast<size_t>(Graphics::MaxRenderTargets));
 
         // Copy over render attachment data
-        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxBoundRenderTargets> boundRenderAttachments;
+        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> boundRenderAttachments;
         for (size_t i = 0; i < renderAttachmentCount; i++) {
             boundRenderAttachments[i] = renderAttachments[i];
         }

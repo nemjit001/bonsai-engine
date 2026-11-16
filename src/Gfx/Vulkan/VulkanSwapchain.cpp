@@ -31,7 +31,9 @@ namespace Bonsai
     {
         // Set the null textures for the swapchain backbuffer
         VulkanTexture* backbufferTexture = new VulkanTexture(_device, VK_NULL_HANDLE, VK_NULL_HANDLE);
-        VulkanTextureView* backbufferView = new VulkanTextureView(backbufferTexture, _device, VK_NULL_HANDLE);
+        VulkanTextureView* backbufferView = new VulkanTextureView(_device, VK_NULL_HANDLE);
+        backbufferView->SetParentTexture(backbufferTexture);
+
         SetBackbufferData(backbufferTexture, backbufferView);
     }
 

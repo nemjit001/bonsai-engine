@@ -12,6 +12,11 @@ namespace Bonsai
     class GraphicsTexture;
     class GraphicsTextureView;
     class GraphicsSampler;
+    class GraphicsDescriptorSetLayout;
+    class GraphicsDescriptorSet;
+    class GraphicsPipelineLayout;
+    class GraphicsRenderPipeline;
+    class GraphicsComputePipeline;
     class GraphicsSwapchain;
     class GraphicsCommandBuffer;
     class FrameContext;
@@ -19,12 +24,21 @@ namespace Bonsai
 
     namespace Graphics
     {
-        static constexpr uint32_t   MaxBoundRenderTargets       = 8u;
-        static constexpr uint32_t   MaxBoundVertexBuffers       = 16u;
-        static constexpr uint32_t   MaxGlobalBarriers           = 64u;
-        static constexpr uint32_t   MaxBufferBarriers           = 64u;
-        static constexpr uint32_t   MaxTextureBarriers          = 64u;
-        static constexpr uint32_t   MaxGraphicsCommandBuffers   = 32u;
+        static constexpr uint32_t   MaxRenderTargets                            = 8u;
+        static constexpr uint32_t   MaxVertexInputBindings                      = 32u;
+        static constexpr uint32_t   MaxVertexInputAttributes                    = 32u;
+        static constexpr uint32_t   MaxPushConstantsSize                        = 256u;
+        static constexpr uint32_t   MaxBoundDescriptorSets                      = 8u;
+        static constexpr uint32_t   MaxDescriptorSetBindings                    = 32u;
+        static constexpr uint32_t   MaxPushConstantRanges                       = 8u;
+        static constexpr uint32_t   MaxSamplerAnisotropy                        = 16u;
+        static constexpr uint32_t   MinUniformBufferOffsetAlignment             = 64u;
+        static constexpr uint32_t   MinStorageBufferOffsetAlignment             = 16u;
+        static constexpr uint32_t   MaxGlobalBarriers                           = 64u;
+        static constexpr uint32_t   MaxBufferBarriers                           = 64u;
+        static constexpr uint32_t   MaxTextureBarriers                          = 64u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffersPerFrame           = 32u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffersPerTransferBatch   = 8u;
 
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
         static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
@@ -185,6 +199,65 @@ namespace Bonsai
         GraphicsBorderColor_OpaqueWhite_Int         = 5,
     };
 
+    /// @brief Enumeration of available graphics descriptor types.
+    enum GraphicsDescriptorType : uint32_t
+    {
+        GraphicsDescriptorType_Sampler                  = 0,
+        GraphicsDescriptorType_CombinedImageSampler     = 1,
+        GraphicsDescriptorType_SampledImage             = 2,
+        GraphicsDescriptorType_StorageImage             = 3,
+        GraphicsDescriptorType_UniformBuffer            = 4,
+        GraphicsDescriptorType_StorageBuffer            = 5,
+    };
+
+    /// @brief Enumeration of available graphics vertex input rates.
+    enum GraphicsVertexInputRate : uint32_t
+    {
+        GraphicsVertexInputRate_PerVertex   = 0,
+        GraphicsVertexInputRate_PerInstance = 1,
+    };
+
+    /// @brief Enumeration of available graphics primitive topology types.
+    enum GraphicsPrimitiveTopology : uint32_t
+    {
+        GraphicsPrimitiveTopology_PointList                     = 0,
+        GraphicsPrimitiveTopology_LineList                      = 1,
+        GraphicsPrimitiveTopology_LineStrip                     = 2,
+        GraphicsPrimitiveTopology_TriangleList                  = 3,
+        GraphicsPrimitiveTopology_TriangleStrip                 = 4,
+        GraphicsPrimitiveTopology_TriangleFan                   = 5,
+        GraphicsPrimitiveTopology_LineListWithAdjacency         = 6,
+        GraphicsPrimitiveTopology_LineStripWithAdjacency        = 7,
+        GraphicsPrimitiveTopology_TriangleListWithAdjacency     = 8,
+        GraphicsPrimitiveTopology_TriangleStripWithAdjacency    = 9,
+        GraphicsPrimitiveTopology_PatchList                     = 10,
+    };
+
+    /// @brief Enumeration of available graphics index buffer strip cut values.
+    enum GraphicsIndexBufferStripCutValue : uint32_t
+    {
+        GraphicsIndexBufferStripCutValue_None   = 0x00000000,
+        GraphicsIndexBufferStripCutValue_UInt16 = 0x0000FFFF,
+        GraphicsIndexBufferStripCutValue_UInt32 = 0xFFFFFFFF,
+    };
+
+    /// @brief Enumeration of available graphics polygon modes.
+    enum GraphicsPolygonMode : uint32_t
+    {
+        GraphicsPolygonMode_Fill    = 0,
+        GraphicsPolygonMode_Line    = 1,
+        GraphicsPolygonMode_Point   = 2,
+    };
+
+    /// @brief Enumeration of available graphics cull modes.
+    enum GraphicsCullMode : uint32_t
+    {
+        GraphicsCullMode_None           = 0,
+        GraphicsCullMode_Front          = 1,
+        GraphicsCullMode_Back           = 2,
+        GraphicsCullMode_FrontAndBack   = 3,
+    };
+
     /// @brief Enumeration of available graphics compare ops.
     enum GraphicsCompareOp : uint32_t
     {
@@ -197,6 +270,75 @@ namespace Bonsai
         GraphicsCompareOp_NotEqual          = 6,
         GraphicsCompareOp_GreaterOrEqual    = 7,
         GraphicsCompareOp_Always            = 8,
+    };
+
+    /// @brief Enumeration of available graphics logic ops.
+    enum GraphicsLogicOp : uint32_t
+    {
+        GraphicsLogicOp_Undefined       = 0,
+        GraphicsLogicOp_Clear           = 1,
+        GraphicsLogicOp_And             = 2,
+        GraphicsLogicOp_AndReverse      = 3,
+        GraphicsLogicOp_Copy            = 4,
+        GraphicsLogicOp_AndInverted     = 5,
+        GraphicsLogicOp_NoOp            = 6,
+        GraphicsLogicOp_Xor             = 7,
+        GraphicsLogicOp_Or              = 8,
+        GraphicsLogicOp_Nor             = 9,
+        GraphicsLogicOp_Equivalent      = 10,
+        GraphicsLogicOp_Invert          = 11,
+        GraphicsLogicOp_OrReverse       = 12,
+        GraphicsLogicOp_CopyInverted    = 13,
+        GraphicsLogicOp_OrInverted      = 14,
+        GraphicsLogicOp_Nand            = 15,
+        GraphicsLogicOp_Set             = 16,
+    };
+
+    /// @brief Enumeration of available graphics stencil ops.
+    enum GraphicsStencilOp : uint32_t
+    {
+        GraphicsStencilOp_Keep              = 0,
+        GraphicsStencilOp_Zero              = 1,
+        GraphicsStencilOp_Replace           = 2,
+        GraphicsStencilOp_IncrementClamp    = 3,
+        GraphicsStencilOp_DecrementClamp    = 4,
+        GraphicsStencilOp_Invert            = 5,
+        GraphicsStencilOp_IncrementWrap     = 6,
+        GraphicsStencilOp_DecrementWrap     = 7,
+    };
+
+    /// @brief Enumeration of available graphics blend ops.
+    enum GraphicsBlendOp : uint32_t
+    {
+        GraphicsBlendOp_Add             = 0,
+        GraphicsBlendOp_Subtract        = 1,
+        GraphicsBlendOp_ReverseSubtract = 2,
+        GraphicsBlendOp_Min             = 3,
+        GraphicsBlendOp_Max             = 4,
+    };
+
+    /// @brief Enumeration of available graphics blend factors.
+    enum GraphicsBlendFactor : uint32_t
+    {
+        GraphicsBlendFactor_Zero                    = 0,
+        GraphicsBlendFactor_One                     = 1,
+        GraphicsBlendFactor_SrcColor                = 2,
+        GraphicsBlendFactor_OneMinusSrcColor        = 3,
+        GraphicsBlendFactor_DstColor                = 4,
+        GraphicsBlendFactor_OneMinusDstColor        = 5,
+        GraphicsBlendFactor_SrcAlpha                = 6,
+        GraphicsBlendFactor_OneMinusSrcAlpha        = 7,
+        GraphicsBlendFactor_DstAlpha                = 8,
+        GraphicsBlendFactor_OneMinusDstAlpha        = 9,
+        GraphicsBlendFactor_ConstantColor           = 10,
+        GraphicsBlendFactor_OneMinusConstantColor   = 11,
+        GraphicsBlendFactor_ConstantAlpha           = 12,
+        GraphicsBlendFactor_OneMinusConstantAlpha   = 13,
+        GraphicsBlendFactor_SrcAlphaSaturate        = 14,
+        GraphicsBlendFactor_Src1Color               = 15,
+        GraphicsBlendFactor_OneMinusSrc1Color       = 16,
+        GraphicsBlendFactor_Src1Alpha               = 17,
+        GraphicsBlendFactor_OneMinusSrc1Alpha       = 18,
     };
 
     /// @brief Enumeration of available graphics texture layouts.
@@ -274,6 +416,31 @@ namespace Bonsai
     };
     using GraphicsTextureUsageFlags = uint32_t;
 
+    /// @brief Enumeration of graphics shader stage flag bits.
+    enum GraphicsShaderStageFlagBits : uint32_t
+    {
+        GraphicsShaderStage_None        = 0x00000000,
+        GraphicsShaderStage_Vertex      = 0x00000001,
+        GraphicsShaderStage_TessControl = 0x00000002,
+        GraphicsShaderStage_TessEval    = 0x00000004,
+        GraphicsShaderStage_Fragment    = 0x00000008,
+        GraphicsShaderStage_Compute     = 0x00000010,
+        GraphicsShaderStage_AllGraphics = GraphicsShaderStage_Vertex | GraphicsShaderStage_TessControl | GraphicsShaderStage_TessEval | GraphicsShaderStage_Fragment,
+    };
+    using GraphicsShaderStageFlags = uint32_t;
+
+    /// @brief Enumeration of graphics color write flag bits.
+    enum GraphicsColorComponentFlagBits : uint32_t
+    {
+        GraphicsColorComponent_None     = 0x00000000,
+        GraphicsColorComponent_Red      = 0x00000001,
+        GraphicsColorComponent_Green    = 0x00000002,
+        GraphicsColorComponent_Blue     = 0x00000004,
+        GraphicsColorComponent_Alpha    = 0x00000008,
+        GraphicsColorComponent_All      = 0xFFFFFFFF,
+    };
+    using GraphicsColorComponentFlags = uint32_t;
+
     /// @brief 2D offset into a resource.
     struct Offset2D
     {
@@ -311,6 +478,17 @@ namespace Bonsai
         Extent2D extent;
     };
 
+    /// @brief Viewport for rasterization pipelines.
+    struct GraphicsViewport
+    {
+        float x;
+        float y;
+        float width;
+        float height;
+        float minDepth;
+        float maxDepth;
+    };
+
     /// @brief Clear value for color targets.
     union GraphicsClearColorValue
     {
@@ -331,6 +509,128 @@ namespace Bonsai
     {
         GraphicsClearColorValue color;
         GraphicsClearDepthStencilValue depthStencil;
+    };
+
+    /// @brief Push constant range for shader pipeline layouts.
+    struct GraphicsPushConstantRange
+    {
+        GraphicsShaderStageFlags stages;
+        size_t offset;
+        size_t size;
+    };
+
+    /// @brief Binding element for descriptor set layouts.
+    struct GraphicsDescriptorSetLayoutBinding
+    {
+        uint32_t binding;
+        GraphicsDescriptorType descriptorType;
+        uint32_t descriptorCount;
+        GraphicsShaderStageFlags stages;
+        GraphicsSampler* const* staticSamplers;
+    };
+
+    /// @brief Shader entrypoint for shader pipelines.
+    struct GraphicsShaderEntrypoint
+    {
+        char const* name;
+        size_t size;
+    };
+
+    /// @brief Shader bytecode for shader pipelines.
+    struct GraphicsShaderBytecode
+    {
+        void* code;
+        size_t size;
+    };
+
+    /// @brief Vertex binding for the vertex input state.
+    struct GraphicsVertexBinding
+    {
+        uint32_t binding;
+        uint32_t stride;
+        GraphicsVertexInputRate inputRate;
+    };
+
+    /// @brief Vertex attribute for a vertex binding.
+    struct GraphicsVertexAttribute
+    {
+        uint32_t location;
+        uint32_t binding;
+        GraphicsFormat format;
+        uint32_t offset;
+    };
+
+    /// @brief Stencil op state for stencil tests.
+    struct GraphicsStencilOpState
+    {
+        GraphicsStencilOp failOp = GraphicsStencilOp_Keep;
+        GraphicsStencilOp passOp = GraphicsStencilOp_Keep;
+        GraphicsStencilOp depthFailOp = GraphicsStencilOp_Keep;
+        GraphicsCompareOp compareOp = GraphicsCompareOp_Never;
+    };
+
+    /// @brief Blend state for render target color blending.
+    struct GraphicsRenderTargetBlendState
+    {
+        bool blendEnable = false;
+        GraphicsBlendFactor srcColorBlendFactor = GraphicsBlendFactor_Zero;
+        GraphicsBlendFactor dstColorBlendFactor = GraphicsBlendFactor_Zero;
+        GraphicsBlendOp colorBlendOp = GraphicsBlendOp_Add;
+        GraphicsBlendFactor srcAlphaBlendFactor = GraphicsBlendFactor_Zero;
+        GraphicsBlendFactor dstAlphaBlendFactor = GraphicsBlendFactor_Zero;
+        GraphicsBlendOp alphaBlendOp = GraphicsBlendOp_Add;
+        GraphicsColorComponentFlags colorWriteMask = GraphicsColorComponent_None;
+    };
+
+    /// @brief Vertex input state for render pipelines.
+    struct GraphicsVertexInputState
+    {
+        size_t vertexBindingCount = 0;
+        GraphicsVertexBinding const* vertexBindings = nullptr;
+        size_t vertexAttributeCount= 0;
+        GraphicsVertexAttribute const* vertexAttributes = nullptr;
+    };
+
+    /// @brief Raster state for render pipelines.
+    struct GraphicsRasterState
+    {
+        GraphicsPolygonMode polygonMode = GraphicsPolygonMode_Fill;
+        GraphicsCullMode cullMode = GraphicsCullMode_None;
+        bool frontCounterClockwise = false;
+        bool depthClampEnable = false;
+        bool depthBiasEnable = false;
+        float depthBiasConstantFactor = 0.0F;
+        float depthBiasSlopeFactor = 0.0F;
+        float depthBiasClamp = 0.0F;
+    };
+
+    /// @brief Multisample state for render pipelines.
+    struct GraphicsMultisampleState
+    {
+        size_t sampleCount = 1;
+        uint32_t sampleMask = 0;
+        bool alphaToCoverage = false;
+        bool alphaToOne = false;
+    };
+
+    /// @brief Depth stencil state for render pipelines.
+    struct GraphicsDepthStencilState
+    {
+        bool depthTest = false;
+        bool depthWrite = false;
+        GraphicsCompareOp depthCompareOp = GraphicsCompareOp_Never;
+        bool stencilTest = false;
+        uint32_t stencilReadMask = 0;
+        uint32_t stencilWriteMask = 0;
+        GraphicsStencilOpState front = {};
+        GraphicsStencilOpState back = {};
+    };
+
+    /// @brief Blend state for render pipelines.
+    struct GraphicsBlendState
+    {
+        GraphicsLogicOp logicOp = GraphicsLogicOp_Undefined;
+        GraphicsRenderTargetBlendState renderTargets[Graphics::MaxRenderTargets];
     };
 
     /// @brief Render attachment info for render and depth/stencil attachments.
@@ -413,6 +713,7 @@ namespace Bonsai
         GraphicsTextureSubresourceRange subresourceRange = {};
     };
 
+    /// @brief Graphics sampler description.
     struct GraphicsSamplerDesc
     {
         GraphicsFilter magFilter = GraphicsFilter_Nearest;
@@ -427,6 +728,58 @@ namespace Bonsai
         float minLod = 0.0F;
         float maxLod = Graphics::LODClampNone;
         GraphicsBorderColor borderColor = GraphicsBorderColor_TransparentBlack_Float;
+    };
+
+    /// @brief Graphics descriptor set layout description.
+    struct GraphicsDescriptorSetLayoutDesc
+    {
+        size_t bindingCount = 0;
+        GraphicsDescriptorSetLayoutBinding const* bindings = nullptr;
+    };
+
+    /// @brief Graphics pipeline layout description.
+    struct GraphicsPipelineLayoutDesc
+    {
+        size_t descriptorSetLayoutCount = 0;
+        GraphicsDescriptorSetLayout* const* descriptorSetLayouts = nullptr;
+        size_t pushConstantRangeCount = 0;
+        GraphicsPushConstantRange const* pushConstantRanges = nullptr;
+    };
+
+    /// @brief Graphics render pipeline description.
+    struct GraphicsRenderPipelineDesc
+    {
+        GraphicsPipelineLayout* pipelineLayout = nullptr;
+
+        GraphicsShaderEntrypoint vertexShaderEntrypoint;
+        GraphicsShaderEntrypoint tessControlShaderEntrypoint;
+        GraphicsShaderEntrypoint tessEvalShaderEntrypoint;
+        GraphicsShaderEntrypoint fragmentShaderEntrypoint;
+        
+        GraphicsShaderBytecode vertexShaderBytecode;
+        GraphicsShaderBytecode tessControlShaderBytecode;
+        GraphicsShaderBytecode tessEvalShaderBytecode;
+        GraphicsShaderBytecode fragmentShaderBytecode;
+
+        GraphicsVertexInputState vertexInputState;
+        GraphicsPrimitiveTopology primitiveTopology = GraphicsPrimitiveTopology_PointList;
+        GraphicsIndexBufferStripCutValue stripCutValue = GraphicsIndexBufferStripCutValue_None;
+        GraphicsRasterState rasterState;
+        GraphicsMultisampleState multisampleState;
+        GraphicsDepthStencilState depthStencilState;
+        GraphicsBlendState blendState;
+
+        size_t renderTargetCount = 0;
+        GraphicsFormat renderTargetFormats[Graphics::MaxRenderTargets];
+        GraphicsFormat depthStencilFormat = GraphicsFormat_Unknown;
+    };
+
+    /// @brief Graphics compute pipeline description.
+    struct GraphicsComputePipelineDesc
+    {
+        GraphicsPipelineLayout* pipelineLayout;
+        GraphicsShaderEntrypoint computeShaderEntrypoint;
+        GraphicsShaderBytecode computeShaderBytecode;
     };
 
     /// @brief Graphics swapchain description.

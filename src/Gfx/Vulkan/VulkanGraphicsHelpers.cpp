@@ -163,6 +163,8 @@ namespace Bonsai::VulkanGraphicsHelpers
         case GraphicsFormat_D16_UNorm: return VK_FORMAT_D16_UNORM;
         case GraphicsFormat_D24_UNorm_S8_UInt: return VK_FORMAT_D24_UNORM_S8_UINT;
         case GraphicsFormat_D32_SFloat: return VK_FORMAT_D32_SFLOAT;
+        default:
+            break;
         }
 
         return VK_FORMAT_UNDEFINED;
@@ -218,6 +220,8 @@ namespace Bonsai::VulkanGraphicsHelpers
         case VK_FORMAT_D16_UNORM: return GraphicsFormat_D16_UNorm;
         case VK_FORMAT_D24_UNORM_S8_UINT: return GraphicsFormat_D24_UNorm_S8_UInt;
         case VK_FORMAT_D32_SFLOAT: return GraphicsFormat_D32_SFloat;
+        default:
+            break;
         }
 
         return GraphicsFormat_Unknown;
@@ -354,6 +358,111 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     }
 
+    VkDescriptorType GetVulkanDescriptorType(GraphicsDescriptorType const& descriptorType)
+    {
+        switch (descriptorType)
+        {
+        case GraphicsDescriptorType_Sampler:
+            return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case GraphicsDescriptorType_CombinedImageSampler:
+            return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        case GraphicsDescriptorType_SampledImage:
+            return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case GraphicsDescriptorType_StorageImage:
+            return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case GraphicsDescriptorType_UniformBuffer:
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case GraphicsDescriptorType_StorageBuffer:
+            return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        default:
+            break;
+        }
+
+        return VK_DESCRIPTOR_TYPE_SAMPLER;
+    }
+
+    VkVertexInputRate GetVulkanVertexInputRate(GraphicsVertexInputRate const& inputRate)
+    {
+        switch (inputRate)
+        {
+        case GraphicsVertexInputRate_PerVertex:
+            return VK_VERTEX_INPUT_RATE_VERTEX;
+        case GraphicsVertexInputRate_PerInstance:
+            return VK_VERTEX_INPUT_RATE_INSTANCE;
+        default:
+            break;
+        }
+
+        return VK_VERTEX_INPUT_RATE_VERTEX;
+    }
+
+    VkPrimitiveTopology GetVulkanPrimitiveTopology(GraphicsPrimitiveTopology const& primitiveTopology)
+    {
+        switch (primitiveTopology)
+        {
+        case GraphicsPrimitiveTopology_PointList:
+            return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        case GraphicsPrimitiveTopology_LineList:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        case GraphicsPrimitiveTopology_LineStrip:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        case GraphicsPrimitiveTopology_TriangleList:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        case GraphicsPrimitiveTopology_TriangleStrip:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        case GraphicsPrimitiveTopology_TriangleFan:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+        case GraphicsPrimitiveTopology_LineListWithAdjacency:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+        case GraphicsPrimitiveTopology_LineStripWithAdjacency:
+            return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+        case GraphicsPrimitiveTopology_TriangleListWithAdjacency:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+        case GraphicsPrimitiveTopology_TriangleStripWithAdjacency:
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+        default:
+            break;
+        }
+
+        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    }
+
+    VkPolygonMode GetVulkanPolygonMode(GraphicsPolygonMode const& polygonMode)
+    {
+        switch (polygonMode)
+        {
+        case GraphicsPolygonMode_Fill:
+            return VK_POLYGON_MODE_FILL;
+        case GraphicsPolygonMode_Line:
+            return VK_POLYGON_MODE_LINE;
+        case GraphicsPolygonMode_Point:
+            return VK_POLYGON_MODE_POINT;
+        default:
+            break;
+        }
+
+        return VK_POLYGON_MODE_FILL;
+    }
+
+    VkCullModeFlags GetVulkanCullModeFlags(GraphicsCullMode const& cullMode)
+    {
+        switch (cullMode)
+        {
+        case GraphicsCullMode_None:
+            return VK_CULL_MODE_NONE;
+        case GraphicsCullMode_Front:
+            return VK_CULL_MODE_FRONT_BIT;
+        case GraphicsCullMode_Back:
+            return VK_CULL_MODE_BACK_BIT;
+        case GraphicsCullMode_FrontAndBack:
+            return VK_CULL_MODE_FRONT_AND_BACK;
+        default:
+            break;
+        }
+
+        return VK_CULL_MODE_NONE;
+    }
+
     VkCompareOp GetVulkanCompareOp(GraphicsCompareOp const& compareOp)
     {
         switch (compareOp)
@@ -380,6 +489,147 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
 
         return VK_COMPARE_OP_NEVER;
+    }
+
+    VkLogicOp GetVulkanLogicOp(GraphicsLogicOp const& logicOp)
+    {
+        switch (logicOp)
+        {
+        case GraphicsLogicOp_Undefined:
+        case GraphicsLogicOp_Clear:
+            return VK_LOGIC_OP_CLEAR;
+        case GraphicsLogicOp_And:
+            return VK_LOGIC_OP_AND;
+        case GraphicsLogicOp_AndReverse:
+            return VK_LOGIC_OP_AND_REVERSE;
+        case GraphicsLogicOp_Copy:
+            return VK_LOGIC_OP_COPY;
+        case GraphicsLogicOp_AndInverted:
+            return VK_LOGIC_OP_AND_INVERTED;
+        case GraphicsLogicOp_NoOp:
+            return VK_LOGIC_OP_NO_OP;
+        case GraphicsLogicOp_Xor:
+            return VK_LOGIC_OP_XOR;
+        case GraphicsLogicOp_Or:
+            return VK_LOGIC_OP_OR;
+        case GraphicsLogicOp_Nor:
+            return VK_LOGIC_OP_NOR;
+        case GraphicsLogicOp_Equivalent:
+            return VK_LOGIC_OP_EQUIVALENT;
+        case GraphicsLogicOp_Invert:
+            return VK_LOGIC_OP_INVERT;
+        case GraphicsLogicOp_OrReverse:
+            return VK_LOGIC_OP_OR_REVERSE;
+        case GraphicsLogicOp_CopyInverted:
+            return VK_LOGIC_OP_COPY_INVERTED;
+        case GraphicsLogicOp_OrInverted:
+            return VK_LOGIC_OP_OR_INVERTED;
+        case GraphicsLogicOp_Nand:
+            return VK_LOGIC_OP_NAND;
+        case GraphicsLogicOp_Set:
+            return VK_LOGIC_OP_SET;
+        default:
+            break;
+        }
+
+        return VK_LOGIC_OP_CLEAR;
+    }
+
+    VkStencilOp GetVulkanStencilOp(GraphicsStencilOp const& stencilOp)
+    {
+        switch (stencilOp)
+        {
+        case GraphicsStencilOp_Keep:
+            return VK_STENCIL_OP_KEEP;
+        case GraphicsStencilOp_Zero:
+            return VK_STENCIL_OP_ZERO;
+        case GraphicsStencilOp_Replace:
+            return VK_STENCIL_OP_REPLACE;
+        case GraphicsStencilOp_IncrementClamp:
+            return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+        case GraphicsStencilOp_DecrementClamp:
+            return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+        case GraphicsStencilOp_Invert:
+            return VK_STENCIL_OP_INVERT;
+        case GraphicsStencilOp_IncrementWrap:
+            return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+        case GraphicsStencilOp_DecrementWrap:
+            return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+        default:
+            break;
+        }
+
+        return VK_STENCIL_OP_KEEP;
+    }
+
+    VkBlendOp GetVulkanBlendOp(GraphicsBlendOp const& blendOp)
+    {
+        switch (blendOp)
+        {
+        case GraphicsBlendOp_Add:
+            return VK_BLEND_OP_ADD;
+        case GraphicsBlendOp_Subtract:
+            return VK_BLEND_OP_SUBTRACT;
+        case GraphicsBlendOp_ReverseSubtract:
+            return VK_BLEND_OP_REVERSE_SUBTRACT;
+        case GraphicsBlendOp_Min:
+            return VK_BLEND_OP_MIN;
+        case GraphicsBlendOp_Max:
+            return VK_BLEND_OP_MAX;
+        default:
+            break;
+        }
+
+        return VK_BLEND_OP_ADD;
+    }
+
+    VkBlendFactor GetVulkanBlendFactor(GraphicsBlendFactor const& blendFactor)
+    {
+        switch (blendFactor)
+        {
+        case GraphicsBlendFactor_Zero:
+            return VK_BLEND_FACTOR_ZERO;
+        case GraphicsBlendFactor_One:
+            return VK_BLEND_FACTOR_ONE;
+        case GraphicsBlendFactor_SrcColor:
+            return VK_BLEND_FACTOR_SRC_COLOR;
+        case GraphicsBlendFactor_OneMinusSrcColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+        case GraphicsBlendFactor_DstColor:
+            return VK_BLEND_FACTOR_DST_COLOR;
+        case GraphicsBlendFactor_OneMinusDstColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+        case GraphicsBlendFactor_SrcAlpha:
+            return VK_BLEND_FACTOR_SRC_ALPHA;
+        case GraphicsBlendFactor_OneMinusSrcAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        case GraphicsBlendFactor_DstAlpha:
+            return VK_BLEND_FACTOR_DST_ALPHA;
+        case GraphicsBlendFactor_OneMinusDstAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+        case GraphicsBlendFactor_ConstantColor:
+            return VK_BLEND_FACTOR_CONSTANT_COLOR;
+        case GraphicsBlendFactor_OneMinusConstantColor:
+            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+        case GraphicsBlendFactor_ConstantAlpha:
+            return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+        case GraphicsBlendFactor_OneMinusConstantAlpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+        case GraphicsBlendFactor_SrcAlphaSaturate:
+            return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+        case GraphicsBlendFactor_Src1Color:
+            return VK_BLEND_FACTOR_SRC1_COLOR;
+        case GraphicsBlendFactor_OneMinusSrc1Color:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+        case GraphicsBlendFactor_Src1Alpha:
+            return VK_BLEND_FACTOR_SRC1_ALPHA;
+        case GraphicsBlendFactor_OneMinusSrc1Alpha:
+            return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+        default:
+            break;
+        }
+
+        return VK_BLEND_FACTOR_ZERO;
     }
 
     VkImageAspectFlags GetVulkanImageAspectFlags(GraphicsTextureAspectFlags const& aspectMask)
@@ -446,6 +696,47 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
         if (IsBitSet(usageFlags, GraphicsTextureUsage_DepthStencilTarget)) {
             output |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        }
+
+        return output;
+    }
+
+    VkShaderStageFlags GetVulkanShaderStageFlags(GraphicsShaderStageFlags const& stageFlags)
+    {
+        VkShaderStageFlags output = 0;
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Vertex)) {
+            output |= VK_SHADER_STAGE_VERTEX_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_TessControl)) {
+            output |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_TessEval)) {
+            output |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Fragment)) {
+            output |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Compute)) {
+            output |= VK_SHADER_STAGE_COMPUTE_BIT;
+        }
+
+        return output;
+    }
+
+    VkColorComponentFlags GetVulkanColorComponentFlags(GraphicsColorComponentFlags const& colorComponentFlags)
+    {
+        VkColorComponentFlags output = 0;
+        if (IsBitSet(colorComponentFlags, GraphicsColorComponent_Red)) {
+            output |= VK_COLOR_COMPONENT_R_BIT;
+        }
+        if (IsBitSet(colorComponentFlags, GraphicsColorComponent_Green)) {
+            output |= VK_COLOR_COMPONENT_G_BIT;
+        }
+        if (IsBitSet(colorComponentFlags, GraphicsColorComponent_Blue)) {
+            output |= VK_COLOR_COMPONENT_B_BIT;
+        }
+        if (IsBitSet(colorComponentFlags, GraphicsColorComponent_Alpha)) {
+            output |= VK_COLOR_COMPONENT_A_BIT;
         }
 
         return output;

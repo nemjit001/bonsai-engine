@@ -22,8 +22,17 @@ namespace Bonsai
         GraphicsCommandType_ClearRenderTarget,
         GraphicsCommandType_ClearDepthStencilTarget,
 
+        GraphicsCommandType_SetViewport,
+        GraphicsCommandType_SetScissorRect,
+        GraphicsCommandType_SetLineWidth,
+        GraphicsCommandType_SetBlendConstants,
+        GraphicsCommandType_SetStencilReference,
+
+        GraphicsCommandType_BindRenderPipeline,
+        GraphicsCommandType_BindComputePipeline,
         GraphicsCommandType_BindVertexBuffers,
         GraphicsCommandType_BindIndexBuffer,
+
         GraphicsCommandType_DrawIndexed,
         GraphicsCommandType_DrawIndexedIndirect,
 
@@ -100,12 +109,47 @@ namespace Bonsai
         GraphicsClearDepthStencilValue clearValue;
     };
 
+    struct GraphicsCommandSetViewport
+    {
+        GraphicsViewport viewport;
+    };
+
+    struct GraphicsCommandSetScissorRect
+    {
+        Rect2D scissorRect;
+    };
+
+    struct GraphicsCommandSetLineWidth
+    {
+        float lineWidth;
+    };
+
+    struct GraphicsCommandSetBlendConstants
+    {
+        float blendConstants[4];
+    };
+
+    struct GraphicsCommandSetStencilReference
+    {
+        uint32_t stencilReference;
+    };
+
+    struct GraphicsCommandBindRenderPipeline
+    {
+        GraphicsRenderPipeline* renderPipeline;
+    };
+
+    struct GraphicsCommandBindComputePipeline
+    {
+        GraphicsComputePipeline* computePipeline;
+    };
+
     struct GraphicsCommandBindVertexBuffers
     {
         size_t firsSlot;
-        std::array<GraphicsBuffer*, Graphics::MaxBoundVertexBuffers> buffers;
+        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> buffers;
         size_t bufferCount;
-        std::array<size_t, Graphics::MaxBoundVertexBuffers> offsets;
+        std::array<size_t, Graphics::MaxVertexInputBindings> offsets;
     };
 
     struct GraphicsCommandBindIndexBuffer
@@ -148,7 +192,7 @@ namespace Bonsai
     struct GraphicsCommandBeginRendering
     {
         Rect2D renderArea;
-        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxBoundRenderTargets> renderAttachments;
+        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> renderAttachments;
         size_t renderAttachmentCount;
         bool hasDepthStencilAttachment;
         GraphicsRenderAttachmentInfo depthStencilAttachment;
@@ -173,6 +217,13 @@ namespace Bonsai
             GraphicsCommandCopyTextureToTexture commandCopyTextureToTexture;
             GraphicsCommandClearRenderTarget commandClearRenderTarget;
             GraphicsCommandClearDepthStencilTarget commandClearDepthStencilTarget;
+            GraphicsCommandSetViewport commandSetViewport;
+            GraphicsCommandSetScissorRect commandSetScissorRect;
+            GraphicsCommandSetLineWidth commandSetLineWidth;
+            GraphicsCommandSetBlendConstants commandSetBlendConstants;
+            GraphicsCommandSetStencilReference commandSetStencilReference;
+            GraphicsCommandBindRenderPipeline commandBindRenderPipeline;
+            GraphicsCommandBindComputePipeline commandBindComputePipeline;
             GraphicsCommandBindVertexBuffers commandBindVertexBuffers;
             GraphicsCommandBindIndexBuffer commandBindIndexBuffer;
             GraphicsCommandDrawIndexed commandDrawIndexed;

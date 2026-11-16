@@ -40,17 +40,21 @@ namespace Bonsai
         _mappedMemory = mappedMemory;
     }
 
-    GraphicsTextureView::GraphicsTextureView(GraphicsTexture* parentTexture)
-        :
-        _parentTexture(parentTexture)
-    {
-        assert(_parentTexture != nullptr && "Parent texture for texture view was null!");
-        _parentTexture->AddRef();
-    }
-
     GraphicsTextureView::~GraphicsTextureView()
     {
-        _parentTexture->ReleaseRef();
+        if (_parentTexture != nullptr) {
+            _parentTexture->ReleaseRef();
+        }
+    }
+
+    void GraphicsTextureView::SetParentTexture(GraphicsTexture* parentTexture)
+    {
+        if (_parentTexture != nullptr) {
+            _parentTexture->ReleaseRef();
+        }
+
+        _parentTexture = parentTexture;
+        _parentTexture->AddRef();
     }
 
     GraphicsSwapchain::~GraphicsSwapchain()
@@ -105,4 +109,42 @@ namespace Bonsai
         commandBuffer.Reset();
         return &commandBuffer;
     }
+
+    namespace GraphicsHelpers
+    {
+        bool IsColorFormat(GraphicsFormat const& format)
+        {
+            return format != GraphicsFormat_Unknown
+                && !IsDepthFormat(format)
+                && !IsStencilFormat(format);
+        }
+        
+        bool IsDepthFormat(GraphicsFormat const& format)
+        {
+            return format == GraphicsFormat_D16_UNorm
+                || format == GraphicsFormat_D24_UNorm_S8_UInt
+                || format == GraphicsFormat_D32_SFloat;
+        }
+
+        bool IsStencilFormat(GraphicsFormat const& format)
+        {
+            return format == GraphicsFormat_D24_UNorm_S8_UInt;
+        }
+
+        GraphicsTextureAspectFlags GetGraphicsTextureAspectFlags(GraphicsFormat const& format)
+        {
+            GraphicsTextureAspectFlags output = 0;
+            if (IsColorFormat(format)) {
+                output |= GraphicsTextureAspect_Color;
+            }
+            if (IsDepthFormat(format)) {
+                output |= GraphicsTextureAspect_Depth;
+            }
+            if (IsStencilFormat(format)) {
+                output |= GraphicsTextureAspect_Stencil;
+            }
+
+            return output;
+        }
+    } // namespace GraphicsHelpers
 } // namespace Bonsai
