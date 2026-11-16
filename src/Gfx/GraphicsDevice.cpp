@@ -267,6 +267,11 @@ namespace Bonsai
         return _objectFactory->CreateSampler(samplerDesc);
     }
 
+    GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc)
+    {
+        return nullptr;
+    }
+
     GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
     {
         return nullptr;

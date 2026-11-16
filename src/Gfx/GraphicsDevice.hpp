@@ -73,6 +73,11 @@ namespace Bonsai
         /// @return A new graphics sampler, or nullptr on failure.
         [[nodiscard]] GraphicsSampler* CreateSampler(GraphicsSamplerDesc const& samplerDesc);
 
+        /// @brief Create a descriptor set layout using this graphics device.
+        /// @param descriptorSetLayoutDesc Descriptor set layout description.
+        /// @return A new descriptor set layout, or nullptr on failure.
+        [[nodiscard]] GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
+
         /// @brief Create a pipeline layout using this graphics device.
         /// @param pipelineLayoutDesc Pipeline description.
         /// @return A new graphics pipeline layout, or nullptr on failure.

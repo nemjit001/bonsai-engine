@@ -28,7 +28,7 @@ namespace Bonsai
         static constexpr uint32_t   MaxVertexInputBindings                      = 32u;
         static constexpr uint32_t   MaxVertexInputAttributes                    = 32u;
         static constexpr uint32_t   MaxPushConstantsSize                        = 256u;
-        static constexpr uint32_t   MaxBoundDescriptorSets                      = 32u;
+        static constexpr uint32_t   MaxBoundDescriptorSets                      = 8u;
         static constexpr uint32_t   MaxSamplerAnisotropy                        = 16u;
         static constexpr uint32_t   MinUniformBufferOffsetAlignment             = 64u;
         static constexpr uint32_t   MinStorageBufferOffsetAlignment             = 16u;
@@ -195,6 +195,19 @@ namespace Bonsai
         GraphicsBorderColor_OpaqueBlack_Int         = 3,
         GraphicsBorderColor_OpaqueWhite_Float       = 4,
         GraphicsBorderColor_OpaqueWhite_Int         = 5,
+    };
+
+    /// @brief Enumeration of available graphics descriptor types.
+    enum GraphicsDescriptorType : uint32_t
+    {
+        GraphicsDescriptorType_Sampler                  = 0,
+        GraphicsDescriptorType_CombinedImageSampler     = 1,
+        GraphicsDescriptorType_SampledImage             = 2,
+        GraphicsDescriptorType_StorageImage             = 3,
+        GraphicsDescriptorType_UniformBuffer            = 4,
+        GraphicsDescriptorType_StorageBuffer            = 5,
+        GraphicsDescriptorType_UniformBuffer_Dynamic    = 6,
+        GraphicsDescriptorType_StorageBuffer_Dynamic    = 7,
     };
 
     /// @brief Enumeration of available graphics vertex input rates.
@@ -403,6 +416,19 @@ namespace Bonsai
     };
     using GraphicsTextureUsageFlags = uint32_t;
 
+    /// @brief Enumeration of graphics shader stage flag bits.
+    enum GraphicsShaderStageFlagBits : uint32_t
+    {
+        GraphicsShaderStage_None        = 0x00000000,
+        GraphicsShaderStage_Vertex      = 0x00000001,
+        GraphicsShaderStage_TessControl = 0x00000002,
+        GraphicsShaderStage_TessEval    = 0x00000004,
+        GraphicsShaderStage_Fragment    = 0x00000008,
+        GraphicsShaderStage_Compute     = 0x00000010,
+        GraphicsShaderStage_AllGraphics = GraphicsShaderStage_Vertex | GraphicsShaderStage_TessControl | GraphicsShaderStage_TessEval | GraphicsShaderStage_Fragment,
+    };
+    using GraphicsShaderStageFlags = uint32_t;
+
     /// @brief Enumeration of graphics color write flag bits.
     enum GraphicsColorComponentFlagBits : uint32_t
     {
@@ -483,6 +509,24 @@ namespace Bonsai
     {
         GraphicsClearColorValue color;
         GraphicsClearDepthStencilValue depthStencil;
+    };
+
+    /// @brief Push constant range for shader pipeline layouts.
+    struct GraphicsPushConstantRange
+    {
+        GraphicsShaderStageFlags stages;
+        size_t offset;
+        size_t size;
+    };
+
+    /// @brief Binding element for descriptor set layouts.
+    struct GraphicsDescriptorSetLayoutBinding
+    {
+        uint32_t binding;
+        GraphicsDescriptorType descriptorType;
+        uint32_t descriptorCount;
+        GraphicsShaderStageFlags stages;
+        GraphicsSampler* staticSamplers;
     };
 
     /// @brief Shader entrypoint for shader pipelines.
@@ -686,10 +730,20 @@ namespace Bonsai
         GraphicsBorderColor borderColor = GraphicsBorderColor_TransparentBlack_Float;
     };
 
+    /// @brief Graphics descriptor set layout description.
+    struct GraphicsDescriptorSetLayoutDesc
+    {
+        uint32_t bindingCount = 0;
+        GraphicsDescriptorSetLayoutBinding* bindings = nullptr;
+    };
+
     /// @brief Graphics pipeline layout description.
     struct GraphicsPipelineLayoutDesc
     {
-        // TODO(nemjit001): implement pipeline layout description
+        size_t descriptorSetLayoutCount = 0;
+        GraphicsDescriptorSetLayout* descriptorSetLayouts = nullptr;
+        size_t pushConstantRangeCount = 0;
+        GraphicsPushConstantRange* pushConstantRanges = nullptr;
     };
 
     /// @brief Graphics render pipeline description.
