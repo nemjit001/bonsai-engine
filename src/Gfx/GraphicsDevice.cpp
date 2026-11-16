@@ -267,14 +267,14 @@ namespace Bonsai
         return _objectFactory->CreateSampler(samplerDesc);
     }
 
-    GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc)
+    GraphicsDescriptorSetLayout* GraphicsDevice::CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
     }
 
     GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
     {
-        return nullptr;
+        return _objectFactory->CreatePipelineLayout(pipelineLayoutDesc);
     }
 
     GraphicsRenderPipeline* GraphicsDevice::CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)

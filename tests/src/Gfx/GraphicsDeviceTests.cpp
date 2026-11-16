@@ -114,6 +114,10 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
 {
     // Create pipeline layout
     Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
+    pipelineLayoutDesc.descriptorSetLayoutCount = 0;
+    pipelineLayoutDesc.descriptorSetLayouts = nullptr;
+    pipelineLayoutDesc.pushConstantRangeCount = 0;
+    pipelineLayoutDesc.pushConstantRanges = nullptr;
 
     auto pipelineLayout = _graphicsDevice->CreatePipelineLayout(pipelineLayoutDesc);
     ASSERT_NE(pipelineLayout, nullptr);
@@ -181,6 +185,10 @@ TEST_F(GraphicsDeviceTests, TestCreateComputePipeline)
 {
     // Create pipeline layout
     Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
+    pipelineLayoutDesc.descriptorSetLayoutCount = 0;
+    pipelineLayoutDesc.descriptorSetLayouts = nullptr;
+    pipelineLayoutDesc.pushConstantRangeCount = 0;
+    pipelineLayoutDesc.pushConstantRanges = nullptr;
 
     auto pipelineLayout = _graphicsDevice->CreatePipelineLayout(pipelineLayoutDesc);
     ASSERT_NE(pipelineLayout, nullptr);
