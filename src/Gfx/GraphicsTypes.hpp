@@ -29,6 +29,8 @@ namespace Bonsai
         static constexpr uint32_t   MaxVertexInputAttributes                    = 32u;
         static constexpr uint32_t   MaxPushConstantsSize                        = 256u;
         static constexpr uint32_t   MaxBoundDescriptorSets                      = 8u;
+        static constexpr uint32_t   MaxDescriptorSetBindings                    = 32u;
+        static constexpr uint32_t   MaxPushConstantRanges                       = 8u;
         static constexpr uint32_t   MaxSamplerAnisotropy                        = 16u;
         static constexpr uint32_t   MinUniformBufferOffsetAlignment             = 64u;
         static constexpr uint32_t   MinStorageBufferOffsetAlignment             = 16u;
@@ -206,8 +208,6 @@ namespace Bonsai
         GraphicsDescriptorType_StorageImage             = 3,
         GraphicsDescriptorType_UniformBuffer            = 4,
         GraphicsDescriptorType_StorageBuffer            = 5,
-        GraphicsDescriptorType_UniformBuffer_Dynamic    = 6,
-        GraphicsDescriptorType_StorageBuffer_Dynamic    = 7,
     };
 
     /// @brief Enumeration of available graphics vertex input rates.
@@ -526,7 +526,7 @@ namespace Bonsai
         GraphicsDescriptorType descriptorType;
         uint32_t descriptorCount;
         GraphicsShaderStageFlags stages;
-        GraphicsSampler* staticSamplers;
+        GraphicsSampler* const* staticSamplers;
     };
 
     /// @brief Shader entrypoint for shader pipelines.
@@ -586,9 +586,9 @@ namespace Bonsai
     struct GraphicsVertexInputState
     {
         size_t vertexBindingCount = 0;
-        GraphicsVertexBinding* vertexBindings = nullptr;
+        GraphicsVertexBinding const* vertexBindings = nullptr;
         size_t vertexAttributeCount= 0;
-        GraphicsVertexAttribute* vertexAttributes = nullptr;
+        GraphicsVertexAttribute const* vertexAttributes = nullptr;
     };
 
     /// @brief Raster state for render pipelines.
@@ -733,17 +733,17 @@ namespace Bonsai
     /// @brief Graphics descriptor set layout description.
     struct GraphicsDescriptorSetLayoutDesc
     {
-        uint32_t bindingCount = 0;
-        GraphicsDescriptorSetLayoutBinding* bindings = nullptr;
+        size_t bindingCount = 0;
+        GraphicsDescriptorSetLayoutBinding const* bindings = nullptr;
     };
 
     /// @brief Graphics pipeline layout description.
     struct GraphicsPipelineLayoutDesc
     {
         size_t descriptorSetLayoutCount = 0;
-        GraphicsDescriptorSetLayout* descriptorSetLayouts = nullptr;
+        GraphicsDescriptorSetLayout* const* descriptorSetLayouts = nullptr;
         size_t pushConstantRangeCount = 0;
-        GraphicsPushConstantRange* pushConstantRanges = nullptr;
+        GraphicsPushConstantRange const* pushConstantRanges = nullptr;
     };
 
     /// @brief Graphics render pipeline description.

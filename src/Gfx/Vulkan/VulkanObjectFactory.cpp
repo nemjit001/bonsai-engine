@@ -238,6 +238,74 @@ namespace Bonsai
         return vulkanSampler;
     }
 
+    VulkanDescriptorSetLayout* VulkanObjectFactory::CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc)
+    {
+        // Set up descriptor bindings
+        size_t const bindingCount = std::min(descriptorSetLayoutDesc.bindingCount, static_cast<size_t>(Graphics::MaxDescriptorSetBindings));
+        std::array<VkDescriptorSetLayoutBinding, Graphics::MaxDescriptorSetBindings> bindings;
+        for (size_t i = 0; i < bindingCount; i++)
+        {
+            GraphicsDescriptorSetLayoutBinding const& layoutBinding = descriptorSetLayoutDesc.bindings[i];
+            VkDescriptorSetLayoutBinding& vulkanLayoutBinding = bindings[i];
+            vulkanLayoutBinding.binding = layoutBinding.binding;
+            vulkanLayoutBinding.descriptorType = VulkanGraphicsHelpers::GetVulkanDescriptorType(layoutBinding.descriptorType);
+            vulkanLayoutBinding.descriptorCount = layoutBinding.descriptorCount;
+            vulkanLayoutBinding.stageFlags = VulkanGraphicsHelpers::GetVulkanShaderStageFlags(layoutBinding.stages);
+            vulkanLayoutBinding.pImmutableSamplers = nullptr; // TODO(nemjit001): Set up immutable samplers
+        }
+
+        // Create descriptor set layout
+        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+        descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        descriptorSetLayoutCreateInfo.pNext = nullptr;
+        descriptorSetLayoutCreateInfo.flags = 0;
+        descriptorSetLayoutCreateInfo.bindingCount = bindingCount;
+        descriptorSetLayoutCreateInfo.pBindings = bindings.data();
+
+        return new VulkanDescriptorSetLayout(_device, VK_NULL_HANDLE);
+    }
+
+    VulkanPipelineLayout* VulkanObjectFactory::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
+    {
+        // Get descriptor set layouts
+        size_t const setLayoutCount = std::min(pipelineLayoutDesc.descriptorSetLayoutCount, static_cast<size_t>(Graphics::MaxBoundDescriptorSets));
+        std::array<VkDescriptorSetLayout, Graphics::MaxBoundDescriptorSets> descriptorSetLayouts;
+        for (size_t i = 0; i < setLayoutCount; i++)
+        {
+            auto* vulkanDescriptorSetLayout = static_cast<VulkanDescriptorSetLayout*>(pipelineLayoutDesc.descriptorSetLayouts[i]);
+            descriptorSetLayouts[i] = vulkanDescriptorSetLayout->GetDescriptorSetLayout();
+        }
+
+        // Get push constant ranges
+        size_t const pushConstantRangeCount = std::min(pipelineLayoutDesc.pushConstantRangeCount, static_cast<size_t>(Graphics::MaxPushConstantRanges));
+        std::array<VkPushConstantRange, Graphics::MaxPushConstantRanges> pushConstantRanges;
+        for (size_t i = 0; i < pushConstantRangeCount; i++)
+        {
+            GraphicsPushConstantRange const& pcRange = pipelineLayoutDesc.pushConstantRanges[i];
+            VkPushConstantRange& vulkanPcRange = pushConstantRanges[i];
+            vulkanPcRange.offset = pcRange.offset;
+            vulkanPcRange.size = pcRange.size;
+            vulkanPcRange.stageFlags = VulkanGraphicsHelpers::GetVulkanShaderStageFlags(pcRange.stages);
+        }
+        
+        // Create pipeline layout
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCreateInfo.pNext = nullptr;
+        pipelineLayoutCreateInfo.flags = 0;
+        pipelineLayoutCreateInfo.setLayoutCount = setLayoutCount;
+        pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
+        pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRangeCount;
+        pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreatePipelineLayout(_device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout))) {
+            return nullptr;
+        }
+
+        return new VulkanPipelineLayout(_device, pipelineLayout);
+    }
+
     VulkanRenderPipeline* VulkanObjectFactory::CreateRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)
     {
         /**
@@ -522,9 +590,7 @@ namespace Bonsai
         }
 
         DestroyRenderPipelineStages(compiledStages.value());
-        auto* vulkanRenderPipeline = new VulkanRenderPipeline(_device, graphicsPipeline);
-        vulkanRenderPipeline->SetDesc(renderPipelineDesc);
-        return vulkanRenderPipeline;
+        return new VulkanRenderPipeline(_device, graphicsPipeline);
     }
 
     VulkanComputePipeline* VulkanObjectFactory::CreateComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc)
@@ -568,9 +634,7 @@ namespace Bonsai
         }
 
         DestroyComputePipelineStages(compiledStages.value());
-        auto* vulkanComputePipeline = new VulkanComputePipeline(_device, computePipeline);
-        vulkanComputePipeline->SetDesc(computePipelineDesc);
-        return vulkanComputePipeline;
+        return new VulkanComputePipeline(_device, computePipeline);
     }
 
     VulkanSwapchain* VulkanObjectFactory::CreateSwapchain(GraphicsSwapchainDesc const& swapchainDesc)
@@ -720,16 +784,20 @@ namespace Bonsai
 
     std::optional<VulkanObjectFactory::CompiledComputePipelineStages> VulkanObjectFactory::TryCompileComputePipeline(GraphicsComputePipelineDesc const& computePipelineDesc)
     {
-        VkShaderModuleCreateInfo computeShaderModuleCreateInfo{};
-        computeShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        computeShaderModuleCreateInfo.pNext = nullptr;
-        computeShaderModuleCreateInfo.flags = 0;
-        computeShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(computePipelineDesc.computeShaderBytecode.code);
-        computeShaderModuleCreateInfo.codeSize = computePipelineDesc.computeShaderBytecode.size;
-
         VkShaderModule computeShaderModule = VK_NULL_HANDLE;
-        if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &computeShaderModuleCreateInfo, nullptr, &computeShaderModule))) {
-            return {};
+        if (computePipelineDesc.computeShaderBytecode.code != nullptr
+            && computePipelineDesc.computeShaderBytecode.size != 0)
+        {
+            VkShaderModuleCreateInfo computeShaderModuleCreateInfo{};
+            computeShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            computeShaderModuleCreateInfo.pNext = nullptr;
+            computeShaderModuleCreateInfo.flags = 0;
+            computeShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(computePipelineDesc.computeShaderBytecode.code);
+            computeShaderModuleCreateInfo.codeSize = computePipelineDesc.computeShaderBytecode.size;
+
+            if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &computeShaderModuleCreateInfo, nullptr, &computeShaderModule))) {
+                return {};
+            }
         }
 
         return CompiledComputePipelineStages{

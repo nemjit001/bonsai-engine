@@ -358,6 +358,29 @@ namespace Bonsai::VulkanGraphicsHelpers
         return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     }
 
+    VkDescriptorType GetVulkanDescriptorType(GraphicsDescriptorType const& descriptorType)
+    {
+        switch (descriptorType)
+        {
+        case GraphicsDescriptorType_Sampler:
+            return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case GraphicsDescriptorType_CombinedImageSampler:
+            return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        case GraphicsDescriptorType_SampledImage:
+            return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case GraphicsDescriptorType_StorageImage:
+            return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case GraphicsDescriptorType_UniformBuffer:
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case GraphicsDescriptorType_StorageBuffer:
+            return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        default:
+            break;
+        }
+
+        return VK_DESCRIPTOR_TYPE_SAMPLER;
+    }
+
     VkVertexInputRate GetVulkanVertexInputRate(GraphicsVertexInputRate const& inputRate)
     {
         switch (inputRate)
@@ -673,6 +696,28 @@ namespace Bonsai::VulkanGraphicsHelpers
         }
         if (IsBitSet(usageFlags, GraphicsTextureUsage_DepthStencilTarget)) {
             output |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        }
+
+        return output;
+    }
+
+    VkShaderStageFlags GetVulkanShaderStageFlags(GraphicsShaderStageFlags const& stageFlags)
+    {
+        VkShaderStageFlags output = 0;
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Vertex)) {
+            output |= VK_SHADER_STAGE_VERTEX_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_TessControl)) {
+            output |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_TessEval)) {
+            output |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Fragment)) {
+            output |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+        if (IsBitSet(stageFlags, GraphicsShaderStage_Compute)) {
+            output |= VK_SHADER_STAGE_COMPUTE_BIT;
         }
 
         return output;

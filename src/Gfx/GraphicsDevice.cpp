@@ -320,6 +320,13 @@ namespace Bonsai
         }
     }
 
+    void GraphicsDevice::DestroyDescriptorSetLayout(GraphicsDescriptorSetLayout* descriptorSetLayout)
+    {
+        if (descriptorSetLayout != nullptr) {
+            descriptorSetLayout->ReleaseRef();
+        }
+    }
+
     void GraphicsDevice::DestroyPipelineLayout(GraphicsPipelineLayout* pipelineLayout)
     {
         if (pipelineLayout != nullptr) {

@@ -100,6 +100,25 @@ namespace Bonsai
         VkSampler _sampler;
     };
 
+    /// @brief Vulkan descriptor set layout implementation.
+    class VulkanDescriptorSetLayout : public GraphicsDescriptorSetLayout
+    {
+    public:
+        VulkanDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout);
+
+    protected:
+        ~VulkanDescriptorSetLayout() override;
+
+    public:
+        /// @brief Get the Vulkan descriptor set layout handle.
+        /// @return The Vulkan descriptor set layout.
+        VkDescriptorSetLayout GetDescriptorSetLayout() const { return _descriptorSetLayout; }
+
+    private:
+        VkDevice _device;
+        VkDescriptorSetLayout _descriptorSetLayout;
+    };
+
     /// @brief Vulkan pipeline layout implementation.
     class VulkanPipelineLayout : public GraphicsPipelineLayout
     {

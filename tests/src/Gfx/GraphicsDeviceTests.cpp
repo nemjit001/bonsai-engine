@@ -87,6 +87,26 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsTextureAndView)
     _graphicsDevice->DestroyTextureView(view);
 }
 
+TEST_F(GraphicsDeviceTests, TestCreateDescriptorSetLayout)
+{
+    // Set up descriptor set layout bindings
+    constexpr Bonsai::GraphicsDescriptorSetLayoutBinding bindings[] = {
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_StorageImage, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 1, Bonsai::GraphicsDescriptorType_UniformBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 2, Bonsai::GraphicsDescriptorType_StorageBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+    };
+
+    // Attempt to create a descriptor set
+    Bonsai::GraphicsDescriptorSetLayoutDesc descriptorSetLayoutDesc{};
+    descriptorSetLayoutDesc.bindingCount = std::size(bindings);
+    descriptorSetLayoutDesc.bindings = bindings;
+
+    auto* descriptorSetLayout = _graphicsDevice->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
+    ASSERT_NE(descriptorSetLayout, nullptr);
+
+    _graphicsDevice->DestroyDescriptorSetLayout(descriptorSetLayout);
+}
+
 TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
 {
     // Attempt to create a sampler
@@ -123,10 +143,10 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
     ASSERT_NE(pipelineLayout, nullptr);
 
     // Set up vertex input
-    Bonsai::GraphicsVertexBinding vertexBindings[] = {
+    constexpr Bonsai::GraphicsVertexBinding vertexBindings[] = {
         Bonsai::GraphicsVertexBinding{ 0, 3 * sizeof(float), Bonsai::GraphicsVertexInputRate_PerVertex },
     };
-    Bonsai::GraphicsVertexAttribute vertexAttributes[] = {
+    constexpr Bonsai::GraphicsVertexAttribute vertexAttributes[] = {
         Bonsai::GraphicsVertexAttribute{ 0, 0, Bonsai::GraphicsFormat_RGBA32_SFloat, 0 },
     };
 

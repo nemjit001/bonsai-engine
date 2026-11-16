@@ -131,52 +131,28 @@ namespace Bonsai
         GraphicsSamplerDesc _desc = {};
     };
 
+    /// @brief The GraphicsDescriptorSetLayout is a graphics resource containing descriptor set layout data.
+    class GraphicsDescriptorSetLayout : public GraphicsResource
+    {
+        //
+    };
+
     /// @brief The GraphicsPipelineLayout is a graphics resource containing pipeline layout data.
     class GraphicsPipelineLayout : public GraphicsResource
     {
-    public:
-        /// @brief Get the description used to create the pipeline layout.
-        /// @return The pipeline layout description.
-        virtual GraphicsPipelineLayoutDesc GetDesc() const final { return _desc; }
-        
-        /// @brief Set the description used to create the pipeline layout.
-        /// @param desc The description to set.
-        virtual void SetDesc(GraphicsPipelineLayoutDesc const& desc) final { _desc = desc; }
-
-    private:
-        GraphicsPipelineLayoutDesc _desc = {};
+        //
     };
 
     /// @brief The GraphicsRenderPipeline is a graphics resource containing render pipeline data.
     class GraphicsRenderPipeline : public GraphicsResource
     {
-    public:
-        /// @brief Get the description used to create the render pipeline.
-        /// @return The render pipeline description.
-        virtual GraphicsRenderPipelineDesc GetDesc() const final { return _desc; }
-
-        /// @brief Set the description used to create the render pipeline.
-        /// @param desc The description to set.
-        virtual void SetDesc(GraphicsRenderPipelineDesc const& desc) final { _desc = desc; }
-
-    private:
-        GraphicsRenderPipelineDesc _desc = {};
+        //
     };
 
     /// @brief The GraphicsComputePipeline is a graphics resource containing compute pipeline data.
     class GraphicsComputePipeline : public GraphicsResource
     {
-    public:
-        /// @brief Get the description used to create the compute pipeline.
-        /// @return The compute pipeline description.
-        virtual GraphicsComputePipelineDesc GetDesc() const final { return _desc; }
-
-        /// @brief Set the description used to create the compute pipeline.
-        /// @param desc The description to set.
-        virtual void SetDesc(GraphicsComputePipelineDesc const& desc) final { _desc = desc; }
-
-    private:
-        GraphicsComputePipelineDesc _desc = {};
+        //
     };
 
     /// @brief The GraphicsSwapchain is a graphics resource containing swapchain data.

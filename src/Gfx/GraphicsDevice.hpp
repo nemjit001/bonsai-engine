@@ -114,7 +114,11 @@ namespace Bonsai
         /// @param sampler Sampler to destroy.
         void DestroySampler(GraphicsSampler* sampler);
 
-        /// @brief Destroy a pipeline layout
+        /// @brief Destroy a descriptor set layout.
+        /// @param descriptorSetLayout Descriptor set layout to destroy.
+        void DestroyDescriptorSetLayout(GraphicsDescriptorSetLayout* descriptorSetLayout);
+
+        /// @brief Destroy a pipeline layout.
         /// @param pipelineLayout Pipeline layout to destroy.
         void DestroyPipelineLayout(GraphicsPipelineLayout* pipelineLayout);
 

@@ -60,6 +60,19 @@ namespace Bonsai
         vkDestroySampler(_device, _sampler, nullptr);
     }
 
+    VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout _descriptorSetLayout)
+        :
+        _device(device),
+        _descriptorSetLayout(_descriptorSetLayout)
+    {
+        //
+    }
+
+    VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout()
+    {
+        vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
+    }
+
     VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout)
         :
         _device(device),

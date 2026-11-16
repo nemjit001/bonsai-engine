@@ -94,6 +94,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @return The Vulkan border color.
     [[nodiscard]] VkBorderColor GetVulkanBorderColor(GraphicsBorderColor const& borderColor);
 
+    /// @brief Get the Vulkan descriptor type for a given graphics descriptor type.
+    /// @param descriptorType Descriptor type to translate.
+    /// @return The Vulkan descriptor type.
+    [[nodiscard]] VkDescriptorType GetVulkanDescriptorType(GraphicsDescriptorType const& descriptorType);
+
     /// @brief Get the Vulkan vertex input rate for a given graphics vertex input rate.
     /// @param inputRate Input rate to translate.
     /// @return The Vulkan vertex input rate.
@@ -153,6 +158,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @param usageFlags Usage flags to translate.
     /// @return The Vulkan image usage flags.
     [[nodiscard]] VkImageUsageFlags GetVulkanImageUsageFlags(GraphicsTextureUsageFlags const& usageFlags);
+
+    /// @brief Get the Vulkan shader stage flags for a given set of graphics shader stage flags.
+    /// @param stageFlags Stage flags to translate.
+    /// @return The Vulkan shader stage flags.
+    [[nodiscard]] VkShaderStageFlags GetVulkanShaderStageFlags(GraphicsShaderStageFlags const& stageFlags);
 
     /// @brief Get the Vulkan color component flags for a given set of graphics color component flags.
     /// @param colorComponentFlags Color component flags to translate.
