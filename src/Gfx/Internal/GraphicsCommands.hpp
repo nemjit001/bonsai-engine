@@ -147,9 +147,9 @@ namespace Bonsai
     struct GraphicsCommandBindVertexBuffers
     {
         size_t firsSlot;
-        std::array<GraphicsBuffer*, Graphics::MaxBoundVertexBuffers> buffers;
+        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> buffers;
         size_t bufferCount;
-        std::array<size_t, Graphics::MaxBoundVertexBuffers> offsets;
+        std::array<size_t, Graphics::MaxVertexInputBindings> offsets;
     };
 
     struct GraphicsCommandBindIndexBuffer
@@ -192,7 +192,7 @@ namespace Bonsai
     struct GraphicsCommandBeginRendering
     {
         Rect2D renderArea;
-        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxBoundRenderTargets> renderAttachments;
+        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> renderAttachments;
         size_t renderAttachmentCount;
         bool hasDepthStencilAttachment;
         GraphicsRenderAttachmentInfo depthStencilAttachment;

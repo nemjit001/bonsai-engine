@@ -247,7 +247,7 @@ namespace Bonsai
 
     private:
         uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffersPerFrame> _commandBuffers;
     };
 
     /// @brief The TransferBatch is used to store a batch of resource transfers.
@@ -281,7 +281,7 @@ namespace Bonsai
 
     private:
         uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffers> _commandBuffers;
+        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffersPerTransferBatch> _commandBuffers;
     };
 
     namespace GraphicsHelpers

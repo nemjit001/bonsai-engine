@@ -12,6 +12,8 @@ namespace Bonsai
     class GraphicsTexture;
     class GraphicsTextureView;
     class GraphicsSampler;
+    class GraphicsDescriptorSetLayout;
+    class GraphicsDescriptorSet;
     class GraphicsPipelineLayout;
     class GraphicsRenderPipeline;
     class GraphicsComputePipeline;
@@ -22,13 +24,19 @@ namespace Bonsai
 
     namespace Graphics
     {
-        static constexpr uint32_t   MaxBoundRenderTargets       = 8u;
-        static constexpr uint32_t   MaxBoundVertexBuffers       = 16u;
-        static constexpr uint32_t   MaxBoundVertexAttributes    = 16u;
-        static constexpr uint32_t   MaxGlobalBarriers           = 64u;
-        static constexpr uint32_t   MaxBufferBarriers           = 64u;
-        static constexpr uint32_t   MaxTextureBarriers          = 64u;
-        static constexpr uint32_t   MaxGraphicsCommandBuffers   = 32u;
+        static constexpr uint32_t   MaxRenderTargets                            = 8u;
+        static constexpr uint32_t   MaxVertexInputBindings                      = 32u;
+        static constexpr uint32_t   MaxVertexInputAttributes                    = 32u;
+        static constexpr uint32_t   MaxPushConstantsSize                        = 256u;
+        static constexpr uint32_t   MaxBoundDescriptorSets                      = 32u;
+        static constexpr uint32_t   MaxSamplerAnisotropy                        = 16u;
+        static constexpr uint32_t   MinUniformBufferOffsetAlignment             = 64u;
+        static constexpr uint32_t   MinStorageBufferOffsetAlignment             = 16u;
+        static constexpr uint32_t   MaxGlobalBarriers                           = 64u;
+        static constexpr uint32_t   MaxBufferBarriers                           = 64u;
+        static constexpr uint32_t   MaxTextureBarriers                          = 64u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffersPerFrame           = 32u;
+        static constexpr uint32_t   MaxGraphicsCommandBuffersPerTransferBatch   = 8u;
 
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
         static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
@@ -578,7 +586,7 @@ namespace Bonsai
     struct GraphicsBlendState
     {
         GraphicsLogicOp logicOp = GraphicsLogicOp_Undefined;
-        GraphicsRenderTargetBlendState renderTargets[Graphics::MaxBoundRenderTargets];
+        GraphicsRenderTargetBlendState renderTargets[Graphics::MaxRenderTargets];
     };
 
     /// @brief Render attachment info for render and depth/stencil attachments.
@@ -708,7 +716,7 @@ namespace Bonsai
         GraphicsBlendState blendState;
 
         size_t renderTargetCount = 0;
-        GraphicsFormat renderTargetFormats[Graphics::MaxBoundRenderTargets];
+        GraphicsFormat renderTargetFormats[Graphics::MaxRenderTargets];
         GraphicsFormat depthStencilFormat = GraphicsFormat_Unknown;
     };
 

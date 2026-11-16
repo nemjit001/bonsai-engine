@@ -331,7 +331,7 @@ namespace Bonsai
         case GraphicsCommandType_BindVertexBuffers: {
             GraphicsCommandBindVertexBuffers const& commandData = command.data.commandBindVertexBuffers;
             
-            std::array<VkBuffer, Graphics::MaxBoundVertexBuffers> vertexBuffers;
+            std::array<VkBuffer, Graphics::MaxVertexInputBindings> vertexBuffers;
             for (size_t i = 0; i < commandData.bufferCount; i++) {
                 auto* vulkanBuffer = static_cast<VulkanBuffer*>(commandData.buffers[i]);
                 vertexBuffers[i] = vulkanBuffer->GetBuffer();
@@ -404,7 +404,7 @@ namespace Bonsai
             GraphicsCommandBeginRendering const& commandData = command.data.commandBeginRendering;
 
             // Set up color targets
-            std::array<VkRenderingAttachmentInfo, Graphics::MaxBoundRenderTargets> colorAttachments;
+            std::array<VkRenderingAttachmentInfo, Graphics::MaxRenderTargets> colorAttachments;
             for (size_t i = 0; i < commandData.renderAttachmentCount; i++)
             {
                 GraphicsRenderAttachmentInfo const& renderAttachmentInfo = commandData.renderAttachments[i];

@@ -308,10 +308,10 @@ namespace Bonsai
         }
 
         // Set up vertex input state
-        size_t vertexBindingCount = std::min(renderPipelineDesc.vertexInputState.vertexBindingCount, static_cast<size_t>(Graphics::MaxBoundVertexBuffers));
-        size_t vertexAttributeCount = std::min(renderPipelineDesc.vertexInputState.vertexAttributeCount, static_cast<size_t>(Graphics::MaxBoundVertexAttributes));
+        size_t vertexBindingCount = std::min(renderPipelineDesc.vertexInputState.vertexBindingCount, static_cast<size_t>(Graphics::MaxVertexInputBindings));
+        size_t vertexAttributeCount = std::min(renderPipelineDesc.vertexInputState.vertexAttributeCount, static_cast<size_t>(Graphics::MaxVertexInputAttributes));
 
-        std::array<VkVertexInputBindingDescription, Graphics::MaxBoundVertexBuffers> vertexBindingDescriptions;
+        std::array<VkVertexInputBindingDescription, Graphics::MaxVertexInputBindings> vertexBindingDescriptions;
         for (size_t i = 0; i < vertexBindingCount; i++)
         {
             GraphicsVertexBinding const& vertexBinding = renderPipelineDesc.vertexInputState.vertexBindings[i];
@@ -321,7 +321,7 @@ namespace Bonsai
             vertexBindingDescription.inputRate = VulkanGraphicsHelpers::GetVulkanVertexInputRate(vertexBinding.inputRate);
         }
 
-        std::array<VkVertexInputAttributeDescription, Graphics::MaxBoundVertexAttributes> vertexAttributeDescriptions;
+        std::array<VkVertexInputAttributeDescription, Graphics::MaxVertexInputAttributes> vertexAttributeDescriptions;
         for (size_t i = 0; i < vertexAttributeCount; i++)
         {
             GraphicsVertexAttribute const& vertexAttribute = renderPipelineDesc.vertexInputState.vertexAttributes[i];
@@ -430,8 +430,8 @@ namespace Bonsai
         depthStencilState.maxDepthBounds = 0.0F;
 
         // Set up color blend state
-        size_t const attachmentCount = std::min(renderPipelineDesc.renderTargetCount, static_cast<size_t>(Graphics::MaxBoundRenderTargets));
-        std::array<VkPipelineColorBlendAttachmentState, Graphics::MaxBoundRenderTargets> colorBlendAttachments{};
+        size_t const attachmentCount = std::min(renderPipelineDesc.renderTargetCount, static_cast<size_t>(Graphics::MaxRenderTargets));
+        std::array<VkPipelineColorBlendAttachmentState, Graphics::MaxRenderTargets> colorBlendAttachments{};
         for (size_t i = 0; i < attachmentCount; i++)
         {
             GraphicsRenderTargetBlendState const& renderTargetBlendState = renderPipelineDesc.blendState.renderTargets[i];
@@ -476,8 +476,8 @@ namespace Bonsai
         dynamicState.pDynamicStates = dynamicStates;
 
         // Set up rendering info
-        size_t const colorAttachmentCount = std::min(renderPipelineDesc.renderTargetCount, static_cast<size_t>(Graphics::MaxBoundRenderTargets));
-        std::array<VkFormat, Graphics::MaxBoundRenderTargets> colorAttachmentFormats;
+        size_t const colorAttachmentCount = std::min(renderPipelineDesc.renderTargetCount, static_cast<size_t>(Graphics::MaxRenderTargets));
+        std::array<VkFormat, Graphics::MaxRenderTargets> colorAttachmentFormats;
         VkFormat const depthStencilFormat = VulkanGraphicsHelpers::GetVulkanFormat(renderPipelineDesc.depthStencilFormat);
         for (size_t i = 0; i < colorAttachmentCount; i++) {
             colorAttachmentFormats[i] = VulkanGraphicsHelpers::GetVulkanFormat(renderPipelineDesc.renderTargetFormats[i]);

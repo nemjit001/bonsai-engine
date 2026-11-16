@@ -6,7 +6,7 @@ enable_testing()
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
 # Enable global options
-set(CMAKE_VERIFY_INTERFACE_HEADER_SETS OFF)
+set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
 
 # Include cmake helpers
 include(cmake/dependencies.cmake)

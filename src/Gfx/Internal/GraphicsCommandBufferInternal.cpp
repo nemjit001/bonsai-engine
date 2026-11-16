@@ -309,11 +309,11 @@ namespace Bonsai
     )
     {
         // Ensure vertex buffer count does not exceed allowed maximum
-        bufferCount = std::min(bufferCount, static_cast<size_t>(Graphics::MaxBoundVertexBuffers));
+        bufferCount = std::min(bufferCount, static_cast<size_t>(Graphics::MaxVertexInputBindings));
 
         // Copy over binding data
-        std::array<GraphicsBuffer*, Graphics::MaxBoundVertexBuffers> vertexBuffers;
-        std::array<size_t, Graphics::MaxBoundVertexBuffers> vertexOffsets;
+        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> vertexBuffers;
+        std::array<size_t, Graphics::MaxVertexInputBindings> vertexOffsets;
         for (size_t i = 0; i < bufferCount; i++)
         {
             vertexBuffers[i] = buffers[i];
@@ -436,10 +436,10 @@ namespace Bonsai
     )
     {
         // Ensure render attachment count does not exceed allowed maximum
-        renderAttachmentCount = std::min(renderAttachmentCount, static_cast<size_t>(Graphics::MaxBoundRenderTargets));
+        renderAttachmentCount = std::min(renderAttachmentCount, static_cast<size_t>(Graphics::MaxRenderTargets));
 
         // Copy over render attachment data
-        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxBoundRenderTargets> boundRenderAttachments;
+        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> boundRenderAttachments;
         for (size_t i = 0; i < renderAttachmentCount; i++) {
             boundRenderAttachments[i] = renderAttachments[i];
         }
