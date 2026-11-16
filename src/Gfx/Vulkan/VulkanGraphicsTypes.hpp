@@ -90,6 +90,11 @@ namespace Bonsai
     protected:
         ~VulkanSampler() override;
 
+    public:
+        /// @brief Get the Vulkan sampler handle.
+        /// @return The Vulkan sampler.
+        VkSampler GetSampler() const { return _sampler; }
+
     private:
         VkDevice _device;
         VkSampler _sampler;
@@ -123,6 +128,11 @@ namespace Bonsai
     protected:
         ~VulkanRenderPipeline() override;
 
+    public:
+        /// @brief Get the Vulkan pieline handle.
+        /// @return The Vulkan pipeline handle.
+        VkPipeline GetPipeline() const { return _pipeline; }
+
     private:
         VkDevice _device;
         VkPipeline _pipeline;
@@ -136,6 +146,11 @@ namespace Bonsai
 
     protected:
         ~VulkanComputePipeline() override;
+
+    public:
+        /// @brief Get the Vulkan pieline handle.
+        /// @return The Vulkan pipeline handle.
+        VkPipeline GetPipeline() const { return _pipeline; }
 
     private:
         VkDevice _device;

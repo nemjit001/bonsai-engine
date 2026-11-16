@@ -22,8 +22,17 @@ namespace Bonsai
         GraphicsCommandType_ClearRenderTarget,
         GraphicsCommandType_ClearDepthStencilTarget,
 
+        GraphicsCommandType_SetViewport,
+        GraphicsCommandType_SetScissorRect,
+        GraphicsCommandType_SetLineWidth,
+        GraphicsCommandType_SetBlendConstants,
+        GraphicsCommandType_SetStencilReference,
+
+        GraphicsCommandType_BindRenderPipeline,
+        GraphicsCommandType_BindComputePipeline,
         GraphicsCommandType_BindVertexBuffers,
         GraphicsCommandType_BindIndexBuffer,
+
         GraphicsCommandType_DrawIndexed,
         GraphicsCommandType_DrawIndexedIndirect,
 
@@ -100,6 +109,41 @@ namespace Bonsai
         GraphicsClearDepthStencilValue clearValue;
     };
 
+    struct GraphicsCommandSetViewport
+    {
+        GraphicsViewport viewport;
+    };
+
+    struct GraphicsCommandSetScissorRect
+    {
+        Rect2D scissorRect;
+    };
+
+    struct GraphicsCommandSetLineWidth
+    {
+        float lineWidth;
+    };
+
+    struct GraphicsCommandSetBlendConstants
+    {
+        float blendConstants[4];
+    };
+
+    struct GraphicsCommandSetStencilReference
+    {
+        uint32_t stencilReference;
+    };
+
+    struct GraphicsCommandBindRenderPipeline
+    {
+        GraphicsRenderPipeline* renderPipeline;
+    };
+
+    struct GraphicsCommandBindComputePipeline
+    {
+        GraphicsComputePipeline* computePipeline;
+    };
+
     struct GraphicsCommandBindVertexBuffers
     {
         size_t firsSlot;
@@ -173,6 +217,13 @@ namespace Bonsai
             GraphicsCommandCopyTextureToTexture commandCopyTextureToTexture;
             GraphicsCommandClearRenderTarget commandClearRenderTarget;
             GraphicsCommandClearDepthStencilTarget commandClearDepthStencilTarget;
+            GraphicsCommandSetViewport commandSetViewport;
+            GraphicsCommandSetScissorRect commandSetScissorRect;
+            GraphicsCommandSetLineWidth commandSetLineWidth;
+            GraphicsCommandSetBlendConstants commandSetBlendConstants;
+            GraphicsCommandSetStencilReference commandSetStencilReference;
+            GraphicsCommandBindRenderPipeline commandBindRenderPipeline;
+            GraphicsCommandBindComputePipeline commandBindComputePipeline;
             GraphicsCommandBindVertexBuffers commandBindVertexBuffers;
             GraphicsCommandBindIndexBuffer commandBindIndexBuffer;
             GraphicsCommandDrawIndexed commandDrawIndexed;

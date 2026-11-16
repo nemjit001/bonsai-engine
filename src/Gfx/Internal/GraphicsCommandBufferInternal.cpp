@@ -197,6 +197,110 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
+    void GraphicsCommandBufferImpl::SetViewport(
+        GraphicsViewport const& viewport
+    )
+    {
+        GraphicsCommandSetViewport commandSetViewport{};
+        commandSetViewport.viewport = viewport;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetViewport;
+        command.data.commandSetViewport = commandSetViewport;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetScissorRect(
+        Rect2D const& scissorRect
+    )
+    {
+        GraphicsCommandSetScissorRect commandSetScissorRect{};
+        commandSetScissorRect.scissorRect = scissorRect;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetScissorRect;
+        command.data.commandSetScissorRect = commandSetScissorRect;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetLineWidth(
+        float lineWidth
+    )
+    {
+        GraphicsCommandSetLineWidth commandSetLineWidth{};
+        commandSetLineWidth.lineWidth = lineWidth;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetLineWidth;
+        command.data.commandSetLineWidth = commandSetLineWidth;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetBlendConstants(
+        float r,
+        float g,
+        float b,
+        float a
+    )
+    {
+        GraphicsCommandSetBlendConstants commandSetBlendConstants{};
+        commandSetBlendConstants.blendConstants[0] = r;
+        commandSetBlendConstants.blendConstants[1] = g;
+        commandSetBlendConstants.blendConstants[2] = b;
+        commandSetBlendConstants.blendConstants[3] = a;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetBlendConstants;
+        command.data.commandSetBlendConstants = commandSetBlendConstants;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::SetStencilReference(
+        uint32_t stencilReference
+    )
+    {
+        GraphicsCommandSetStencilReference commandSetStencilReference{};
+        commandSetStencilReference.stencilReference = stencilReference;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_SetStencilReference;
+        command.data.commandSetStencilReference = commandSetStencilReference;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindRenderPipeline(
+        GraphicsRenderPipeline* renderPipeline
+    )
+    {
+        GraphicsCommandBindRenderPipeline commandBindRenderPipeline{};
+        commandBindRenderPipeline.renderPipeline = renderPipeline;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindRenderPipeline;
+        command.data.commandBindRenderPipeline = commandBindRenderPipeline;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindComputePipeline(
+        GraphicsComputePipeline* computePipeline
+    )
+    {
+        GraphicsCommandBindComputePipeline commandBindComputePipeline{};
+        commandBindComputePipeline.computePipeline = computePipeline;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindComputePipeline;
+        command.data.commandBindComputePipeline = commandBindComputePipeline;
+
+        _commands.push_back(command);
+    }
+
     void GraphicsCommandBufferImpl::BindVertexBuffers(
         size_t firstSlot,
         GraphicsBuffer** buffers,

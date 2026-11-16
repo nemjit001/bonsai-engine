@@ -83,6 +83,37 @@ namespace Bonsai
             GraphicsClearDepthStencilValue const& clearValue
         ) override final;
 
+        void SetViewport(
+            GraphicsViewport const& viewport
+        ) override final;
+
+        void SetScissorRect(
+            Rect2D const& scissorRect
+        ) override final;
+
+        void SetLineWidth(
+            float lineWidth
+        ) override final;
+
+        void SetBlendConstants(
+            float r,
+            float g,
+            float b,
+            float a
+        ) override final;
+
+        void SetStencilReference(
+            uint32_t stencilReference
+        ) override final;
+
+        void BindRenderPipeline(
+            GraphicsRenderPipeline* renderPipeline
+        ) override final;
+
+        void BindComputePipeline(
+            GraphicsComputePipeline* computePipeline
+        ) override final;
+
         void BindVertexBuffers(
             size_t firstSlot,
             GraphicsBuffer** buffers,

@@ -444,6 +444,17 @@ namespace Bonsai
         Extent2D extent;
     };
 
+    /// @brief Viewport for rasterization pipelines.
+    struct GraphicsViewport
+    {
+        float x;
+        float y;
+        float width;
+        float height;
+        float minDepth;
+        float maxDepth;
+    };
+
     /// @brief Clear value for color targets.
     union GraphicsClearColorValue
     {

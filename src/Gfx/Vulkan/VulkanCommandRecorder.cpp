@@ -282,6 +282,52 @@ namespace Bonsai
                 &subresource
             );
         } break;
+        case GraphicsCommandType_SetViewport: {
+            GraphicsCommandSetViewport const& commandData = command.data.commandSetViewport;
+
+            VkViewport viewport{};
+            viewport.x = commandData.viewport.x;
+            viewport.y = commandData.viewport.y;
+            viewport.width = commandData.viewport.width;
+            viewport.height = commandData.viewport.height;
+            viewport.minDepth = commandData.viewport.minDepth;
+            viewport.maxDepth = commandData.viewport.maxDepth;
+
+            vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        } break;
+        case GraphicsCommandType_SetScissorRect: {
+            GraphicsCommandSetScissorRect const& commandData = command.data.commandSetScissorRect;
+
+            VkRect2D scissorRect{};
+            scissorRect.offset = VkOffset2D{ commandData.scissorRect.offset.x, commandData.scissorRect.offset.y };
+            scissorRect.extent = VkExtent2D{ commandData.scissorRect.extent.width, commandData.scissorRect.extent.height };
+
+            vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+        } break;
+        case GraphicsCommandType_SetLineWidth: {
+            GraphicsCommandSetLineWidth const& commandData = command.data.commandSetLineWidth;
+            vkCmdSetLineWidth(commandBuffer, commandData.lineWidth);
+        } break;
+        case GraphicsCommandType_SetBlendConstants: {
+            GraphicsCommandSetBlendConstants const& commandData = command.data.commandSetBlendConstants;
+            vkCmdSetBlendConstants(commandBuffer, commandData.blendConstants);
+        } break;
+        case GraphicsCommandType_SetStencilReference: {
+            GraphicsCommandSetStencilReference const& commandData = command.data.commandSetStencilReference;
+            vkCmdSetStencilReference(commandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, commandData.stencilReference);
+        } break;
+        case GraphicsCommandType_BindRenderPipeline: {
+            GraphicsCommandBindRenderPipeline const& commandData = command.data.commandBindRenderPipeline;
+
+            auto* vulkanRenderPipeline = static_cast<VulkanRenderPipeline*>(commandData.renderPipeline);
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderPipeline->GetPipeline());
+        } break;
+        case GraphicsCommandType_BindComputePipeline: {
+            GraphicsCommandBindComputePipeline const& commandData = command.data.commandBindComputePipeline;
+
+            auto* vulkanComputePipeline = static_cast<VulkanComputePipeline*>(commandData.computePipeline);
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanComputePipeline->GetPipeline());
+        } break;
         case GraphicsCommandType_BindVertexBuffers: {
             GraphicsCommandBindVertexBuffers const& commandData = command.data.commandBindVertexBuffers;
             
