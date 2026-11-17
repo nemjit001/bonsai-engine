@@ -247,6 +247,11 @@ namespace Bonsai
         );
     }
 
+    void GraphicsDevice::Destroy(GraphicsDevice* graphicsDevice)
+    {
+        delete graphicsDevice;
+    }
+
     GraphicsBuffer* GraphicsDevice::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
     {
         return _objectFactory->CreateBuffer(bufferDesc);

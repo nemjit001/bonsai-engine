@@ -539,7 +539,7 @@ namespace Bonsai
     /// @brief Shader bytecode for shader pipelines.
     struct GraphicsShaderBytecode
     {
-        void* code;
+        void const* code;
         size_t size;
     };
 

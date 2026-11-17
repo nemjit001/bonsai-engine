@@ -707,7 +707,7 @@ namespace Bonsai
             vertexShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             vertexShaderModuleCreateInfo.pNext = nullptr;
             vertexShaderModuleCreateInfo.flags = 0;
-            vertexShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(renderPipelineDesc.vertexShaderBytecode.code);
+            vertexShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t const*>(renderPipelineDesc.vertexShaderBytecode.code);
             vertexShaderModuleCreateInfo.codeSize = renderPipelineDesc.vertexShaderBytecode.size;
 
             if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &vertexShaderModuleCreateInfo, nullptr, &vertexShaderModule))) {
@@ -724,7 +724,7 @@ namespace Bonsai
             tessControlShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             tessControlShaderModuleCreateInfo.pNext = nullptr;
             tessControlShaderModuleCreateInfo.flags = 0;
-            tessControlShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(renderPipelineDesc.tessControlShaderBytecode.code);
+            tessControlShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t const*>(renderPipelineDesc.tessControlShaderBytecode.code);
             tessControlShaderModuleCreateInfo.codeSize = renderPipelineDesc.tessControlShaderBytecode.size;
 
             if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &tessControlShaderModuleCreateInfo, nullptr, &tessControlShaderModule))) {
@@ -741,7 +741,7 @@ namespace Bonsai
             tessEvalShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             tessEvalShaderModuleCreateInfo.pNext = nullptr;
             tessEvalShaderModuleCreateInfo.flags = 0;
-            tessEvalShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(renderPipelineDesc.tessEvalShaderBytecode.code);
+            tessEvalShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t const*>(renderPipelineDesc.tessEvalShaderBytecode.code);
             tessEvalShaderModuleCreateInfo.codeSize = renderPipelineDesc.tessEvalShaderBytecode.size;
 
             if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &tessEvalShaderModuleCreateInfo, nullptr, &tessEvalShaderModule))) {
@@ -758,7 +758,7 @@ namespace Bonsai
             fragmentShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             fragmentShaderModuleCreateInfo.pNext = nullptr;
             fragmentShaderModuleCreateInfo.flags = 0;
-            fragmentShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(renderPipelineDesc.fragmentShaderBytecode.code);
+            fragmentShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t const*>(renderPipelineDesc.fragmentShaderBytecode.code);
             fragmentShaderModuleCreateInfo.codeSize = renderPipelineDesc.fragmentShaderBytecode.size;
 
             if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &fragmentShaderModuleCreateInfo, nullptr, &fragmentShaderModule))) {
@@ -792,7 +792,7 @@ namespace Bonsai
             computeShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             computeShaderModuleCreateInfo.pNext = nullptr;
             computeShaderModuleCreateInfo.flags = 0;
-            computeShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(computePipelineDesc.computeShaderBytecode.code);
+            computeShaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t const*>(computePipelineDesc.computeShaderBytecode.code);
             computeShaderModuleCreateInfo.codeSize = computePipelineDesc.computeShaderBytecode.size;
 
             if (VK_CHECK_FAILED(vkCreateShaderModule(_device, &computeShaderModuleCreateInfo, nullptr, &computeShaderModule))) {

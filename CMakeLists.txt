@@ -13,12 +13,12 @@ include(cmake/dependencies.cmake)
 include(cmake/helpers.cmake)
 
 # Find dependencies
-find_package(Cereal CONFIG REQUIRED)
-find_package(cgltf CONFIG REQUIRED)
+find_package(cereal CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(slang CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(volk CONFIG REQUIRED)
 
@@ -37,6 +37,7 @@ target_sources(BonsaiEngineLib
         src/Gfx/GraphicsCommandBuffer.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
+        src/Gfx/ShaderCompiler.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
@@ -63,6 +64,7 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
+        src/Gfx/ShaderCompiler.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
         src/Gfx/Internal/GraphicsCommands.hpp
@@ -106,14 +108,15 @@ target_compile_features(BonsaiEngineLib
         cxx_std_17
 )
 target_link_libraries(BonsaiEngineLib
+    PRIVATE
+        tinyobjloader::tinyobjloader
     PUBLIC
         cereal::cereal
-        cgltf::cgltf
         glm::glm
         EnTT::EnTT
         SDL3::SDL3
+        slang::slang
         spdlog::spdlog
-        tinyobjloader
         volk::volk_headers
 )
 

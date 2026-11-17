@@ -12,6 +12,7 @@ target_sources(BonsaiEngineTests
     PRIVATE
         src/SanityTests.cpp
         src/Gfx/GraphicsDeviceTests.cpp
+        src/Gfx/ShaderCompilerTests.cpp
         src/Assets/AssetManagerTests.cpp
         src/Assets/MeshTests.cpp
         src/Camera/CameraTests.cpp
@@ -30,6 +31,7 @@ target_link_libraries(BonsaiEngineTests
 )
 target_copy_resource_files(BonsaiEngineTests
     resources/assets/cube.obj
+    resources/shaders/test_shader.slang
 )
 
 # Discover tests
