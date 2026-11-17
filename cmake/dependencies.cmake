@@ -1,44 +1,10 @@
 include(FetchContent)
 
-# Cereal
-set(BUILD_SANDBOX OFF CACHE BOOL "" FORCE)
-set(SKIP_PERFORMANCE_COMPARISON ON CACHE BOOL "" FORCE)
-FetchContent_Declare(Cereal
-    GIT_REPOSITORY  https://github.com/USCiLab/cereal.git
-    GIT_TAG         v1.3.2
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
-# cgltf
-FetchContent_Declare(cgltf
-    GIT_REPOSITORY  https://github.com/jkuhlmann/cgltf.git
-    GIT_TAG         v1.15
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
-# GLM
-FetchContent_Declare(glm
-    GIT_REPOSITORY  https://github.com/g-truc/glm.git
-    GIT_TAG         1.0.3
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
 # GTest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_Declare(GTest
     GIT_REPOSITORY  https://github.com/google/googletest.git
     GIT_TAG         v1.18.0
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
-# EnTT
-FetchContent_Declare(EnTT
-    GIT_REPOSITORY  https://github.com/skypjack/entt.git
-    GIT_TAG         v4.0.0
     GIT_SHALLOW     TRUE
     OVERRIDE_FIND_PACKAGE
 )
@@ -51,32 +17,10 @@ FetchContent_Declare(SDL3
     OVERRIDE_FIND_PACKAGE
 )
 
-# spdlog
-FetchContent_Declare(spdlog
-    GIT_REPOSITORY  https://github.com/gabime/spdlog.git
-    GIT_TAG         v1.17.0
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
-# tinyobjloader
-FetchContent_Declare(tinyobjloader
-    GIT_REPOSITORY  https://github.com/tinyobjloader/tinyobjloader.git
-    GIT_TAG         release
-    GIT_SHALLOW     TRUE
-    OVERRIDE_FIND_PACKAGE
-)
-
+# volk
 FetchContent_Declare(volk
     GIT_REPOSITORY  https://github.com/zeux/volk.git
     GIT_TAG         master
     GIT_SHALLOW     TRUE
     OVERRIDE_FIND_PACKAGE
 )
-
-# Set up header-only lib targets
-FetchContent_MakeAvailable(cgltf)
-
-add_library(cgltf INTERFACE)
-add_library(cgltf::cgltf ALIAS cgltf)
-target_include_directories(cgltf INTERFACE ${cgltf_SOURCE_DIR})

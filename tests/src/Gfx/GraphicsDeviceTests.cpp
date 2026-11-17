@@ -250,6 +250,7 @@ TEST_F(GraphicsDeviceTests, TestStartAndSubmitSimpleTransferBatch)
     auto* srcBuffer = _graphicsDevice->CreateBuffer(bufferDesc);
 
     // Create transfer buffer
+    bufferDesc.heapType = Bonsai::GraphicsHeapType_ReadBack;
     bufferDesc.usage = Bonsai::GraphicsBufferUsage_TransferDst;
     auto* dstBuffer = _graphicsDevice->CreateBuffer(bufferDesc);
 

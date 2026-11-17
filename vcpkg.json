@@ -1,0 +1,10 @@
+{
+  "dependencies": [
+    "cereal",
+    "glm",
+    "entt",
+    "shader-slang",
+    "spdlog",
+    "tinyobjloader"
+  ]
+}

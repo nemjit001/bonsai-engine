@@ -14,11 +14,11 @@ include(cmake/helpers.cmake)
 
 # Find dependencies
 find_package(Cereal CONFIG REQUIRED)
-find_package(cgltf CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(slang CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(volk CONFIG REQUIRED)
 
@@ -106,14 +106,15 @@ target_compile_features(BonsaiEngineLib
         cxx_std_17
 )
 target_link_libraries(BonsaiEngineLib
+    PRIVATE
+        tinyobjloader::tinyobjloader
     PUBLIC
         cereal::cereal
-        cgltf::cgltf
         glm::glm
         EnTT::EnTT
         SDL3::SDL3
+        slang::slang
         spdlog::spdlog
-        tinyobjloader
         volk::volk_headers
 )
 
