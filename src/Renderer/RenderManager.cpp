@@ -60,7 +60,7 @@ namespace Bonsai
     void RenderManager::Shutdown()
     {
         _graphicsDevice->DestroySwapchain(_swapchain);
-        delete _graphicsDevice;
+        Bonsai::GraphicsDevice::Destroy(_graphicsDevice);
         SDL_DestroyWindow(_window);
     }
 

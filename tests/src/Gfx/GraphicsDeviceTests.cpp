@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "Gfx/GraphicsDevice.hpp"
+#include "Gfx/ShaderCompiler.hpp"
 #include "Gfx/Internal/GraphicsTypesInternal.hpp"
 
 class GraphicsDeviceTests : public testing::Test
@@ -13,12 +14,17 @@ public:
         // Create graphics device
         _graphicsDevice = Bonsai::GraphicsDevice::TryCreate();
         ASSERT_NE(_graphicsDevice, nullptr);
+
+        // Create shader compiler
+        _shaderCompiler = Bonsai::ShaderCompiler::TryCreate();
+        ASSERT_NE(_shaderCompiler, nullptr);
     }
 
     static void TearDownTestSuite()
     {
-        // Delete the graphics device
-        delete _graphicsDevice;
+        // Delete shader compiler and graphics device
+        Bonsai::ShaderCompiler::Destroy(_shaderCompiler);
+        Bonsai::GraphicsDevice::Destroy(_graphicsDevice);
 
         // Shut down SDL
         SDL_Quit();
@@ -26,6 +32,7 @@ public:
 
 protected:
     inline static Bonsai::GraphicsDevice* _graphicsDevice = nullptr;
+    inline static Bonsai::ShaderCompiler* _shaderCompiler = nullptr;
 };
 
 TEST_F(GraphicsDeviceTests, TestCreateRefcountedResource)
@@ -132,6 +139,10 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
 
 TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
 {
+    // Compile test shader
+    Slang::ComPtr<slang::IBlob> bytecode = _shaderCompiler->CompileShaderFromFile(Bonsai::Filesystem::GetResourcePath("resources/shaders/test_shader.slang"));
+    ASSERT_NE(bytecode, nullptr);
+
     // Create pipeline layout
     Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
     pipelineLayoutDesc.descriptorSetLayoutCount = 0;
@@ -147,7 +158,7 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
         Bonsai::GraphicsVertexBinding{ 0, 3 * sizeof(float), Bonsai::GraphicsVertexInputRate_PerVertex },
     };
     constexpr Bonsai::GraphicsVertexAttribute vertexAttributes[] = {
-        Bonsai::GraphicsVertexAttribute{ 0, 0, Bonsai::GraphicsFormat_RGBA32_SFloat, 0 },
+        Bonsai::GraphicsVertexAttribute{ 0, 0, Bonsai::GraphicsFormat_RGB32_SFloat, 0 },
     };
 
     // Create render pipeline
@@ -156,8 +167,8 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
 
     renderPipelineDesc.vertexShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "VSMain", 6 };
     renderPipelineDesc.fragmentShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "PSMain", 6 };
-    renderPipelineDesc.vertexShaderBytecode = {};
-    renderPipelineDesc.fragmentShaderBytecode = {};
+    renderPipelineDesc.vertexShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
+    renderPipelineDesc.fragmentShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
 
     renderPipelineDesc.vertexInputState.vertexBindingCount = 1;
     renderPipelineDesc.vertexInputState.vertexBindings = vertexBindings;
@@ -203,6 +214,10 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
 
 TEST_F(GraphicsDeviceTests, TestCreateComputePipeline)
 {
+    // Compile test shader
+    Slang::ComPtr<slang::IBlob> bytecode = _shaderCompiler->CompileShaderFromFile(Bonsai::Filesystem::GetResourcePath("resources/shaders/test_shader.slang"));
+    ASSERT_NE(bytecode, nullptr);
+
     // Create pipeline layout
     Bonsai::GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
     pipelineLayoutDesc.descriptorSetLayoutCount = 0;
@@ -217,7 +232,7 @@ TEST_F(GraphicsDeviceTests, TestCreateComputePipeline)
     Bonsai::GraphicsComputePipelineDesc computePipelineDesc{};
     computePipelineDesc.pipelineLayout = pipelineLayout;
     computePipelineDesc.computeShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "CSMain", 6 };
-    computePipelineDesc.computeShaderBytecode = {};
+    computePipelineDesc.computeShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
 
     auto computePipeline = _graphicsDevice->CreateComputePipeline(computePipelineDesc);
     ASSERT_NE(computePipeline, nullptr);

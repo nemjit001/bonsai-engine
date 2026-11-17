@@ -37,6 +37,7 @@ target_sources(BonsaiEngineLib
         src/Gfx/GraphicsCommandBuffer.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
+        src/Gfx/ShaderCompiler.hpp
         src/Math/Math.hpp
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
@@ -63,6 +64,7 @@ target_sources(BonsaiEngineLib
         src/Core/Filesystem.cpp
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
+        src/Gfx/ShaderCompiler.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
         src/Gfx/Internal/GraphicsCommands.hpp

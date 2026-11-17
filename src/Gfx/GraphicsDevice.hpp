@@ -53,6 +53,10 @@ namespace Bonsai
         /// @return The newly created graphics device, or nullptr on failure.
         [[nodiscard]] static GraphicsDevice* TryCreate();
 
+        /// @brief Destroy a graphics device.
+        /// @param graphicsDevice Graphics device to destroy.
+        static void Destroy(GraphicsDevice* graphicsDevice);
+
         /// @brief Create a buffer using this graphics device.
         /// @param bufferDesc Buffer description.
         /// @return A new graphics buffer, or nullptr on failure.
