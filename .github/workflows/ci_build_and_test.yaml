@@ -28,6 +28,8 @@ jobs:
           vulkan-query-version: latest
           vulkan-use-cache: true
           vulkan-components: Vulkan-Headers
+      - name: Set up VCPKG
+        uses: lukka/run-vcpkg@v11
       - name: Install Linux dependencies
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: >

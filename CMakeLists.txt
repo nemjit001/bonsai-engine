@@ -13,7 +13,7 @@ include(cmake/dependencies.cmake)
 include(cmake/helpers.cmake)
 
 # Find dependencies
-find_package(Cereal CONFIG REQUIRED)
+find_package(cereal CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
