@@ -141,7 +141,7 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
 {
     // Set up descriptor set layout bindings
     constexpr Bonsai::GraphicsDescriptorSetLayoutBinding bindings[] = {
-        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_StorageBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_UniformBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
     };
 
     // Attempt to create a descriptor set
@@ -156,23 +156,24 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     Bonsai::GraphicsBufferDesc storageBufferDesc{};
     storageBufferDesc.heapType = Bonsai::GraphicsHeapType_Default;
     storageBufferDesc.size = 1024;
-    storageBufferDesc.usage = Bonsai::GraphicsBufferUsage_StorageBuffer;
+    storageBufferDesc.usage = Bonsai::GraphicsBufferUsage_UniformBuffer;
 
     auto* buffer = _graphicsDevice->CreateBuffer(storageBufferDesc);
     ASSERT_NE(buffer, nullptr);
 
-    // Create storage buffer descriptor set
-    Bonsai::GraphicsDescriptorBufferInfo storageBufferDescriptorInfo{};
-    storageBufferDescriptorInfo.buffer = buffer;
-    storageBufferDescriptorInfo.offset = 0;
-    storageBufferDescriptorInfo.range = Bonsai::Graphics::WholeSize;
+    // Create buffer descriptor set
+    Bonsai::GraphicsDescriptorBufferInfo bufferDescriptorInfo{};
+    bufferDescriptorInfo.buffer = buffer;
+    bufferDescriptorInfo.offset = 0;
+    bufferDescriptorInfo.range = Bonsai::Graphics::WholeSize;
     
     Bonsai::GraphicsDescriptorSetDesc descriptorSetDesc{};
     descriptorSetDesc.descriptorSetLayout = descriptorSetLayout;
     descriptorSetDesc.binding = 0;
     descriptorSetDesc.arrayElement = 0;
     descriptorSetDesc.descriptorCount = 1;
-    descriptorSetDesc.bufferInfos = &storageBufferDescriptorInfo;
+    descriptorSetDesc.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
+    descriptorSetDesc.bufferInfos = &bufferDescriptorInfo;
     descriptorSetDesc.imageInfos = nullptr;
 
     auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(descriptorSetDesc);

@@ -761,6 +761,7 @@ namespace Bonsai
         uint32_t binding = 0;
         uint32_t arrayElement = 0;
         uint32_t descriptorCount = 0;
+        GraphicsDescriptorType descriptorType = GraphicsDescriptorType_Sampler;
         GraphicsDescriptorBufferInfo const* bufferInfos = nullptr;
         GraphicsDescriptorImageInfo const* imageInfos = nullptr;
     };

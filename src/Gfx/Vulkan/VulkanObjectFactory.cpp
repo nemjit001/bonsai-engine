@@ -44,8 +44,17 @@ namespace Bonsai
         assert(device != VK_NULL_HANDLE && "Vulkan device was VK_NULL_HANDLE!");
         assert(sharedDeviceState != nullptr && "Shared device state was null!");
 
-        // Create descriptor set allocator
-        auto descriptorSetAllocator = std::unique_ptr<VulkanDescriptorSetAllocator>(VulkanDescriptorSetAllocator::TryCreate(device));
+        // Create descriptor set allocator with average descriptor usage per set
+        VulkanDescriptorPoolSizeInfo poolSizeInfo{};
+        poolSizeInfo.descriptorSetCount = 4096;
+        poolSizeInfo.samplerDescriptorMultiplier = 2;
+        poolSizeInfo.combinedImageSamplerDescriptorMultiplier = 2;
+        poolSizeInfo.sampledImageDescriptorMultiplier = 2;
+        poolSizeInfo.storageImageDescriptorMultiplier = 4;
+        poolSizeInfo.uniformBufferDescriptorMultiplier = 4;
+        poolSizeInfo.storageBufferDescriptorMultiplier = 4;
+
+        auto descriptorSetAllocator = std::unique_ptr<VulkanDescriptorSetAllocator>(VulkanDescriptorSetAllocator::TryCreate(device, poolSizeInfo));
         if (!descriptorSetAllocator)
         {
             SPDLOG_ERROR("Failed to create Vulkan descriptor set allocator");
@@ -274,7 +283,12 @@ namespace Bonsai
         descriptorSetLayoutCreateInfo.bindingCount = bindingCount;
         descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
-        return new VulkanDescriptorSetLayout(_device, VK_NULL_HANDLE);
+        VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkCreateDescriptorSetLayout(_device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout))) {
+            return nullptr;
+        }
+
+        return new VulkanDescriptorSetLayout(_device, descriptorSetLayout);
     }
 
     VulkanDescriptorSet* VulkanObjectFactory::CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc)
@@ -737,6 +751,7 @@ namespace Bonsai
         descriptorWrite.dstBinding = descriptorSetDesc.binding;
         descriptorWrite.dstArrayElement = descriptorSetDesc.arrayElement;
         descriptorWrite.descriptorCount = descriptorSetDesc.descriptorCount;
+        descriptorWrite.descriptorType = VulkanGraphicsHelpers::GetVulkanDescriptorType(descriptorSetDesc.descriptorType);
         descriptorWrite.pBufferInfo = nullptr;
         descriptorWrite.pImageInfo = nullptr;
         descriptorWrite.pTexelBufferView = nullptr;
@@ -745,7 +760,7 @@ namespace Bonsai
         std::vector<VkDescriptorBufferInfo> bufferInfos;
         if (descriptorSetDesc.bufferInfos != nullptr)
         {
-            bufferInfos.reserve(descriptorSetDesc.descriptorCount);
+            bufferInfos.resize(descriptorSetDesc.descriptorCount);
             for (size_t i = 0; i < descriptorSetDesc.descriptorCount; i++)
             {
                 GraphicsDescriptorBufferInfo const& bufferInfo = descriptorSetDesc.bufferInfos[i];
@@ -764,7 +779,7 @@ namespace Bonsai
         std::vector<VkDescriptorImageInfo> imageInfos;
         if (descriptorSetDesc.imageInfos != nullptr)
         {
-            imageInfos.reserve(descriptorSetDesc.descriptorCount);
+            imageInfos.resize(descriptorSetDesc.descriptorCount);
             for (size_t i = 0; i < descriptorSetDesc.descriptorCount; i++)
             {
                 GraphicsDescriptorImageInfo const& imageInfo = descriptorSetDesc.imageInfos[i];
