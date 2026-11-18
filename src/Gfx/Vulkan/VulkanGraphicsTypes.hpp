@@ -123,13 +123,19 @@ namespace Bonsai
     class VulkanDescriptorSet : public GraphicsDescriptorSet
     {
     public:
-        VulkanDescriptorSet(VkDescriptorSet descriptorSet);
+        VulkanDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSet descriptorSet);
 
+    protected:
+        ~VulkanDescriptorSet() override;
+
+    public:
         /// @brief Get the Vulkan descriptor set handle.
         /// @return The Vulkan descriptor set handle.
         VkDescriptorSet GetDescriptorSet() const { return _descriptorSet; }        
 
     private:
+        VkDevice _device;
+        VkDescriptorPool _descriptorPool;
         VkDescriptorSet _descriptorSet;
     };
 

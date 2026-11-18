@@ -3,6 +3,7 @@
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
+#include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
 namespace Bonsai
 {
@@ -43,38 +44,45 @@ namespace Bonsai
         return new VulkanDescriptorSetAllocator(device, poolSizeInfo, firstDescriptorPool);
     }
 
-    bool VulkanDescriptorSetAllocator::AllocateDescriptorSet(VkDescriptorSetLayout setLayout, VkDescriptorSet* outDescriptorSet)
+    VulkanDescriptorSet* VulkanDescriptorSetAllocator::AllocateDescriptorSet(VulkanDescriptorSetLayout const* setLayout)
     {
         // Get active descriptor pool
         VkDescriptorPool activePool = _descriptorPools.back();
 
         // Attempt to allocate a new descriptor set
+        VkDescriptorSetLayout setLayoutHandle = setLayout->GetDescriptorSetLayout();
+
         VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
         descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         descriptorSetAllocateInfo.pNext = nullptr;
         descriptorSetAllocateInfo.descriptorPool = activePool;
         descriptorSetAllocateInfo.descriptorSetCount = 1;
-        descriptorSetAllocateInfo.pSetLayouts = &setLayout;
+        descriptorSetAllocateInfo.pSetLayouts = &setLayoutHandle;
         
-        if (VK_CHECK_FAILED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, outDescriptorSet)))
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        if (VK_CHECK_FAILED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, &descriptorSet)))
         {
             // Create new descriptor pool
             VkDescriptorPool newDescriptorPool = CreateNewDescriptorPool(_device, _poolSizeInfo);
             if (newDescriptorPool == VK_NULL_HANDLE)
             {
                 SPDLOG_ERROR("Failed to create new descriptor pool");
-                return false;
+                return nullptr;
             }
 
             // Store in descriptor pool storage
             _descriptorPools.push_back(newDescriptorPool);
 
             // Update allocate info and reattempt allocation
-            descriptorSetAllocateInfo.descriptorPool = newDescriptorPool;
-            return VK_CHECK_SUCCEEDED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, outDescriptorSet));
+            activePool = _descriptorPools.back();
+            descriptorSetAllocateInfo.descriptorPool = activePool;
+            if (VK_CHECK_FAILED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, &descriptorSet))) {
+                return nullptr;
+            }
         }
 
-        return true;
+        // Create new Vulkan descriptor set
+        return new VulkanDescriptorSet(_device, activePool, descriptorSet);
     }
 
     VkDescriptorPool VulkanDescriptorSetAllocator::CreateNewDescriptorPool(VkDevice device, VulkanDescriptorPoolSizeInfo const& poolSizeInfo)

@@ -119,7 +119,7 @@ namespace Bonsai
         /// @brief Update a descriptor set based on a descriptor set description.
         /// @param descriptorSet Descriptor set to update.
         /// @param descriptorSetDesc Descriptor set description to use for update.
-        void UpdateDescriptorSet(VkDescriptorSet descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc);
+        void UpdateDescriptorSet(VulkanDescriptorSet const* descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Try to compile a render pipeline.
         /// @param renderPipelineDesc Render pipeline description to compile shaders for.

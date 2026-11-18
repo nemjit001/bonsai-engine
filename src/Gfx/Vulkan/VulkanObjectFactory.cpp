@@ -296,13 +296,13 @@ namespace Bonsai
         auto* vulkanDescriptorSetLayout = static_cast<VulkanDescriptorSetLayout*>(descriptorSetDesc.descriptorSetLayout);
 
         // Allocate descriptor set
-        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-        if (!_descriptorSetAllocator->AllocateDescriptorSet(vulkanDescriptorSetLayout->GetDescriptorSetLayout(), &descriptorSet)) {
+        VulkanDescriptorSet* descriptorSet = _descriptorSetAllocator->AllocateDescriptorSet(vulkanDescriptorSetLayout);
+        if (descriptorSet == nullptr) {
             return nullptr;
         }
 
         UpdateDescriptorSet(descriptorSet, descriptorSetDesc);
-        return new VulkanDescriptorSet(descriptorSet);
+        return descriptorSet;
     }
 
     VulkanPipelineLayout* VulkanObjectFactory::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
@@ -736,10 +736,10 @@ namespace Bonsai
         return memory;
     }
 
-    void VulkanObjectFactory::UpdateDescriptorSet(VkDescriptorSet descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc)
+    void VulkanObjectFactory::UpdateDescriptorSet(VulkanDescriptorSet const* descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc)
     {
         // Cannot write to an invalid descriptor set
-        if (descriptorSet == VK_NULL_HANDLE) {
+        if (descriptorSet == nullptr) {
             return;
         }
 
@@ -747,7 +747,7 @@ namespace Bonsai
         VkWriteDescriptorSet descriptorWrite{};
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.pNext = nullptr;
-        descriptorWrite.dstSet = descriptorSet;
+        descriptorWrite.dstSet = descriptorSet->GetDescriptorSet();
         descriptorWrite.dstBinding = descriptorSetDesc.binding;
         descriptorWrite.dstArrayElement = descriptorSetDesc.arrayElement;
         descriptorWrite.descriptorCount = descriptorSetDesc.descriptorCount;

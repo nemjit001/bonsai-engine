@@ -9,6 +9,9 @@
 
 namespace Bonsai
 {
+    class VulkanDescriptorSetLayout;
+    class VulkanDescriptorSet;
+
     /// @brief The VulkanDescriptorPoolSizeInfo stores the max descriptor sets allocated from a pool,
     /// along with the expected descriptors allocated per set (multipliers).
     struct VulkanDescriptorPoolSizeInfo
@@ -46,10 +49,9 @@ namespace Bonsai
         static VulkanDescriptorSetAllocator* TryCreate(VkDevice device, VulkanDescriptorPoolSizeInfo const& poolSizeInfo);
 
         /// @brief Allocate a descriptor set from the descriptor pool.
-        /// @param setLayout Set layout to use.
-        /// @param outDescriptorSet Output descriptor set.
-        /// @return A boolean indicating success.
-        bool AllocateDescriptorSet(VkDescriptorSetLayout setLayout, VkDescriptorSet* outDescriptorSet);
+        /// @param setLayout Set layout to use for allocation.
+        /// @return The new descriptor set.
+        VulkanDescriptorSet* AllocateDescriptorSet(VulkanDescriptorSetLayout const* setLayout);
 
     private:
         /// @brief Create a new descriptor pool.
