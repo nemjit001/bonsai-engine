@@ -39,7 +39,7 @@ namespace Bonsai
             VulkanDeviceState const& deviceState,
             std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
             std::unique_ptr<VulkanRenderContext>&& renderContext,
-        std::unique_ptr<VulkanTransferContext>&& transferContext,
+            std::unique_ptr<VulkanTransferContext>&& transferContext,
             std::unique_ptr<VulkanObjectFactory>&& objectFactory
         );
 

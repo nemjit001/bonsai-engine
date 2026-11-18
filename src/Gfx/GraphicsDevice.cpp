@@ -279,7 +279,7 @@ namespace Bonsai
 
     GraphicsDescriptorSet* GraphicsDevice::CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc)
     {
-        return nullptr;
+        return _objectFactory->CreateDescriptorSet(descriptorSetDesc);
     }
 
     GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)

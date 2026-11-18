@@ -170,9 +170,10 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     Bonsai::GraphicsDescriptorSetDesc descriptorSetDesc{};
     descriptorSetDesc.descriptorSetLayout = descriptorSetLayout;
     descriptorSetDesc.binding = 0;
-    descriptorSetDesc.dstArrayElement = 0;
+    descriptorSetDesc.arrayElement = 0;
     descriptorSetDesc.descriptorCount = 1;
-    descriptorSetDesc.bufferInfo = &storageBufferDescriptorInfo;
+    descriptorSetDesc.bufferInfos = &storageBufferDescriptorInfo;
+    descriptorSetDesc.imageInfos = nullptr;
 
     auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(descriptorSetDesc);
     ASSERT_NE(descriptorSet, nullptr);

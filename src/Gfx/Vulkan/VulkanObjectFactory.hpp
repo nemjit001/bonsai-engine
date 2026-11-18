@@ -4,12 +4,15 @@
 
 #define VK_NO_PROTOTYPES
 
+#include <memory>
 #include <optional>
 #include <vulkan/vulkan.h>
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
 namespace Bonsai
 {
+    class VulkanDescriptorSetAllocator;
+
     /// @brief Factory for creating Vulkan graphics objects.
     class VulkanObjectFactory
     {
@@ -18,11 +21,12 @@ namespace Bonsai
             VkInstance instance,
             VkPhysicalDevice physicalDevice,
             VkDevice device,
-            VulkanSharedDeviceState* sharedDeviceState
+            VulkanSharedDeviceState* sharedDeviceState,
+            std::unique_ptr<VulkanDescriptorSetAllocator>&& descriptorSetAllocator
         );
 
     public:
-        virtual ~VulkanObjectFactory();
+        ~VulkanObjectFactory();
 
         VulkanObjectFactory(VulkanObjectFactory const&) = delete;
         VulkanObjectFactory& operator=(VulkanObjectFactory const&) = delete;
@@ -64,6 +68,11 @@ namespace Bonsai
         /// @param descriptorSetLayoutDesc Descriptor set layout description to use for creation.
         /// @return A new Vulkan descriptor set layout.
         VulkanDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
+
+        /// @brief Create a Vulkan descriptor set.
+        /// @param descriptorSetDesc Descriptor set description to use for creation.
+        /// @return A new Vulkan descriptor set.
+        VulkanDescriptorSet* CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Create a Vulkan pipeline layout.
         /// @param pipelineLayoutDesc Pipeline layout description to use for creation.
@@ -107,6 +116,11 @@ namespace Bonsai
         /// @return An optional Vulkan device memory allocation.
         std::optional<VkDeviceMemory> TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements);
 
+        /// @brief Update a descriptor set based on a descriptor set description.
+        /// @param descriptorSet Descriptor set to update.
+        /// @param descriptorSetDesc Descriptor set description to use for update.
+        void UpdateDescriptorSet(VkDescriptorSet descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc);
+
         /// @brief Try to compile a render pipeline.
         /// @param renderPipelineDesc Render pipeline description to compile shaders for.
         /// @return An optional compiled render pipeline.
@@ -130,6 +144,7 @@ namespace Bonsai
         VkPhysicalDevice _physicalDevice;
         VkDevice _device;
         VulkanSharedDeviceState* _sharedDeviceState;
+        std::unique_ptr<VulkanDescriptorSetAllocator> _descriptorSetAllocator;
     };
 } // namespace Bonsai
 

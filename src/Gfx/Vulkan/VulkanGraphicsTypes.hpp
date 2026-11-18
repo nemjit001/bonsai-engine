@@ -119,6 +119,20 @@ namespace Bonsai
         VkDescriptorSetLayout _descriptorSetLayout;
     };
 
+    /// @brief Vulkan descriptor set implementation.
+    class VulkanDescriptorSet : public GraphicsDescriptorSet
+    {
+    public:
+        VulkanDescriptorSet(VkDescriptorSet descriptorSet);
+
+        /// @brief Get the Vulkan descriptor set handle.
+        /// @return The Vulkan descriptor set handle.
+        VkDescriptorSet GetDescriptorSet() const { return _descriptorSet; }        
+
+    private:
+        VkDescriptorSet _descriptorSet;
+    };
+
     /// @brief Vulkan pipeline layout implementation.
     class VulkanPipelineLayout : public GraphicsPipelineLayout
     {

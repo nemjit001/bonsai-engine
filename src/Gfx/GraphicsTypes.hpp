@@ -543,7 +543,7 @@ namespace Bonsai
     {
         GraphicsSampler* sampler;
         GraphicsTextureView* textureView;
-        GraphicsTexture* texture;
+        GraphicsTextureLayout textureLayout;
     };
 
     /// @brief Shader entrypoint for shader pipelines.
@@ -759,10 +759,10 @@ namespace Bonsai
     {
         GraphicsDescriptorSetLayout* descriptorSetLayout = nullptr;
         uint32_t binding = 0;
-        uint32_t dstArrayElement = 0;
+        uint32_t arrayElement = 0;
         uint32_t descriptorCount = 0;
-        GraphicsDescriptorBufferInfo const* bufferInfo = nullptr;
-        GraphicsDescriptorImageInfo const* imageInfo = nullptr;
+        GraphicsDescriptorBufferInfo const* bufferInfos = nullptr;
+        GraphicsDescriptorImageInfo const* imageInfos = nullptr;
     };
 
     /// @brief Graphics pipeline layout description.
