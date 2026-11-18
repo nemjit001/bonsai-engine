@@ -81,6 +81,11 @@ namespace Bonsai
         /// @param descriptorSetLayoutDesc Descriptor set layout description.
         /// @return A new descriptor set layout, or nullptr on failure.
         [[nodiscard]] GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
+ 
+        /// @brief Create a descriptor set using this graphics device.
+        /// @param descriptorSetDesc Descriptor set description.
+        /// @return A new descriptor set, or nullptr on failure.
+        [[nodiscard]] GraphicsDescriptorSet* CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Create a pipeline layout using this graphics device.
         /// @param pipelineLayoutDesc Pipeline description.
@@ -121,6 +126,10 @@ namespace Bonsai
         /// @brief Destroy a descriptor set layout.
         /// @param descriptorSetLayout Descriptor set layout to destroy.
         void DestroyDescriptorSetLayout(GraphicsDescriptorSetLayout* descriptorSetLayout);
+
+        /// @brief Destroy a descriptor set.
+        /// @param descriptorSet Descriptor set to destroy.
+        void DestroyDescriptorSet(GraphicsDescriptorSet* descriptorSet);
 
         /// @brief Destroy a pipeline layout.
         /// @param pipelineLayout Pipeline layout to destroy.

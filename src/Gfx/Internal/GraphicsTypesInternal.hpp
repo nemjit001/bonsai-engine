@@ -137,6 +137,11 @@ namespace Bonsai
         //
     };
 
+    class GraphicsDescriptorSet : public GraphicsResource
+    {
+        //
+    };
+
     /// @brief The GraphicsPipelineLayout is a graphics resource containing pipeline layout data.
     class GraphicsPipelineLayout : public GraphicsResource
     {
