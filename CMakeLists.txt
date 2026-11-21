@@ -22,47 +22,43 @@ find_package(slang CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(volk CONFIG REQUIRED)
 
-# Set up bonsai library target
-add_library(BonsaiEngineLib STATIC)
-add_library(BonsaiEngine::Lib ALIAS BonsaiEngineLib)
-target_extended_warnings(BonsaiEngineLib)
-target_sources(BonsaiEngineLib
-    PUBLIC
-    FILE_SET HEADERS
+# Set up Bonsai Core library target
+add_library(BonsaiCore STATIC)
+add_library(Bonsai::Core ALIAS BonsaiCore)
+target_extended_warnings(BonsaiCore)
+target_sources(BonsaiCore
+    PUBLIC FILE_SET HEADERS
     BASE_DIRS src
     FILES
         src/Core/Filesystem.hpp
         src/Core/Logger.hpp
         src/Core/PlatformDefines.hpp
+    PRIVATE
+        src/Core/Filesystem.cpp
+        src/Core/Logger.cpp
+)
+target_compile_features(BonsaiCore
+    PRIVATE
+        cxx_std_17
+)
+target_link_libraries(BonsaiCore
+    PUBLIC
+        spdlog::spdlog
+)
+
+# Set up Bonsai Gfx library target
+add_library(BonsaiGfx STATIC)
+add_library(Bonsai::Gfx ALIAS BonsaiGfx)
+target_extended_warnings(BonsaiGfx)
+target_sources(BonsaiGfx
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS src
+    FILES
         src/Gfx/GraphicsCommandBuffer.hpp
         src/Gfx/GraphicsDevice.hpp
         src/Gfx/GraphicsTypes.hpp
         src/Gfx/ShaderCompiler.hpp
-        src/Math/Math.hpp
-        src/Assets/AssetImporter.hpp
-        src/Assets/AssetManager.hpp
-        src/Assets/AssetType.hpp
-        src/Assets/Mesh.hpp
-        src/Camera/Camera.hpp
-        src/Renderer/CameraConstantBuffer.hpp
-        src/Renderer/RenderManager.hpp
-        src/Components/CameraComponent.hpp
-        src/Components/MeshComponent.hpp
-        src/Components/ParentComponent.hpp
-        src/Components/RenderMeshComponent.hpp
-        src/Components/TransformComponent.hpp
-        src/Systems/CameraInitSystem.hpp
-        src/Systems/CameraUploadSystem.hpp
-        src/Systems/ECSSystem.hpp
-        src/Systems/MeshUploadSystem.hpp
-        src/Systems/SystemRegistry.hpp
-        src/Scene/Scene.hpp
-        src/Scene/SceneManager.hpp
-        src/Application/FileDropHandler.hpp
-        src/Application.hpp
     PRIVATE
-        src/Core/Filesystem.cpp
-        src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
         src/Gfx/ShaderCompiler.cpp
         src/Gfx/Internal/GraphicsCommandBufferImpl.cpp
@@ -92,6 +88,72 @@ target_sources(BonsaiEngineLib
         src/Gfx/Vulkan/VulkanTransferContext.hpp
         src/Gfx/Vulkan/VulkanSwapchain.cpp
         src/Gfx/Vulkan/VulkanSwapchain.hpp
+)
+target_compile_features(BonsaiGfx
+    PRIVATE
+        cxx_std_17
+)
+target_link_libraries(BonsaiGfx
+    PRIVATE
+        volk::volk_headers
+    PUBLIC
+        Bonsai::Core
+        SDL3::SDL3
+        slang::slang
+)
+
+# Set up Bonsai Math lib
+add_library(BonsaiMath STATIC)
+add_library(Bonsai::Math ALIAS BonsaiMath)
+target_extended_warnings(BonsaiMath)
+target_sources(BonsaiMath
+    PUBLIC FILE_SET HEADERS
+    BASE_DIRS src
+    FILES
+        src/Math/Math.hpp
+    PRIVATE
+        src/Math/Math.cpp
+)
+target_compile_features(BonsaiMath
+    PRIVATE
+        cxx_std_17
+)
+target_link_libraries(BonsaiMath
+    PUBLIC
+        glm::glm
+)
+
+# Set up bonsai library target
+add_library(BonsaiEngineLib STATIC)
+add_library(BonsaiEngine::Lib ALIAS BonsaiEngineLib)
+target_extended_warnings(BonsaiEngineLib)
+target_sources(BonsaiEngineLib
+    PUBLIC
+    FILE_SET HEADERS
+    BASE_DIRS src
+    FILES
+        src/Assets/AssetImporter.hpp
+        src/Assets/AssetManager.hpp
+        src/Assets/AssetType.hpp
+        src/Assets/Mesh.hpp
+        src/Camera/Camera.hpp
+        src/Renderer/CameraConstantBuffer.hpp
+        src/Renderer/RenderManager.hpp
+        src/Components/CameraComponent.hpp
+        src/Components/MeshComponent.hpp
+        src/Components/ParentComponent.hpp
+        src/Components/RenderMeshComponent.hpp
+        src/Components/TransformComponent.hpp
+        src/Systems/CameraInitSystem.hpp
+        src/Systems/CameraUploadSystem.hpp
+        src/Systems/ECSSystem.hpp
+        src/Systems/MeshUploadSystem.hpp
+        src/Systems/SystemRegistry.hpp
+        src/Scene/Scene.hpp
+        src/Scene/SceneManager.hpp
+        src/Application/FileDropHandler.hpp
+        src/Application.hpp
+    PRIVATE
         src/Assets/AssetImporter.cpp
         src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
@@ -119,13 +181,12 @@ target_link_libraries(BonsaiEngineLib
     PRIVATE
         tinyobjloader::tinyobjloader
     PUBLIC
+        Bonsai::Core
+        Bonsai::Gfx
+        Bonsai::Math
         cereal::cereal
-        glm::glm
         EnTT::EnTT
         SDL3::SDL3
-        slang::slang
-        spdlog::spdlog
-        volk::volk_headers
 )
 
 # Set up bonsai engine binary target
@@ -142,7 +203,7 @@ target_compile_features(BonsaiEngine
 )
 target_link_libraries(BonsaiEngine
     PRIVATE
-        BonsaiEngineLib
+        BonsaiEngine::Lib
 )
 
 if (BONSAI_BUILD_TESTS)
