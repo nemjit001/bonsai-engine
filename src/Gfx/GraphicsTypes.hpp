@@ -40,6 +40,7 @@ namespace Bonsai
         static constexpr uint32_t   MaxGraphicsCommandBuffersPerFrame           = 32u;
         static constexpr uint32_t   MaxGraphicsCommandBuffersPerTransferBatch   = 8u;
 
+        static constexpr uint32_t   WholeSize               = UINT32_MAX;
         static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
         static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
         static constexpr float      LODClampNone            = 1'000.0F;
@@ -529,6 +530,22 @@ namespace Bonsai
         GraphicsSampler* const* staticSamplers;
     };
 
+    /// @brief Graphics descriptor buffer info.
+    struct GraphicsDescriptorBufferInfo
+    {
+        GraphicsBuffer* buffer;
+        size_t offset;
+        size_t range;
+    };
+
+    /// @brief Graphics descriptor image info.
+    struct GraphicsDescriptorImageInfo
+    {
+        GraphicsSampler* sampler;
+        GraphicsTextureView* textureView;
+        GraphicsTextureLayout textureLayout;
+    };
+
     /// @brief Shader entrypoint for shader pipelines.
     struct GraphicsShaderEntrypoint
     {
@@ -735,6 +752,18 @@ namespace Bonsai
     {
         size_t bindingCount = 0;
         GraphicsDescriptorSetLayoutBinding const* bindings = nullptr;
+    };
+
+    /// @brief Graphics descriptor set description.
+    struct GraphicsDescriptorSetDesc
+    {
+        GraphicsDescriptorSetLayout* descriptorSetLayout = nullptr;
+        uint32_t binding = 0;
+        uint32_t arrayElement = 0;
+        uint32_t descriptorCount = 0;
+        GraphicsDescriptorType descriptorType = GraphicsDescriptorType_Sampler;
+        GraphicsDescriptorBufferInfo const* bufferInfos = nullptr;
+        GraphicsDescriptorImageInfo const* imageInfos = nullptr;
     };
 
     /// @brief Graphics pipeline layout description.

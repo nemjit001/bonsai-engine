@@ -114,9 +114,31 @@ namespace Bonsai
             GraphicsComputePipeline* computePipeline
         ) override final;
 
+        void PushConstants(
+            GraphicsPipelineLayout* pipelineLayout,
+            GraphicsShaderStageFlags stages,
+            size_t offset,
+            size_t size,
+            void const* data
+        ) override final;
+
+        void BindRenderDescriptorSets(
+            GraphicsPipelineLayout* pipelineLayout,
+            size_t firstSet,
+            GraphicsDescriptorSet* const* descriptorSets,
+            size_t descriptorSetCount
+        ) override final;
+
+        void BindComputeDescriptorSets(
+            GraphicsPipelineLayout* pipelineLayout,
+            size_t firstSet,
+            GraphicsDescriptorSet* const* descriptorSets,
+            size_t descriptorSetCount
+        ) override final;
+
         void BindVertexBuffers(
             size_t firstSlot,
-            GraphicsBuffer** buffers,
+            GraphicsBuffer* const* buffers,
             size_t bufferCount,
             size_t* offsets
         ) override final;

@@ -26,6 +26,7 @@ namespace Bonsai
     {
         for (auto& frame : _frames)
         {
+            delete frame.descriptorSetAllocator;
             vkDestroyCommandPool(_device, frame.graphicsCommandPool, nullptr);
             vkDestroySemaphore(_device, frame.renderingFinishedSemaphore, nullptr);
             vkDestroyFence(_device, frame.frameReadyFence, nullptr);
@@ -89,6 +90,21 @@ namespace Bonsai
             if (VK_CHECK_FAILED(vkAllocateCommandBuffers(device, &frameCommandBufferAllocateInfo, &frameCommandBuffer))) {
                 return nullptr;
             }
+
+            // Create descriptor set allocator
+            VulkanDescriptorPoolSizeInfo poolSizeInfo{};
+            poolSizeInfo.descriptorSetCount = 4096;
+            poolSizeInfo.samplerDescriptorMultiplier = 2;
+            poolSizeInfo.combinedImageSamplerDescriptorMultiplier = 2;
+            poolSizeInfo.sampledImageDescriptorMultiplier = 2;
+            poolSizeInfo.storageImageDescriptorMultiplier = 4;
+            poolSizeInfo.storageBufferDescriptorMultiplier = 4;
+            poolSizeInfo.uniformBufferDescriptorMultiplier = 4;
+
+            VulkanDescriptorSetAllocator* descriptorSetAllocator = VulkanDescriptorSetAllocator::TryCreate(device, poolSizeInfo);
+            if (descriptorSetAllocator == nullptr) {
+                return nullptr;
+            }
             
             // Populate frame context
             frame = VulkanFrameContext{};
@@ -96,6 +112,7 @@ namespace Bonsai
             frame.renderingFinishedSemaphore = renderingFinishedSemaphore;
             frame.graphicsCommandPool = graphicsCommandPool;
             frame.frameCommandBuffer = frameCommandBuffer;
+            frame.descriptorSetAllocator = descriptorSetAllocator;
         }
 
         return new VulkanRenderContext(device, sharedDeviceState, std::move(frames));
@@ -258,6 +275,9 @@ namespace Bonsai
     {
         // Reset frame context
         frameContext.Reset();
+
+        // Reset descriptor set allocator
+        frameContext.descriptorSetAllocator->Reset();
 
         // Reset fence and command buffer
         if (VK_CHECK_FAILED(vkResetFences(_device, 1, &frameContext.frameReadyFence))

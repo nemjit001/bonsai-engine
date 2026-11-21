@@ -47,12 +47,12 @@ namespace Bonsai
 
         // Set up command state
         GraphicsCommandPipelineBarrier commandPipelineBarrier{};
-        commandPipelineBarrier.globalBarriers = storedGlobalBarriers;
         commandPipelineBarrier.globalBarrierCount = globalBarrierCount;
-        commandPipelineBarrier.bufferBarriers = storedBufferBarriers;
-        commandPipelineBarrier.bufferBarrierCount = bufferBarrierCount;
-        commandPipelineBarrier.textureBarriers = storedTextureBarriers;        
+        commandPipelineBarrier.bufferBarrierCount = bufferBarrierCount; 
         commandPipelineBarrier.textureBarrierCount = textureBarrierCount;
+        commandPipelineBarrier.globalBarriers = storedGlobalBarriers;
+        commandPipelineBarrier.bufferBarriers = storedBufferBarriers;
+        commandPipelineBarrier.textureBarriers = storedTextureBarriers;       
 
         GraphicsCommand command{};
         command.type = GraphicsCommandType_PipelineBarrier;
@@ -301,9 +301,102 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
+    void GraphicsCommandBufferImpl::PushConstants(
+        GraphicsPipelineLayout* pipelineLayout,
+        GraphicsShaderStageFlags stages,
+        size_t offset,
+        size_t size,
+        void const* data
+    )
+    {
+        // Ensure byte size does not exceed maximum
+        size = std::min(size, static_cast<size_t>(Graphics::MaxPushConstantsSize));
+
+        // Reinterpret data as byte buffer
+        uint8_t const* bytes = reinterpret_cast<uint8_t const*>(data);
+        std::array<uint8_t, Graphics::MaxPushConstantsSize> pushConstantData;
+        for (size_t i = 0; i < size; i++) {
+            pushConstantData[i] = bytes[i];
+        }
+
+        // Set up command state
+        GraphicsCommandPushConstants commandPushConstants{};
+        commandPushConstants.pipelineLayout = pipelineLayout;
+        commandPushConstants.stages = stages;
+        commandPushConstants.offset = offset;
+        commandPushConstants.size = size;
+        commandPushConstants.data = pushConstantData;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_PushConstants;
+        command.data.commandPushConstants = commandPushConstants;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindRenderDescriptorSets(
+        GraphicsPipelineLayout* pipelineLayout,
+        size_t firstSet,
+        GraphicsDescriptorSet* const* descriptorSets,
+        size_t descriptorSetCount
+    )
+    {
+        // Ensure bound descriptor set count does not exceed allowed maximum
+        descriptorSetCount = std::min(descriptorSetCount, static_cast<size_t>(Graphics::MaxBoundDescriptorSets));
+
+        // Copy over descriptor set data
+        std::array<GraphicsDescriptorSet*, Graphics::MaxBoundDescriptorSets> boundDescriptorSets;
+        for (size_t i = 0; i < descriptorSetCount; i++) {
+            boundDescriptorSets[i] = descriptorSets[i];
+        }
+
+        // Set up command state
+        GraphicsCommandBindDescriptorSets commandBindDescriptorSets{};
+        commandBindDescriptorSets.pipelineLayout = pipelineLayout;
+        commandBindDescriptorSets.firstSet = firstSet;
+        commandBindDescriptorSets.descriptorSetCount = descriptorSetCount;
+        commandBindDescriptorSets.descriptorSets = boundDescriptorSets;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindRenderDescriptorSets;
+        command.data.commandBindDescriptorSets = commandBindDescriptorSets;
+
+        _commands.push_back(command);
+    }
+
+    void GraphicsCommandBufferImpl::BindComputeDescriptorSets(
+        GraphicsPipelineLayout* pipelineLayout,
+        size_t firstSet,
+        GraphicsDescriptorSet* const* descriptorSets,
+        size_t descriptorSetCount
+    )
+    {
+        // Ensure bound descriptor set count does not exceed allowed maximum
+        descriptorSetCount = std::min(descriptorSetCount, static_cast<size_t>(Graphics::MaxBoundDescriptorSets));
+
+        // Copy over descriptor set data
+        std::array<GraphicsDescriptorSet*, Graphics::MaxBoundDescriptorSets> boundDescriptorSets;
+        for (size_t i = 0; i < descriptorSetCount; i++) {
+            boundDescriptorSets[i] = descriptorSets[i];
+        }
+
+        // Set up command state
+        GraphicsCommandBindDescriptorSets commandBindDescriptorSets{};
+        commandBindDescriptorSets.pipelineLayout = pipelineLayout;
+        commandBindDescriptorSets.firstSet = firstSet;
+        commandBindDescriptorSets.descriptorSetCount = descriptorSetCount;
+        commandBindDescriptorSets.descriptorSets = boundDescriptorSets;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_BindComputeDescriptorSets;
+        command.data.commandBindDescriptorSets = commandBindDescriptorSets;
+
+        _commands.push_back(command);
+    }
+
     void GraphicsCommandBufferImpl::BindVertexBuffers(
         size_t firstSlot,
-        GraphicsBuffer** buffers,
+        GraphicsBuffer* const* buffers,
         size_t bufferCount,
         size_t* offsets
     )
@@ -323,8 +416,8 @@ namespace Bonsai
         // Set up command state
         GraphicsCommandBindVertexBuffers commandBindVertexBuffers{};
         commandBindVertexBuffers.firsSlot = firstSlot;
-        commandBindVertexBuffers.buffers = vertexBuffers;
         commandBindVertexBuffers.bufferCount = bufferCount;
+        commandBindVertexBuffers.buffers = vertexBuffers;
         commandBindVertexBuffers.offsets = vertexOffsets;
 
         GraphicsCommand command{};
@@ -444,14 +537,16 @@ namespace Bonsai
             boundRenderAttachments[i] = renderAttachments[i];
         }
 
+        // Check for depth stencil attachment
+        bool const hasDepthStencilAttachment = depthStencilAttachment != nullptr;
+
         // Set up command state
         GraphicsCommandBeginRendering commandBeginRendering{};
         commandBeginRendering.renderArea = renderArea;
-        commandBeginRendering.renderAttachments = boundRenderAttachments;
         commandBeginRendering.renderAttachmentCount = renderAttachmentCount;
-        if (depthStencilAttachment != nullptr)
-        {
-            commandBeginRendering.hasDepthStencilAttachment = true;
+        commandBeginRendering.hasDepthStencilAttachment = hasDepthStencilAttachment;
+        commandBeginRendering.renderAttachments = boundRenderAttachments;
+        if (hasDepthStencilAttachment) {
             commandBeginRendering.depthStencilAttachment = *depthStencilAttachment;
         }
 

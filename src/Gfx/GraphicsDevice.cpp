@@ -277,6 +277,12 @@ namespace Bonsai
         return _objectFactory->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
     }
 
+    GraphicsDescriptorSet* GraphicsDevice::CreateDescriptorSet(FrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc)
+    {
+        auto* vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        return _objectFactory->CreateDescriptorSet(vulkanFrameContext, descriptorSetDesc);
+    }
+
     GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)
     {
         return _objectFactory->CreatePipelineLayout(pipelineLayoutDesc);
@@ -329,6 +335,13 @@ namespace Bonsai
     {
         if (descriptorSetLayout != nullptr) {
             descriptorSetLayout->ReleaseRef();
+        }
+    }
+
+    void GraphicsDevice::DestroyDescriptorSet(GraphicsDescriptorSet* descriptorSet)
+    {
+        if (descriptorSet != nullptr) {
+            descriptorSet->ReleaseRef();
         }
     }
 

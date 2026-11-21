@@ -30,6 +30,9 @@ namespace Bonsai
 
         GraphicsCommandType_BindRenderPipeline,
         GraphicsCommandType_BindComputePipeline,
+        GraphicsCommandType_PushConstants,
+        GraphicsCommandType_BindRenderDescriptorSets,
+        GraphicsCommandType_BindComputeDescriptorSets,
         GraphicsCommandType_BindVertexBuffers,
         GraphicsCommandType_BindIndexBuffer,
 
@@ -45,12 +48,12 @@ namespace Bonsai
 
     struct GraphicsCommandPipelineBarrier
     {
-        std::array<GraphicsBarrier, Graphics::MaxGlobalBarriers> globalBarriers;
         size_t globalBarrierCount;
-        std::array<GraphicsBufferBarrier, Graphics::MaxBufferBarriers> bufferBarriers;
         size_t bufferBarrierCount;
-        std::array<GraphicsTextureBarrier, Graphics::MaxTextureBarriers> textureBarriers;
         size_t textureBarrierCount;
+        std::array<GraphicsBarrier, Graphics::MaxGlobalBarriers> globalBarriers;
+        std::array<GraphicsBufferBarrier, Graphics::MaxBufferBarriers> bufferBarriers;
+        std::array<GraphicsTextureBarrier, Graphics::MaxTextureBarriers> textureBarriers;
     };
 
     struct GraphicsCommandCopyBufferToBuffer
@@ -144,11 +147,28 @@ namespace Bonsai
         GraphicsComputePipeline* computePipeline;
     };
 
+    struct GraphicsCommandPushConstants
+    {
+        GraphicsPipelineLayout* pipelineLayout;
+        GraphicsShaderStageFlags stages;
+        size_t offset;
+        size_t size;
+        std::array<uint8_t, Graphics::MaxPushConstantsSize> data;
+    };
+
+    struct GraphicsCommandBindDescriptorSets
+    {
+        GraphicsPipelineLayout* pipelineLayout;
+        size_t firstSet;
+        size_t descriptorSetCount;
+        std::array<GraphicsDescriptorSet*, Graphics::MaxBoundDescriptorSets> descriptorSets;
+    };
+
     struct GraphicsCommandBindVertexBuffers
     {
         size_t firsSlot;
-        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> buffers;
         size_t bufferCount;
+        std::array<GraphicsBuffer*, Graphics::MaxVertexInputBindings> buffers;
         std::array<size_t, Graphics::MaxVertexInputBindings> offsets;
     };
 
@@ -192,9 +212,9 @@ namespace Bonsai
     struct GraphicsCommandBeginRendering
     {
         Rect2D renderArea;
-        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> renderAttachments;
         size_t renderAttachmentCount;
         bool hasDepthStencilAttachment;
+        std::array<GraphicsRenderAttachmentInfo, Graphics::MaxRenderTargets> renderAttachments;
         GraphicsRenderAttachmentInfo depthStencilAttachment;
     };
 
@@ -224,6 +244,8 @@ namespace Bonsai
             GraphicsCommandSetStencilReference commandSetStencilReference;
             GraphicsCommandBindRenderPipeline commandBindRenderPipeline;
             GraphicsCommandBindComputePipeline commandBindComputePipeline;
+            GraphicsCommandPushConstants commandPushConstants;
+            GraphicsCommandBindDescriptorSets commandBindDescriptorSets;
             GraphicsCommandBindVertexBuffers commandBindVertexBuffers;
             GraphicsCommandBindIndexBuffer commandBindIndexBuffer;
             GraphicsCommandDrawIndexed commandDrawIndexed;

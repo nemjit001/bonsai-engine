@@ -73,6 +73,18 @@ namespace Bonsai
         vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
     }
 
+    VulkanDescriptorSet::VulkanDescriptorSet(VkDescriptorSet descriptorSet)
+        :
+        _descriptorSet(descriptorSet)
+    {
+        //
+    }
+
+    VulkanDescriptorSet::~VulkanDescriptorSet()
+    {
+        // descriptor sets are freed per pool
+    }
+
     VulkanPipelineLayout::VulkanPipelineLayout(VkDevice device, VkPipelineLayout pipelineLayout)
         :
         _device(device),

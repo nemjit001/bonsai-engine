@@ -7,6 +7,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "Gfx/Internal/GraphicsTypesInternal.hpp"
+#include "Gfx/Vulkan/VulkanDescriptorSetAllocator.hpp"
 
 namespace Bonsai
 {
@@ -119,6 +120,24 @@ namespace Bonsai
         VkDescriptorSetLayout _descriptorSetLayout;
     };
 
+    /// @brief Vulkan descriptor set implementation.
+    class VulkanDescriptorSet : public GraphicsDescriptorSet
+    {
+    public:
+        VulkanDescriptorSet(VkDescriptorSet descriptorSet);
+
+    protected:
+        ~VulkanDescriptorSet() override;
+
+    public:
+        /// @brief Get the Vulkan descriptor set handle.
+        /// @return The Vulkan descriptor set handle.
+        VkDescriptorSet GetDescriptorSet() const { return _descriptorSet; }        
+
+    private:
+        VkDescriptorSet _descriptorSet;
+    };
+
     /// @brief Vulkan pipeline layout implementation.
     class VulkanPipelineLayout : public GraphicsPipelineLayout
     {
@@ -208,6 +227,7 @@ namespace Bonsai
         VkSemaphore renderingFinishedSemaphore;
         VkCommandPool graphicsCommandPool;
         VkCommandBuffer frameCommandBuffer;
+        VulkanDescriptorSetAllocator* descriptorSetAllocator;
         std::vector<VulkanSwapchain*> participatingSwapchains;
         VulkanFrameSwapchainInfo swapchainInfo;
     };

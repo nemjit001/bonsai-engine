@@ -22,7 +22,7 @@ namespace Bonsai
         );
 
     public:
-        virtual ~VulkanObjectFactory();
+        ~VulkanObjectFactory();
 
         VulkanObjectFactory(VulkanObjectFactory const&) = delete;
         VulkanObjectFactory& operator=(VulkanObjectFactory const&) = delete;
@@ -65,6 +65,12 @@ namespace Bonsai
         /// @return A new Vulkan descriptor set layout.
         VulkanDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
 
+        /// @brief Create a Vulkan descriptor set for use in a given frame.
+        /// @param frameContext Frame to allocated Vulkan descriptor set for.
+        /// @param descriptorSetDesc Descriptor set description to use for creation.
+        /// @return A new Vulkan descriptor set.
+        VulkanDescriptorSet* CreateDescriptorSet(VulkanFrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc);
+
         /// @brief Create a Vulkan pipeline layout.
         /// @param pipelineLayoutDesc Pipeline layout description to use for creation.
         /// @return A new Vulkan pipeline layout.
@@ -106,6 +112,11 @@ namespace Bonsai
         /// @param memoryRequirements Memory requirements as queried from the resource.
         /// @return An optional Vulkan device memory allocation.
         std::optional<VkDeviceMemory> TryAllocateMemory(GraphicsHeapType heapType, VkMemoryRequirements const& memoryRequirements);
+
+        /// @brief Update a descriptor set based on a descriptor set description.
+        /// @param descriptorSet Descriptor set to update.
+        /// @param descriptorSetDesc Descriptor set description to use for update.
+        void UpdateDescriptorSet(VulkanDescriptorSet const* descriptorSet, GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Try to compile a render pipeline.
         /// @param renderPipelineDesc Render pipeline description to compile shaders for.

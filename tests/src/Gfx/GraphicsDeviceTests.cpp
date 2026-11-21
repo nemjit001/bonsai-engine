@@ -94,26 +94,6 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsTextureAndView)
     _graphicsDevice->DestroyTextureView(view);
 }
 
-TEST_F(GraphicsDeviceTests, TestCreateDescriptorSetLayout)
-{
-    // Set up descriptor set layout bindings
-    constexpr Bonsai::GraphicsDescriptorSetLayoutBinding bindings[] = {
-        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_StorageImage, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
-        Bonsai::GraphicsDescriptorSetLayoutBinding{ 1, Bonsai::GraphicsDescriptorType_UniformBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
-        Bonsai::GraphicsDescriptorSetLayoutBinding{ 2, Bonsai::GraphicsDescriptorType_StorageBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
-    };
-
-    // Attempt to create a descriptor set
-    Bonsai::GraphicsDescriptorSetLayoutDesc descriptorSetLayoutDesc{};
-    descriptorSetLayoutDesc.bindingCount = std::size(bindings);
-    descriptorSetLayoutDesc.bindings = bindings;
-
-    auto* descriptorSetLayout = _graphicsDevice->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
-    ASSERT_NE(descriptorSetLayout, nullptr);
-
-    _graphicsDevice->DestroyDescriptorSetLayout(descriptorSetLayout);
-}
-
 TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
 {
     // Attempt to create a sampler
@@ -135,6 +115,79 @@ TEST_F(GraphicsDeviceTests, TestCreateGraphicsSampler)
     ASSERT_NE(sampler, nullptr);
 
     _graphicsDevice->DestroySampler(sampler);
+}
+
+TEST_F(GraphicsDeviceTests, TestCreateDescriptorSetLayout)
+{
+    // Set up descriptor set layout bindings
+    constexpr Bonsai::GraphicsDescriptorSetLayoutBinding bindings[] = {
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_StorageImage, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 1, Bonsai::GraphicsDescriptorType_UniformBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 2, Bonsai::GraphicsDescriptorType_StorageBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+    };
+
+    // Attempt to create a descriptor set
+    Bonsai::GraphicsDescriptorSetLayoutDesc descriptorSetLayoutDesc{};
+    descriptorSetLayoutDesc.bindingCount = std::size(bindings);
+    descriptorSetLayoutDesc.bindings = bindings;
+
+    auto* descriptorSetLayout = _graphicsDevice->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
+    ASSERT_NE(descriptorSetLayout, nullptr);
+
+    _graphicsDevice->DestroyDescriptorSetLayout(descriptorSetLayout);
+}
+
+TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
+{
+    // Set up descriptor set layout bindings
+    constexpr Bonsai::GraphicsDescriptorSetLayoutBinding bindings[] = {
+        Bonsai::GraphicsDescriptorSetLayoutBinding{ 0, Bonsai::GraphicsDescriptorType_UniformBuffer, 1, Bonsai::GraphicsShaderStage_AllGraphics, nullptr },
+    };
+
+    // Attempt to create a descriptor set
+    Bonsai::GraphicsDescriptorSetLayoutDesc descriptorSetLayoutDesc{};
+    descriptorSetLayoutDesc.bindingCount = std::size(bindings);
+    descriptorSetLayoutDesc.bindings = bindings;
+
+    auto* descriptorSetLayout = _graphicsDevice->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
+    ASSERT_NE(descriptorSetLayout, nullptr);
+
+    // Set up buffer
+    Bonsai::GraphicsBufferDesc storageBufferDesc{};
+    storageBufferDesc.heapType = Bonsai::GraphicsHeapType_Default;
+    storageBufferDesc.size = 1024;
+    storageBufferDesc.usage = Bonsai::GraphicsBufferUsage_UniformBuffer;
+
+    auto* buffer = _graphicsDevice->CreateBuffer(storageBufferDesc);
+    ASSERT_NE(buffer, nullptr);
+
+    // Start a new frame
+    Bonsai::FrameContext* frame = _graphicsDevice->StartFrame(nullptr, 0);
+    ASSERT_NE(frame, nullptr);
+
+    // Create buffer descriptor set
+    Bonsai::GraphicsDescriptorBufferInfo bufferDescriptorInfo{};
+    bufferDescriptorInfo.buffer = buffer;
+    bufferDescriptorInfo.offset = 0;
+    bufferDescriptorInfo.range = Bonsai::Graphics::WholeSize;
+    
+    Bonsai::GraphicsDescriptorSetDesc descriptorSetDesc{};
+    descriptorSetDesc.descriptorSetLayout = descriptorSetLayout;
+    descriptorSetDesc.binding = 0;
+    descriptorSetDesc.arrayElement = 0;
+    descriptorSetDesc.descriptorCount = 1;
+    descriptorSetDesc.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
+    descriptorSetDesc.bufferInfos = &bufferDescriptorInfo;
+    descriptorSetDesc.imageInfos = nullptr;
+
+    auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(frame, descriptorSetDesc);
+    ASSERT_NE(descriptorSet, nullptr);
+    
+    _graphicsDevice->SubmitFrame(frame);
+
+    _graphicsDevice->DestroyDescriptorSet(descriptorSet);
+    _graphicsDevice->DestroyBuffer(buffer);
+    _graphicsDevice->DestroyDescriptorSetLayout(descriptorSetLayout);
 }
 
 TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
