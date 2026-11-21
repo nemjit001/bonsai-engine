@@ -65,17 +65,21 @@ target_sources(BonsaiEngineLib
         src/Core/Logger.cpp
         src/Gfx/GraphicsDevice.cpp
         src/Gfx/ShaderCompiler.cpp
-        src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
-        src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
+        src/Gfx/Internal/GraphicsCommandBufferImpl.cpp
+        src/Gfx/Internal/GraphicsCommandBufferImpl.hpp
         src/Gfx/Internal/GraphicsCommandBufferPool.cpp
         src/Gfx/Internal/GraphicsCommandBufferPool.hpp
         src/Gfx/Internal/GraphicsCommands.hpp
+        src/Gfx/Internal/GraphicsDeviceImpl.cpp
+        src/Gfx/Internal/GraphicsDeviceImpl.hpp
         src/Gfx/Internal/GraphicsTypesInternal.cpp
         src/Gfx/Internal/GraphicsTypesInternal.hpp
         src/Gfx/Vulkan/VulkanCommandRecorder.cpp
         src/Gfx/Vulkan/VulkanCommandRecorder.hpp
         src/Gfx/Vulkan/VulkanDescriptorSetAllocator.cpp
         src/Gfx/Vulkan/VulkanDescriptorSetAllocator.hpp
+        src/Gfx/Vulkan/VulkanGraphicsDevice.cpp
+        src/Gfx/Vulkan/VulkanGraphicsDevice.hpp
         src/Gfx/Vulkan/VulkanGraphicsHelpers.cpp
         src/Gfx/Vulkan/VulkanGraphicsHelpers.hpp
         src/Gfx/Vulkan/VulkanGraphicsTypes.cpp

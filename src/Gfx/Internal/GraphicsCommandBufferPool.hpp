@@ -3,7 +3,7 @@
 #define BONSAI_GRAPHICS_COMMAND_BUFFER_POOL_HPP
 
 #include "Gfx/GraphicsTypes.hpp"
-#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
+#include "Gfx/Internal/GraphicsCommandBufferImpl.hpp"
 
 namespace Bonsai
 {

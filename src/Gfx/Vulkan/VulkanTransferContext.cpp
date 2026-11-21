@@ -135,9 +135,8 @@ namespace Bonsai
         // Record transfer commands
         for (auto const& commandBuffer : transferBatch->commandBuffers)
         {
-            auto* commandBufferImpl = static_cast<GraphicsCommandBufferImpl*>(commandBuffer);
-            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, commandBufferImpl);
-            commandBufferImpl->Reset();
+            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, commandBuffer);
+            commandBuffer->Reset();
         }
 
         // End command buffer recording

@@ -183,9 +183,8 @@ namespace Bonsai
         // Record frame commands
         for (auto const& commandBuffer : frameContext->commandBuffers)
         {
-            auto* commandBufferImpl = static_cast<GraphicsCommandBufferImpl*>(commandBuffer);
-            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, commandBufferImpl);
-            commandBufferImpl->Reset();
+            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, commandBuffer);
+            commandBuffer->Reset();
         }
 
         // Prepare all swapchains for presentation

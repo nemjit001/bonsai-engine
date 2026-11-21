@@ -4,8 +4,9 @@
 
 #include <array>
 #include <atomic>
+#include <vector>
+#include "Gfx/GraphicsCommandBuffer.hpp"
 #include "Gfx/GraphicsTypes.hpp"
-#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
 
 namespace Bonsai
 {
