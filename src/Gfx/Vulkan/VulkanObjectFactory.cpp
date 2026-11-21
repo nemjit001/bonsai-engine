@@ -14,15 +14,13 @@ namespace Bonsai
         VkInstance instance,
         VkPhysicalDevice physicalDevice,
         VkDevice device,
-        VulkanSharedDeviceState* sharedDeviceState,
-        std::unique_ptr<VulkanDescriptorSetAllocator>&& descriptorSetAllocator
+        VulkanSharedDeviceState* sharedDeviceState
     )
         :
         _instance(instance),
         _physicalDevice(physicalDevice),
         _device(device),
-        _sharedDeviceState(sharedDeviceState),
-        _descriptorSetAllocator(std::move(descriptorSetAllocator))
+        _sharedDeviceState(sharedDeviceState)
     {
         //
     }
@@ -44,24 +42,7 @@ namespace Bonsai
         assert(device != VK_NULL_HANDLE && "Vulkan device was VK_NULL_HANDLE!");
         assert(sharedDeviceState != nullptr && "Shared device state was null!");
 
-        // Create descriptor set allocator with average descriptor usage per set
-        VulkanDescriptorPoolSizeInfo poolSizeInfo{};
-        poolSizeInfo.descriptorSetCount = 4096;
-        poolSizeInfo.samplerDescriptorMultiplier = 2;
-        poolSizeInfo.combinedImageSamplerDescriptorMultiplier = 2;
-        poolSizeInfo.sampledImageDescriptorMultiplier = 2;
-        poolSizeInfo.storageImageDescriptorMultiplier = 4;
-        poolSizeInfo.uniformBufferDescriptorMultiplier = 4;
-        poolSizeInfo.storageBufferDescriptorMultiplier = 4;
-
-        auto descriptorSetAllocator = std::unique_ptr<VulkanDescriptorSetAllocator>(VulkanDescriptorSetAllocator::TryCreate(device, poolSizeInfo));
-        if (!descriptorSetAllocator)
-        {
-            SPDLOG_ERROR("Failed to create Vulkan descriptor set allocator");
-            return nullptr;
-        }
-
-        return new VulkanObjectFactory(instance, physicalDevice, device, sharedDeviceState, std::move(descriptorSetAllocator));
+        return new VulkanObjectFactory(instance, physicalDevice, device, sharedDeviceState);
     }
     
     VulkanBuffer* VulkanObjectFactory::CreateBuffer(GraphicsBufferDesc const& bufferDesc)
@@ -291,12 +272,12 @@ namespace Bonsai
         return new VulkanDescriptorSetLayout(_device, descriptorSetLayout);
     }
 
-    VulkanDescriptorSet* VulkanObjectFactory::CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc)
+    VulkanDescriptorSet* VulkanObjectFactory::CreateDescriptorSet(VulkanFrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc)
     {
         auto* vulkanDescriptorSetLayout = static_cast<VulkanDescriptorSetLayout*>(descriptorSetDesc.descriptorSetLayout);
 
-        // Allocate descriptor set
-        VulkanDescriptorSet* descriptorSet = _descriptorSetAllocator->AllocateDescriptorSet(vulkanDescriptorSetLayout);
+        // Allocate descriptor set from frame
+        VulkanDescriptorSet* descriptorSet = frameContext->descriptorSetAllocator->AllocateDescriptorSet(vulkanDescriptorSetLayout);
         if (descriptorSet == nullptr) {
             return nullptr;
         }

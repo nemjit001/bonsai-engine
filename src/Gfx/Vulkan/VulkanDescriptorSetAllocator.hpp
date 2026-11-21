@@ -53,6 +53,10 @@ namespace Bonsai
         /// @return The new descriptor set.
         VulkanDescriptorSet* AllocateDescriptorSet(VulkanDescriptorSetLayout const* setLayout);
 
+        /// @brief Reset descriptor pools.
+        /// This will invalidate all descriptor set allocations from this allocator.
+        void Reset();
+
     private:
         /// @brief Create a new descriptor pool.
         /// @param device Device to use for pool creation.
@@ -60,10 +64,18 @@ namespace Bonsai
         /// @return The new descriptor pool.
         static VkDescriptorPool CreateNewDescriptorPool(VkDevice device, VulkanDescriptorPoolSizeInfo const& poolSizeInfo);
 
+        /// @brief Attempt to allocate a descriptor set from a descriptor pool.
+        /// @param pool Descriptor pool to allocate from.
+        /// @param setLayout Set layout to use for allocation.
+        /// @param outDescriptorSet Output descriptor set.
+        /// @return A boolean indicating successful allocation.
+        bool TryAllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout setLayout, VkDescriptorSet* outDescriptorSet);
+
     private:
         VkDevice _device;
         VulkanDescriptorPoolSizeInfo _poolSizeInfo;
         std::vector<VkDescriptorPool> _descriptorPools;
+        uint32_t _activePool = 0;
     };
 } // namespace Bonsai
 

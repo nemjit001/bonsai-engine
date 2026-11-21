@@ -4,15 +4,12 @@
 
 #define VK_NO_PROTOTYPES
 
-#include <memory>
 #include <optional>
 #include <vulkan/vulkan.h>
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
 namespace Bonsai
 {
-    class VulkanDescriptorSetAllocator;
-
     /// @brief Factory for creating Vulkan graphics objects.
     class VulkanObjectFactory
     {
@@ -21,8 +18,7 @@ namespace Bonsai
             VkInstance instance,
             VkPhysicalDevice physicalDevice,
             VkDevice device,
-            VulkanSharedDeviceState* sharedDeviceState,
-            std::unique_ptr<VulkanDescriptorSetAllocator>&& descriptorSetAllocator
+            VulkanSharedDeviceState* sharedDeviceState
         );
 
     public:
@@ -69,10 +65,11 @@ namespace Bonsai
         /// @return A new Vulkan descriptor set layout.
         VulkanDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
 
-        /// @brief Create a Vulkan descriptor set.
+        /// @brief Create a Vulkan descriptor set for use in a given frame.
+        /// @param frameContext Frame to allocated Vulkan descriptor set for.
         /// @param descriptorSetDesc Descriptor set description to use for creation.
         /// @return A new Vulkan descriptor set.
-        VulkanDescriptorSet* CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc);
+        VulkanDescriptorSet* CreateDescriptorSet(VulkanFrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Create a Vulkan pipeline layout.
         /// @param pipelineLayoutDesc Pipeline layout description to use for creation.
@@ -144,7 +141,6 @@ namespace Bonsai
         VkPhysicalDevice _physicalDevice;
         VkDevice _device;
         VulkanSharedDeviceState* _sharedDeviceState;
-        std::unique_ptr<VulkanDescriptorSetAllocator> _descriptorSetAllocator;
     };
 } // namespace Bonsai
 

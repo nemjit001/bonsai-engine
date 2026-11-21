@@ -161,6 +161,10 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     auto* buffer = _graphicsDevice->CreateBuffer(storageBufferDesc);
     ASSERT_NE(buffer, nullptr);
 
+    // Start a new frame
+    Bonsai::FrameContext* frame = _graphicsDevice->StartFrame(nullptr, 0);
+    ASSERT_NE(frame, nullptr);
+
     // Create buffer descriptor set
     Bonsai::GraphicsDescriptorBufferInfo bufferDescriptorInfo{};
     bufferDescriptorInfo.buffer = buffer;
@@ -176,8 +180,10 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     descriptorSetDesc.bufferInfos = &bufferDescriptorInfo;
     descriptorSetDesc.imageInfos = nullptr;
 
-    auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(descriptorSetDesc);
+    auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(frame, descriptorSetDesc);
     ASSERT_NE(descriptorSet, nullptr);
+    
+    _graphicsDevice->SubmitFrame(frame);
 
     _graphicsDevice->DestroyDescriptorSet(descriptorSet);
     _graphicsDevice->DestroyBuffer(buffer);

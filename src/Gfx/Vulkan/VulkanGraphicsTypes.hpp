@@ -7,6 +7,7 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "Gfx/Internal/GraphicsTypesInternal.hpp"
+#include "Gfx/Vulkan/VulkanDescriptorSetAllocator.hpp"
 
 namespace Bonsai
 {
@@ -123,7 +124,7 @@ namespace Bonsai
     class VulkanDescriptorSet : public GraphicsDescriptorSet
     {
     public:
-        VulkanDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSet descriptorSet);
+        VulkanDescriptorSet(VkDescriptorSet descriptorSet);
 
     protected:
         ~VulkanDescriptorSet() override;
@@ -134,8 +135,6 @@ namespace Bonsai
         VkDescriptorSet GetDescriptorSet() const { return _descriptorSet; }        
 
     private:
-        VkDevice _device;
-        VkDescriptorPool _descriptorPool;
         VkDescriptorSet _descriptorSet;
     };
 
@@ -228,6 +227,7 @@ namespace Bonsai
         VkSemaphore renderingFinishedSemaphore;
         VkCommandPool graphicsCommandPool;
         VkCommandBuffer frameCommandBuffer;
+        VulkanDescriptorSetAllocator* descriptorSetAllocator;
         std::vector<VulkanSwapchain*> participatingSwapchains;
         VulkanFrameSwapchainInfo swapchainInfo;
     };

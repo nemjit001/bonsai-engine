@@ -277,9 +277,10 @@ namespace Bonsai
         return _objectFactory->CreateDescriptorSetLayout(descriptorSetLayoutDesc);
     }
 
-    GraphicsDescriptorSet* GraphicsDevice::CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc)
+    GraphicsDescriptorSet* GraphicsDevice::CreateDescriptorSet(FrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc)
     {
-        return _objectFactory->CreateDescriptorSet(descriptorSetDesc);
+        auto* vulkanFrameContext = static_cast<VulkanFrameContext*>(frameContext);
+        return _objectFactory->CreateDescriptorSet(vulkanFrameContext, descriptorSetDesc);
     }
 
     GraphicsPipelineLayout* GraphicsDevice::CreatePipelineLayout(GraphicsPipelineLayoutDesc const& pipelineLayoutDesc)

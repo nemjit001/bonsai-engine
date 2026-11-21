@@ -14,7 +14,8 @@ namespace Bonsai
     )
         :
         _device(device),
-        _poolSizeInfo(poolSizeInfo)
+        _poolSizeInfo(poolSizeInfo),
+        _activePool(0)
     {
         _descriptorPools.push_back(firstDescriptorPool);
     }
@@ -46,43 +47,40 @@ namespace Bonsai
 
     VulkanDescriptorSet* VulkanDescriptorSetAllocator::AllocateDescriptorSet(VulkanDescriptorSetLayout const* setLayout)
     {
-        // Get active descriptor pool
-        VkDescriptorPool activePool = _descriptorPools.back();
-
-        // Attempt to allocate a new descriptor set
-        VkDescriptorSetLayout setLayoutHandle = setLayout->GetDescriptorSetLayout();
-
-        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
-        descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        descriptorSetAllocateInfo.pNext = nullptr;
-        descriptorSetAllocateInfo.descriptorPool = activePool;
-        descriptorSetAllocateInfo.descriptorSetCount = 1;
-        descriptorSetAllocateInfo.pSetLayouts = &setLayoutHandle;
-        
+        // Attempt to allocate from all previously active pools.
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-        if (VK_CHECK_FAILED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, &descriptorSet)))
+        for (size_t i = 0; i < _activePool + 1; i++)
         {
-            // Create new descriptor pool
-            VkDescriptorPool newDescriptorPool = CreateNewDescriptorPool(_device, _poolSizeInfo);
-            if (newDescriptorPool == VK_NULL_HANDLE)
-            {
-                SPDLOG_ERROR("Failed to create new descriptor pool");
-                return nullptr;
-            }
-
-            // Store in descriptor pool storage
-            _descriptorPools.push_back(newDescriptorPool);
-
-            // Update allocate info and reattempt allocation
-            activePool = _descriptorPools.back();
-            descriptorSetAllocateInfo.descriptorPool = activePool;
-            if (VK_CHECK_FAILED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, &descriptorSet))) {
-                return nullptr;
+            VkDescriptorPool const activePool = _descriptorPools[i];
+            if (TryAllocateDescriptorSet(activePool, setLayout->GetDescriptorSetLayout(), &descriptorSet)) {
+                // Create new Vulkan descriptor set
+                return new VulkanDescriptorSet(descriptorSet);
             }
         }
 
-        // Create new Vulkan descriptor set
-        return new VulkanDescriptorSet(_device, activePool, descriptorSet);
+        // Create new descriptor pool if needed
+        if (_activePool + 1 >= _descriptorPools.size()) {
+            VkDescriptorPool descriptorPool = CreateNewDescriptorPool(_device, _poolSizeInfo);
+            if (descriptorPool == VK_NULL_HANDLE) {
+                SPDLOG_WARN("Failed to create a new descriptor pool");
+                return nullptr;
+            }
+
+            _descriptorPools.push_back(descriptorPool);
+        }
+
+        // Bump active pool index for next allocation attempt
+        _activePool++;
+        return nullptr;
+    }
+
+    void VulkanDescriptorSetAllocator::Reset()
+    {
+        for (auto const& pool : _descriptorPools) {
+            vkResetDescriptorPool(_device, pool, 0);
+        }
+
+        _activePool = 0;
     }
 
     VkDescriptorPool VulkanDescriptorSetAllocator::CreateNewDescriptorPool(VkDevice device, VulkanDescriptorPoolSizeInfo const& poolSizeInfo)
@@ -99,7 +97,7 @@ namespace Bonsai
         VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{};
         descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolCreateInfo.pNext = nullptr;
-        descriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // We will free descriptor sets
+        descriptorPoolCreateInfo.flags = 0;
         descriptorPoolCreateInfo.maxSets = poolSizeInfo.descriptorSetCount;
         descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(std::size(poolSizes));
         descriptorPoolCreateInfo.pPoolSizes = poolSizes;
@@ -110,5 +108,18 @@ namespace Bonsai
         }
 
         return descriptorPool;
+    }
+
+    bool VulkanDescriptorSetAllocator::TryAllocateDescriptorSet(VkDescriptorPool pool, VkDescriptorSetLayout setLayout, VkDescriptorSet* outDescriptorSet)
+    {
+        // Attempt to allocate a new descriptor set
+        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
+        descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        descriptorSetAllocateInfo.pNext = nullptr;
+        descriptorSetAllocateInfo.descriptorPool = pool;
+        descriptorSetAllocateInfo.descriptorSetCount = 1;
+        descriptorSetAllocateInfo.pSetLayouts = &setLayout;
+        
+        return VK_CHECK_SUCCEEDED(vkAllocateDescriptorSets(_device, &descriptorSetAllocateInfo, outDescriptorSet));
     }
 } // namespace Bonsai

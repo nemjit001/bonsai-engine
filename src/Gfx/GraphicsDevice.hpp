@@ -82,10 +82,11 @@ namespace Bonsai
         /// @return A new descriptor set layout, or nullptr on failure.
         [[nodiscard]] GraphicsDescriptorSetLayout* CreateDescriptorSetLayout(GraphicsDescriptorSetLayoutDesc const& descriptorSetLayoutDesc);
  
-        /// @brief Create a descriptor set using this graphics device.
+        /// @brief Create a descriptor set using this graphics device. Descriptor sets are invalidated after frame completion.
+        /// @param frameContext Frame context to allocate a descriptor set for.
         /// @param descriptorSetDesc Descriptor set description.
         /// @return A new descriptor set, or nullptr on failure.
-        [[nodiscard]] GraphicsDescriptorSet* CreateDescriptorSet(GraphicsDescriptorSetDesc const& descriptorSetDesc);
+        [[nodiscard]] GraphicsDescriptorSet* CreateDescriptorSet(FrameContext* frameContext, GraphicsDescriptorSetDesc const& descriptorSetDesc);
 
         /// @brief Create a pipeline layout using this graphics device.
         /// @param pipelineLayoutDesc Pipeline description.
