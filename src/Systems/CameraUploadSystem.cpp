@@ -1,7 +1,7 @@
 #include "CameraUploadSystem.hpp"
 
 #include <cassert>
-#include "Renderer/CameraConstantBuffer.hpp"
+#include "Renderer/ShaderTypes.hpp"
 #include "Components/CameraComponent.hpp"
 #include "Components/TransformComponent.hpp"
 
@@ -34,7 +34,7 @@ namespace Bonsai
             // Create camera constant buffer
             GraphicsBufferDesc cameraConstantBufferDesc{};
             cameraConstantBufferDesc.heapType = GraphicsHeapType_Upload; // Use an upload heap, since this will be updated every frame
-            cameraConstantBufferDesc.size = sizeof(CameraConstantBuffer);
+            cameraConstantBufferDesc.size = sizeof(Shader::Camera);
             cameraConstantBufferDesc.usage = GraphicsBufferUsage_UniformBuffer;
 
             graphicsDevice->DestroyBuffer(cameraComponent.cameraConstantBuffer);
@@ -49,10 +49,10 @@ namespace Bonsai
             glm::mat4 const projectMatrix = cameraComponent.camera.GetProjectionMatrix();
 
             // Copy camera data to buffer
-            CameraConstantBuffer cameraConstantBufferData{};
-            cameraConstantBufferData.viewProjectMatrix = projectMatrix * viewMatrix;
+            Shader::Camera cameraData{};
+            cameraData.viewProjectMatrix = projectMatrix * viewMatrix;
 
-            graphicsDevice->CopyToBuffer(cameraComponent.cameraConstantBuffer, &cameraConstantBufferData, sizeof(CameraConstantBuffer), 0);
+            graphicsDevice->CopyToBuffer(cameraComponent.cameraConstantBuffer, &cameraData, sizeof(cameraData), 0);
         }
     }
 } // namespace Bonsai

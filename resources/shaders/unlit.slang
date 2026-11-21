@@ -21,18 +21,16 @@ struct PixelOutput
     float4 color : SV_Target0;
 };
 
-ConstantBuffer<Camera> CameraCB;
-ConstantBuffer<ObjectTransform> ObjectTransformCB;
+[[vk::binding(0, 0)]] ConstantBuffer<Camera> CameraCB : register(b0, space0);
+[[vk::binding(0, 1)]] ConstantBuffer<ObjectTransform> ObjectTransformCB : register(b0, space1);
 
 [shader("vertex")]
 VertexOutput VSUnlitMain(VertexInput input)
 {
-    // Transform vertex attributes
     float4 position = mul(ObjectTransformCB.model, float4(input.position, 1.0));
     float4 normal = mul(ObjectTransformCB.normal, float4(input.normal, 0.0));
     float4 tangent = mul(ObjectTransformCB.normal, float4(input.tangent, 0.0));
 
-    // Emit vertex
     VertexOutput result = (VertexOutput)0;
     result.position = mul(CameraCB.viewProject, position);
     result.normal = normal;
@@ -44,7 +42,6 @@ VertexOutput VSUnlitMain(VertexInput input)
 [shader("pixel")]
 PixelOutput PSUnlitMain(VertexOutput input)
 {
-    // Emit unlit color
     PixelOutput result = (PixelOutput)0;
     result.color = float4(input.texCoords, 0.0, 1.0);
     return result;

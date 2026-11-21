@@ -138,8 +138,8 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
-        src/Renderer/CameraConstantBuffer.hpp
         src/Renderer/RenderManager.hpp
+        src/Renderer/ShaderTypes.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
