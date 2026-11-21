@@ -328,11 +328,69 @@ namespace Bonsai
             auto* vulkanComputePipeline = static_cast<VulkanComputePipeline*>(commandData.computePipeline);
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanComputePipeline->GetPipeline());
         } break;
+        case GraphicsCommandType_PushConstants: {
+            GraphicsCommandPushConstants const& commandData = command.data.commandPushConstants;
+            auto* vulkanPipelineLayout = static_cast<VulkanPipelineLayout*>(commandData.pipelineLayout);
+
+            vkCmdPushConstants(
+                commandBuffer,
+                vulkanPipelineLayout->GetPipelineLayout(),
+                VulkanGraphicsHelpers::GetVulkanShaderStageFlags(commandData.stages),
+                static_cast<uint32_t>(commandData.offset),
+                static_cast<uint32_t>(commandData.size),
+                reinterpret_cast<void const*>(commandData.data.data())
+            );
+        } break;
+        case GraphicsCommandType_BindRenderDescriptorSets: {
+            GraphicsCommandBindDescriptorSets const& commandData = command.data.commandBindDescriptorSets;
+            auto* vulkanPipelineLayout = static_cast<VulkanPipelineLayout*>(commandData.pipelineLayout);
+
+            std::array<VkDescriptorSet, Graphics::MaxBoundDescriptorSets> descriptorSets;
+            for (size_t i = 0; i < commandData.descriptorSetCount; i++)
+            {
+                auto* vulkanDescriptorSet = static_cast<VulkanDescriptorSet*>(commandData.descriptorSets[i]);
+                descriptorSets[i] = vulkanDescriptorSet->GetDescriptorSet();
+            }
+
+            vkCmdBindDescriptorSets(
+                commandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                vulkanPipelineLayout->GetPipelineLayout(),
+                static_cast<uint32_t>(commandData.firstSet),
+                static_cast<uint32_t>(commandData.descriptorSetCount),
+                descriptorSets.data(),
+                0,
+                nullptr
+            );
+        } break;
+        case GraphicsCommandType_BindComputeDescriptorSets: {
+            GraphicsCommandBindDescriptorSets const& commandData = command.data.commandBindDescriptorSets;
+            auto* vulkanPipelineLayout = static_cast<VulkanPipelineLayout*>(commandData.pipelineLayout);
+
+            std::array<VkDescriptorSet, Graphics::MaxBoundDescriptorSets> descriptorSets;
+            for (size_t i = 0; i < commandData.descriptorSetCount; i++)
+            {
+                auto* vulkanDescriptorSet = static_cast<VulkanDescriptorSet*>(commandData.descriptorSets[i]);
+                descriptorSets[i] = vulkanDescriptorSet->GetDescriptorSet();
+            }
+
+            vkCmdBindDescriptorSets(
+                commandBuffer,
+                VK_PIPELINE_BIND_POINT_COMPUTE,
+                vulkanPipelineLayout->GetPipelineLayout(),
+                static_cast<uint32_t>(commandData.firstSet),
+                static_cast<uint32_t>(commandData.descriptorSetCount),
+                descriptorSets.data(),
+                0,
+                nullptr
+            );
+        } break;
         case GraphicsCommandType_BindVertexBuffers: {
             GraphicsCommandBindVertexBuffers const& commandData = command.data.commandBindVertexBuffers;
             
             std::array<VkBuffer, Graphics::MaxVertexInputBindings> vertexBuffers;
-            for (size_t i = 0; i < commandData.bufferCount; i++) {
+            for (size_t i = 0; i < commandData.bufferCount; i++)
+            {
                 auto* vulkanBuffer = static_cast<VulkanBuffer*>(commandData.buffers[i]);
                 vertexBuffers[i] = vulkanBuffer->GetBuffer();
             }
