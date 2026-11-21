@@ -6,6 +6,7 @@ enable_testing()
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
 # Enable global options
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
 
 # Include cmake helpers
@@ -204,6 +205,10 @@ target_compile_features(BonsaiEngine
 target_link_libraries(BonsaiEngine
     PRIVATE
         BonsaiEngine::Lib
+)
+target_copy_resource_files(BonsaiEngine
+    resources/shaders/common.slang
+    resources/shaders/unlit.slang
 )
 
 if (BONSAI_BUILD_TESTS)
