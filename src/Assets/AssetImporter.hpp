@@ -3,7 +3,7 @@
 #define BONSAI_ASSET_IMPORTER_HPP
 
 #include <memory>
-#include "Core/Filesystem.hpp"
+#include <Core/Filesystem.hpp>
 #include "Assets/AssetType.hpp"
 
 namespace Bonsai

@@ -2,7 +2,7 @@
 #ifndef BONSAI_TRANSFORM_COMPONENT_HPP
 #define BONSAI_TRANSFORM_COMPONENT_HPP
 
-#include "Math/Math.hpp"
+#include <Math/Math.hpp>
 
 namespace Bonsai
 {

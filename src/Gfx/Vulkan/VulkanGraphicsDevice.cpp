@@ -6,8 +6,8 @@
 #include <cstring>
 #include <SDL3/SDL_vulkan.h>
 #include <volk.h>
-#include "Core/Logger.hpp"
-#include "Core/PlatformDefines.hpp"
+#include <Core/Logger.hpp>
+#include <Core/PlatformDefines.hpp>
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"

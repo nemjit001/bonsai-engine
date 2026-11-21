@@ -3,7 +3,7 @@
 #define BONSAI_CAMERA_HPP
 
 #include <cstdint>
-#include "Math/Math.hpp"
+#include <Math/Math.hpp>
 
 namespace Bonsai
 {

@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 #include "Gfx/Internal/GraphicsCommandBufferImpl.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"

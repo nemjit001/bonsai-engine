@@ -1,6 +1,6 @@
 #include "CameraInitSystem.hpp"
 
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 #include "Components/CameraComponent.hpp"
 #include "Components/TransformComponent.hpp"
 

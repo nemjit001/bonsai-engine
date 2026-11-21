@@ -2,7 +2,7 @@
 #ifndef BONSAI_RENDER_MESH_COMPONENT_HPP
 #define BONSAI_RENDER_MESH_COMPONENT_HPP
 
-#include "Gfx/GraphicsDevice.hpp"
+#include <Gfx/GraphicsTypes.hpp>
 
 namespace Bonsai
 {
@@ -10,8 +10,8 @@ namespace Bonsai
     // TODO(nemjit001): Replace buffers in component with handle into a graphics resource store to avoid duplicating mesh data in GPU memory
     struct RenderMeshComponent
     {
-        GraphicsBuffer* vertexBuffer;
-        GraphicsBuffer* indexBuffer;
+        GraphicsBuffer* vertexBuffer = nullptr;
+        GraphicsBuffer* indexBuffer = nullptr;
     };
 } // namespace Bonsai
 

@@ -2,7 +2,7 @@
 #ifndef BONSAI_CAMERA_CONSTANCT_BUFFER_HPP
 #define BONSAI_CAMERA_CONSTANCT_BUFFER_HPP
 
-#include "Math/Math.hpp"
+#include <Math/Math.hpp>
 
 namespace Bonsai
 {

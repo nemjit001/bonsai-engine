@@ -2,7 +2,7 @@
 #ifndef BONSAI_FILE_DROP_HANDLER_HPP
 #define BONSAI_FILE_DROP_HANDLER_HPP
 
-#include "Core/Filesystem.hpp"
+#include <Core/Filesystem.hpp>
 #include "Assets/AssetManager.hpp"
 #include "Scene/SceneManager.hpp"
 

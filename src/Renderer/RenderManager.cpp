@@ -1,6 +1,6 @@
 #include "RenderManager.hpp"
 
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 
 namespace Bonsai
 {

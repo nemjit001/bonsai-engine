@@ -4,8 +4,8 @@
 
 #include <cstdint>
 #include <vector>
+#include <Math/Math.hpp>
 #include "Assets/AssetType.hpp"
-#include "Math/Math.hpp"
 
 namespace Bonsai
 {
