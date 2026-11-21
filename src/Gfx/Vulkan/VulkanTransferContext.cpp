@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <volk.h>
+#include "Core/Logger.hpp"
 #include "Gfx/Vulkan/VulkanCommandRecorder.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 
@@ -110,18 +111,6 @@ namespace Bonsai
         VulkanTransferBatch& transferBatch = _transferBatches[batchIndex];
         assert(transferBatch.batchIndex == batchIndex && "Mismatch between transferBatch->batchIndex and selected batchIndex!");
 
-        // Reset tansfer batch
-        transferBatch.Reset();
-
-        // Reset fence and command buffer
-        if (VK_CHECK_FAILED(vkResetFences(_device, 1, &transferBatch.transferFinishedFence))
-            || VK_CHECK_FAILED(vkResetCommandBuffer(transferBatch.transferCommandBuffer, 0))
-        )
-        {
-            _transferBatchFreeList.push_back(transferBatch.batchIndex); // Make sure the batch is marked as free again
-            return nullptr;
-        }
-
         return &transferBatch;
     }
 
@@ -144,8 +133,11 @@ namespace Bonsai
         }
 
         // Record transfer commands
-        for (size_t i = 0; i < transferBatch->GetRecordedCommandBufferCount(); i++) {
-            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, transferBatch->GetRecordedCommandBuffer(i));
+        for (auto const& commandBuffer : transferBatch->commandBuffers)
+        {
+            auto* commandBufferImpl = static_cast<GraphicsCommandBufferImpl*>(commandBuffer);
+            VulkanCommandRecorder::RecordCommandBuffer(transferBatch->transferCommandBuffer, commandBufferImpl);
+            commandBufferImpl->Reset();
         }
 
         // End command buffer recording
@@ -192,5 +184,15 @@ namespace Bonsai
 
         // Mark transfer batch as free
         _transferBatchFreeList.push_back(transferBatch->batchIndex);
+
+        // Clear recorded command buffers
+        transferBatch->commandBuffers.clear();
+
+        // Reset fence and command buffer
+        if (VK_CHECK_FAILED(vkResetFences(_device, 1, &transferBatch->transferFinishedFence))
+            || VK_CHECK_FAILED(vkResetCommandBuffer(transferBatch->transferCommandBuffer, 0))
+        ) {
+            SPDLOG_WARN("Failed to reset transfer batch fence and command buffer!");
+        }
     }
 } // namespace Bonsai

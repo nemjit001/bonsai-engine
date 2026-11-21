@@ -184,6 +184,10 @@ namespace Bonsai
 
         void EndRendering() override final;
 
+        /// @brief Check if the command buffer is ready for recording new commands.
+        /// @return The command buffer ready state.
+        bool IsReady() const { return _commands.empty(); }
+
         /// @brief Get the recorded commands for the command buffer.
         /// @return The list of recorded commands.
         std::vector<GraphicsCommand> const& GetRecordedCommands() const { return _commands; }

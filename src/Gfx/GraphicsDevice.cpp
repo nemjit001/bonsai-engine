@@ -8,6 +8,7 @@
 #include <volk.h>
 #include "Core/Logger.hpp"
 #include "Core/PlatformDefines.hpp"
+#include "Gfx/Internal/GraphicsCommandBufferPool.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 #include "Gfx/Vulkan/VulkanObjectFactory.hpp"
@@ -120,6 +121,7 @@ namespace Bonsai
         VulkanInstanceState const& instanceState,
         VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
         VulkanDeviceState const& deviceState,
+        std::unique_ptr<GraphicsCommandBufferPool>&& commandBufferPool,
         std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
         std::unique_ptr<VulkanRenderContext>&& renderContext,
         std::unique_ptr<VulkanTransferContext>&& transferContext,
@@ -129,6 +131,7 @@ namespace Bonsai
         _instanceState(instanceState),
         _physicalDeviceInfo(physicalDeviceInfo),
         _deviceState(deviceState),
+        _commandBufferPool(std::move(commandBufferPool)),
         _sharedDeviceState(std::move(sharedDeviceState)),
         _renderContext(std::move(renderContext)),
         _transferContext(std::move(transferContext)),
@@ -147,6 +150,7 @@ namespace Bonsai
         _transferContext.reset();
         _renderContext.reset();
         _sharedDeviceState.reset();
+        _commandBufferPool.reset();
         DestroyDeviceState(_deviceState);
         DestroyInstanceState(_instanceState);
         volkFinalize();
@@ -188,6 +192,16 @@ namespace Bonsai
         if (!deviceState.has_value())
         {
             SPDLOG_ERROR("Failed to create Vulkan device state");
+            DestroyInstanceState(instanceState.value());
+            return nullptr;
+        }
+
+        // Create command buffer pool
+        auto commandBufferPool = std::make_unique<GraphicsCommandBufferPool>();
+        if (!commandBufferPool)
+        {
+            SPDLOG_ERROR("Failed to create command buffer pool");
+            DestroyDeviceState(deviceState.value());
             DestroyInstanceState(instanceState.value());
             return nullptr;
         }
@@ -240,6 +254,7 @@ namespace Bonsai
             instanceState.value(),
             physicalDeviceInfo.value(),
             deviceState.value(),
+            std::move(commandBufferPool),
             std::move(sharedDeviceState),
             std::move(renderContext),
             std::move(transferContext),
@@ -409,9 +424,14 @@ namespace Bonsai
         return _renderContext->StartFrame(swapchains, swapchainCount);
     }
 
-    GraphicsCommandBuffer* GraphicsDevice::BeginGraphicsCommandBuffer(FrameContext* frameContext)
+    GraphicsCommandBuffer* GraphicsDevice::BeginCommandBuffer()
     {
-        return frameContext->BeginNextGraphicsCommandBuffer();
+        return _commandBufferPool->BeginNewCommandBuffer();
+    }
+
+    void GraphicsDevice::SubmitFrameCommands(FrameContext* frameContext, GraphicsCommandBuffer* commandBuffer)
+    {
+        frameContext->commandBuffers.push_back(commandBuffer);
     }
 
     void GraphicsDevice::SubmitFrame(FrameContext* frameContext)
@@ -426,9 +446,9 @@ namespace Bonsai
         return _transferContext->StartTransferBatch();
     }
 
-    GraphicsCommandBuffer* GraphicsDevice::BeginTransferCommandBuffer(TransferBatch* transferBatch)
+    void GraphicsDevice::SubmitTransferCommands(TransferBatch* transferBatch, GraphicsCommandBuffer* commandBuffer)
     {
-        return transferBatch->BeginNextTransferCommandBuffer();
+        transferBatch->commandBuffers.push_back(commandBuffer);
     }
 
     void GraphicsDevice::SubmitTransferBatch(TransferBatch* transferBatch)

@@ -181,8 +181,11 @@ namespace Bonsai
         }
         
         // Record frame commands
-        for (size_t i = 0; i < frameContext->GetRecordedCommandBufferCount(); i++) {
-            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, frameContext->GetRecordedCommandBuffer(i));
+        for (auto const& commandBuffer : frameContext->commandBuffers)
+        {
+            auto* commandBufferImpl = static_cast<GraphicsCommandBufferImpl*>(commandBuffer);
+            VulkanCommandRecorder::RecordCommandBuffer(frameContext->frameCommandBuffer, commandBufferImpl);
+            commandBufferImpl->Reset();
         }
 
         // Prepare all swapchains for presentation
@@ -261,20 +264,20 @@ namespace Bonsai
             return false;
         }
 
+        return true;
+    }
+
+    bool VulkanRenderContext::prepareFrame(VulkanFrameContext& frameContext)
+    {
+        // Clear old command buffers
+        frameContext.commandBuffers.clear();
+
         // Clear old swapchain data
         frameContext.participatingSwapchains.clear();
         frameContext.swapchainInfo.swapchains.clear();
         frameContext.swapchainInfo.imageAvailableSemaphores.clear();
         frameContext.swapchainInfo.dstWaitStageMasks.clear();
         frameContext.swapchainInfo.imageIndices.clear();
-
-        return true;
-    }
-
-    bool VulkanRenderContext::prepareFrame(VulkanFrameContext& frameContext)
-    {
-        // Reset frame context
-        frameContext.Reset();
 
         // Reset descriptor set allocator
         frameContext.descriptorSetAllocator->Reset();

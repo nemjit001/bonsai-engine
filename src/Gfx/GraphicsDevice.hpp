@@ -15,6 +15,7 @@
 namespace Bonsai
 {
     struct VulkanSharedDeviceState;
+    class GraphicsCommandBufferPool;
     class VulkanObjectFactory;
     class VulkanRenderContext;
     class VulkanTransferContext;
@@ -30,6 +31,7 @@ namespace Bonsai
         /// @param instanceState Initialized instance state.
         /// @param physicalDeviceInfo Initialized physical device info.
         /// @param deviceState Initialized device state.
+        /// @param commandBufferPool Initialized command buffer pool.
         /// @param renderContext Initialized render context.
         /// @param transferContext Initialized transfer context.
         /// @param objectFactory Initialized object factory.
@@ -37,6 +39,7 @@ namespace Bonsai
             VulkanInstanceState const& instanceState,
             VulkanPhysicalDeviceInfo const& physicalDeviceInfo,
             VulkanDeviceState const& deviceState,
+            std::unique_ptr<GraphicsCommandBufferPool>&& commandBufferPool,
             std::unique_ptr<VulkanSharedDeviceState>&& sharedDeviceState,
             std::unique_ptr<VulkanRenderContext>&& renderContext,
             std::unique_ptr<VulkanTransferContext>&& transferContext,
@@ -169,9 +172,13 @@ namespace Bonsai
         [[nodiscard]] FrameContext* StartFrame(GraphicsSwapchain** swapchains, size_t swapchainCount);
 
         /// @brief Begin a command buffer for recording rendering commands.
-        /// @param frameContext Frame context to begin command buffer for.
         /// @return The command buffer.
-        [[nodiscard]] GraphicsCommandBuffer* BeginGraphicsCommandBuffer(FrameContext* frameContext);
+        [[nodiscard]] GraphicsCommandBuffer* BeginCommandBuffer();
+
+        /// @brief Submit commands to a frame context.
+        /// @param frameContext Frame context to submit commands to.
+        /// @param commandBuffer Command buffer to submit.
+        void SubmitFrameCommands(FrameContext* frameContext, GraphicsCommandBuffer* commandBuffer);
 
         /// @brief Submit a frame to the graphics device.
         /// @param frameContext Frame context to submit.
@@ -180,11 +187,11 @@ namespace Bonsai
         /// @brief Start a new transfer batch on the graphics device.
         /// @return The new transfer batch.
         [[nodiscard]] TransferBatch* StartTransferBatch();
-        
-        /// @brief Begin a command buffer for recording transfer commands.
-        /// @param transferBatch Transfer batch to begin command buffer for.
-        /// @return The command buffer.
-        [[nodiscard]] GraphicsCommandBuffer* BeginTransferCommandBuffer(TransferBatch* transferBatch);
+
+        /// @brief Submit commands to a transfer batch.
+        /// @param transferBatch Transfer batch to submit commands to.
+        /// @param commandBuffer Command buffer to submit.
+        void SubmitTransferCommands(TransferBatch* transferBatch, GraphicsCommandBuffer* commandBuffer);
 
         /// @brief Submit a transfer batch to the graphics device.
         /// @param transferBatch Transfer batch to submit.
@@ -289,6 +296,7 @@ namespace Bonsai
         VulkanInstanceState _instanceState;
         VulkanPhysicalDeviceInfo _physicalDeviceInfo;
         VulkanDeviceState _deviceState;
+        std::unique_ptr<GraphicsCommandBufferPool> _commandBufferPool;
         std::unique_ptr<VulkanSharedDeviceState> _sharedDeviceState;
         std::unique_ptr<VulkanRenderContext> _renderContext;
         std::unique_ptr<VulkanTransferContext> _transferContext;

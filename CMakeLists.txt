@@ -67,6 +67,8 @@ target_sources(BonsaiEngineLib
         src/Gfx/ShaderCompiler.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.cpp
         src/Gfx/Internal/GraphicsCommandBufferInternal.hpp
+        src/Gfx/Internal/GraphicsCommandBufferPool.cpp
+        src/Gfx/Internal/GraphicsCommandBufferPool.hpp
         src/Gfx/Internal/GraphicsCommands.hpp
         src/Gfx/Internal/GraphicsTypesInternal.cpp
         src/Gfx/Internal/GraphicsTypesInternal.hpp
