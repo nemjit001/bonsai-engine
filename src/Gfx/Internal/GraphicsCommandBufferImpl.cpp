@@ -1,4 +1,4 @@
-#include "GraphicsCommandBufferInternal.hpp"
+#include "GraphicsCommandBufferImpl.hpp"
 
 #include <algorithm>
 

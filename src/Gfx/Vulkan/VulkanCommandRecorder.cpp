@@ -2,19 +2,20 @@
 
 #include <cassert>
 #include <volk.h>
-#include "Core/Logger.hpp"
-#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
+#include <Core/Logger.hpp>
+#include "Gfx/Internal/GraphicsCommandBufferImpl.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsHelpers.hpp"
 #include "Gfx/Vulkan/VulkanGraphicsTypes.hpp"
 
 namespace Bonsai
 {
-    void VulkanCommandRecorder::RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBufferImpl const* recordedCommands)
+    void VulkanCommandRecorder::RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBuffer const* recordedCommands)
     {
         assert(commandBuffer != VK_NULL_HANDLE && "commandBuffer was VK_NULL_HANDLE!");
         assert(recordedCommands != nullptr && "recordedCommands was nullptr!");
 
-        for (auto const& command : recordedCommands->GetRecordedCommands()) {
+        auto* recordedCommandsImpl = static_cast<GraphicsCommandBufferImpl const*>(recordedCommands);
+        for (auto const& command : recordedCommandsImpl->GetRecordedCommands()) {
             RecordCommand(commandBuffer, command);
         }
     }

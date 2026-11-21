@@ -10,7 +10,7 @@
 namespace Bonsai
 {
     struct GraphicsCommand;
-    class GraphicsCommandBufferImpl;
+    class GraphicsCommandBuffer;
 
     /// @brief Combination of pipeline stage mask and access flags that make up a resource state.
     struct VulkanResourceAccessState
@@ -29,7 +29,7 @@ namespace Bonsai
         /// @brief Record a Vulkan command buffer using a set of recorded graphics commands.
         /// @param commandBuffer Vulkan command buffer to record into.
         /// @param recordedCommands Recorded graphics commands.
-        static void RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBufferImpl const* recordedCommands);
+        static void RecordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsCommandBuffer const* recordedCommands);
 
     private:
         /// @brief Record a graphics command into a Vulkan command buffer.

@@ -34,16 +34,15 @@ namespace Bonsai
         static constexpr uint32_t   MaxSamplerAnisotropy                        = 16u;
         static constexpr uint32_t   MinUniformBufferOffsetAlignment             = 64u;
         static constexpr uint32_t   MinStorageBufferOffsetAlignment             = 16u;
-        static constexpr uint32_t   MaxGlobalBarriers                           = 64u;
-        static constexpr uint32_t   MaxBufferBarriers                           = 64u;
-        static constexpr uint32_t   MaxTextureBarriers                          = 64u;
-        static constexpr uint32_t   MaxGraphicsCommandBuffersPerFrame           = 32u;
-        static constexpr uint32_t   MaxGraphicsCommandBuffersPerTransferBatch   = 8u;
+        static constexpr uint32_t   MaxGlobalBarriers                           = 16u;
+        static constexpr uint32_t   MaxBufferBarriers                           = 16u;
+        static constexpr uint32_t   MaxTextureBarriers                          = 16u;
+        static constexpr uint32_t   MaxCommandBuffersPerFrame                   = 32u;
 
-        static constexpr uint32_t   WholeSize               = UINT32_MAX;
-        static constexpr uint32_t   RemainingMipLevels      = UINT32_MAX;
-        static constexpr uint32_t   RemainingArrayLayers    = UINT32_MAX;
-        static constexpr float      LODClampNone            = 1'000.0F;
+        static constexpr uint32_t   WholeSize                                   = UINT32_MAX;
+        static constexpr uint32_t   RemainingMipLevels                          = UINT32_MAX;
+        static constexpr uint32_t   RemainingArrayLayers                        = UINT32_MAX;
+        static constexpr float      LODClampNone                                = 1'000.0F;
     } // namespace Graphics
 
     /// @brief Enumeration of available graphics heap types.

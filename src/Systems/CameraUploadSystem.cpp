@@ -1,7 +1,6 @@
 #include "CameraUploadSystem.hpp"
 
 #include <cassert>
-#include "Core/Logger.hpp"
 #include "Renderer/CameraConstantBuffer.hpp"
 #include "Components/CameraComponent.hpp"
 #include "Components/TransformComponent.hpp"

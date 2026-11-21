@@ -1,6 +1,6 @@
 #include "RenderManager.hpp"
 
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 
 namespace Bonsai
 {
@@ -78,7 +78,7 @@ namespace Bonsai
     void RenderManager::RenderFrame()
     {
         // Record frame commands
-        GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginGraphicsCommandBuffer(_activeFrame);
+        GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginCommandBuffer();
         GraphicsTextureView* swapTextureView = _graphicsDevice->GetSwapchainBackbufferView(_swapchain);
 
         GraphicsRenderAttachmentInfo colorAttachmentInfo{};
@@ -93,6 +93,7 @@ namespace Bonsai
 
         commandBuffer->BeginRendering(renderArea, &colorAttachmentInfo, 1, nullptr);
         commandBuffer->EndRendering();
+        _graphicsDevice->SubmitFrameCommands(_activeFrame, commandBuffer);
 
         // Submit the active frame
         _graphicsDevice->DestroyTextureView(swapTextureView);

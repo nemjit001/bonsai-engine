@@ -1,7 +1,7 @@
 #include "MeshUploadSystem.hpp"
 
 #include <cassert>
-#include "Core/Logger.hpp"
+#include <Core/Logger.hpp>
 #include "Assets/Mesh.hpp"
 #include "Components/MeshComponent.hpp"
 #include "Components/RenderMeshComponent.hpp"
@@ -86,7 +86,7 @@ namespace Bonsai
 
         // Perform upload of host-side mesh data
         TransferBatch* meshDataTransferBatch = graphicsDevice->StartTransferBatch();
-        GraphicsCommandBuffer* transferCommandBuffer = graphicsDevice->BeginTransferCommandBuffer(meshDataTransferBatch);
+        GraphicsCommandBuffer* transferCommandBuffer = graphicsDevice->BeginCommandBuffer();
 
         size_t uploadBufferPointer = 0; // Used to track data location in upload buffer
         for (auto const& [ _, meshComponent, renderMeshComponent ] : view.each())
@@ -123,6 +123,7 @@ namespace Bonsai
             mesh->SetDirtyFlag(false);
         }
 
+        graphicsDevice->SubmitTransferCommands(meshDataTransferBatch, transferCommandBuffer);
         graphicsDevice->SubmitTransferBatch(meshDataTransferBatch);
         graphicsDevice->WaitForTransferBatch(meshDataTransferBatch);
         graphicsDevice->DestroyBuffer(uploadBuffer);

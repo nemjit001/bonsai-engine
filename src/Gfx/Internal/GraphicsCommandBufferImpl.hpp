@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BONSAI_GRAPHICS_COMMAND_BUFFER_INTERNAL_HPP
-#define BONSAI_GRAPHICS_COMMAND_BUFFER_INTERNAL_HPP
+#ifndef BONSAI_GRAPHICS_COMMAND_BUFFER_IMPL_HPP
+#define BONSAI_GRAPHICS_COMMAND_BUFFER_IMPL_HPP
 
 #include <cstdint>
 #include <vector>
@@ -184,6 +184,10 @@ namespace Bonsai
 
         void EndRendering() override final;
 
+        /// @brief Check if the command buffer is ready for recording new commands.
+        /// @return The command buffer ready state.
+        bool IsReady() const { return _commands.empty(); }
+
         /// @brief Get the recorded commands for the command buffer.
         /// @return The list of recorded commands.
         std::vector<GraphicsCommand> const& GetRecordedCommands() const { return _commands; }
@@ -196,4 +200,4 @@ namespace Bonsai
     };
 } // namespace Bonsai
 
-#endif //BONSAI_GRAPHICS_COMMAND_BUFFER_INTERNAL_HPP
+#endif //BONSAI_GRAPHICS_COMMAND_BUFFER_IMPL_HPP

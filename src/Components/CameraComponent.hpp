@@ -2,7 +2,7 @@
 #ifndef BONSAI_CAMERA_COMPONENT_HPP
 #define BONSAI_CAMERA_COMPONENT_HPP
 
-#include "Gfx/GraphicsDevice.hpp"
+#include <Gfx/GraphicsTypes.hpp>
 #include "Camera/Camera.hpp"
 
 namespace Bonsai

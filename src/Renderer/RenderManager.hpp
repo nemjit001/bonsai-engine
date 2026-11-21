@@ -3,7 +3,7 @@
 #define BONSAI_RENDER_MANAGER_HPP
 
 #include <SDL3/SDL.h>
-#include "Gfx/GraphicsDevice.hpp"
+#include <Gfx/GraphicsDevice.hpp>
 
 namespace Bonsai
 {

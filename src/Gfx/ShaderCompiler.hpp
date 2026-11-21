@@ -14,6 +14,7 @@ namespace Bonsai
         ShaderCompileTarget_Vulkan13 = 0,
     };
 
+    /// @brief The ShaderCompiler is used for runtime shader compilation.
     class ShaderCompiler
     {
     private:

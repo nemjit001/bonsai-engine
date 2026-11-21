@@ -68,48 +68,6 @@ namespace Bonsai
         }
     }
 
-    void FrameContext::Reset()
-    {
-        _nextCommandBuffer = 0;
-    }
-
-    GraphicsCommandBuffer* FrameContext::BeginNextGraphicsCommandBuffer()
-    {
-        // Check if there is a command buffer available
-        if (_nextCommandBuffer >= _commandBuffers.size()) {
-            return nullptr;
-        }
-
-        // Get next command buffer
-        GraphicsCommandBuffer& commandBuffer = _commandBuffers[_nextCommandBuffer];
-        _nextCommandBuffer++;
-
-        // Reset command buffer
-        commandBuffer.Reset();
-        return &commandBuffer;
-    }
-
-    void TransferBatch::Reset()
-    {
-        _nextCommandBuffer = 0;
-    }
-
-    GraphicsCommandBuffer* TransferBatch::BeginNextTransferCommandBuffer()
-    {
-        // Check if there is a command buffer available
-        if (_nextCommandBuffer >= _commandBuffers.size()) {
-            return nullptr;
-        }
-
-        // Get next command buffer
-        GraphicsCommandBuffer& commandBuffer = _commandBuffers[_nextCommandBuffer];
-        _nextCommandBuffer++;
-
-        // Reset command buffer
-        commandBuffer.Reset();
-        return &commandBuffer;
-    }
-
     namespace GraphicsHelpers
     {
         bool IsColorFormat(GraphicsFormat const& format)

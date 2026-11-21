@@ -4,8 +4,9 @@
 
 #include <array>
 #include <atomic>
+#include <vector>
+#include "Gfx/GraphicsCommandBuffer.hpp"
 #include "Gfx/GraphicsTypes.hpp"
-#include "Gfx/Internal/GraphicsCommandBufferInternal.hpp"
 
 namespace Bonsai
 {
@@ -204,31 +205,8 @@ namespace Bonsai
         FrameContext() = default;
         virtual ~FrameContext() = default;
 
-        FrameContext(FrameContext const&) = delete;
-        FrameContext& operator=(FrameContext const&) = delete;
-
-        FrameContext(FrameContext&&) = default;
-        FrameContext& operator=(FrameContext&&) = default;
-
-        /// @brief Reset the frame context in preparation for rendering.
-        void Reset();
-
-        /// @brief Begin a new command buffer in the frame.
-        /// @return The command buffer.
-        GraphicsCommandBuffer* BeginNextGraphicsCommandBuffer();
-
-        /// @brief Get number of recorded command buffers.
-        /// @return The number of recorded command buffers.
-        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
-        
-        /// @brief Get the recorded command buffer at the given index.
-        /// @param index Index of the recorded command buffer.
-        /// @return The recorded command buffer.
-        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
-
-    private:
-        uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffersPerFrame> _commandBuffers;
+    public:
+        std::vector<GraphicsCommandBuffer*> commandBuffers;
     };
 
     /// @brief The TransferBatch is used to store a batch of resource transfers.
@@ -238,31 +216,8 @@ namespace Bonsai
         TransferBatch() = default;
         virtual ~TransferBatch() = default;
 
-        TransferBatch(TransferBatch const&) = delete;
-        TransferBatch& operator=(TransferBatch const&) = delete;
-
-        TransferBatch(TransferBatch&&) = default;
-        TransferBatch& operator=(TransferBatch&&) = default;
-
-        /// @brief Reset the transfer batch in preparation for command recording.
-        void Reset();
-
-        /// @brief Begin a new command buffer in the transfer batch.
-        /// @return The command buffer.
-        GraphicsCommandBuffer* BeginNextTransferCommandBuffer();
-
-        /// @brief Get number of recorded command buffers.
-        /// @return The number of recorded command buffers.
-        size_t GetRecordedCommandBufferCount() const { return _nextCommandBuffer; }
-
-        /// @brief Get the recorded command buffer at the given index.
-        /// @param index Index of the recorded command buffer.
-        /// @return The recorded command buffer.
-        GraphicsCommandBufferImpl const* GetRecordedCommandBuffer(size_t index) const { return &_commandBuffers[index]; }
-
-    private:
-        uint32_t _nextCommandBuffer = 0;
-        std::array<GraphicsCommandBufferImpl, Graphics::MaxGraphicsCommandBuffersPerTransferBatch> _commandBuffers;
+    public:
+        std::vector<GraphicsCommandBuffer*> commandBuffers;
     };
 
     namespace GraphicsHelpers
