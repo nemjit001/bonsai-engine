@@ -3,7 +3,6 @@
 #include <Core/Logger.hpp>
 #include "Assets/Mesh.hpp"
 #include "Components/MeshComponent.hpp"
-#include "Components/RenderMeshComponent.hpp"
 #include "Components/TransformComponent.hpp"
 
 namespace Bonsai
@@ -28,7 +27,6 @@ namespace Bonsai
             entt::entity meshEntity = registry.create();
             registry.emplace<TransformComponent>(meshEntity, TransformComponent{});
             registry.emplace<MeshComponent>(meshEntity, MeshComponent{ meshHandle });
-            registry.emplace<RenderMeshComponent>(meshEntity, RenderMeshComponent{});
             SPDLOG_TRACE("Spawned new mesh entity");
         }
     }

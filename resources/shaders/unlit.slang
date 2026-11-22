@@ -27,12 +27,12 @@ struct PixelOutput
 [shader("vertex")]
 VertexOutput VSUnlitMain(VertexInput input)
 {
-    float4 position = mul(ObjectTransformCB.model, float4(input.position, 1.0));
-    float4 normal = mul(ObjectTransformCB.normal, float4(input.normal, 0.0));
-    float4 tangent = mul(ObjectTransformCB.normal, float4(input.tangent, 0.0));
+    float4 position = mul(ObjectTransformCB.modelMatrix, float4(input.position, 1.0));
+    float4 normal = mul(ObjectTransformCB.normalMatrix, float4(input.normal, 0.0));
+    float4 tangent = mul(ObjectTransformCB.normalMatrix, float4(input.tangent, 0.0));
 
     VertexOutput result = (VertexOutput)0;
-    result.position = mul(CameraCB.viewProject, position);
+    result.position = mul(CameraCB.viewProjectMatrix, position);
     result.normal = normal;
     result.tangent = tangent;
     result.texCoords = input.texCoords;

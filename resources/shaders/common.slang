@@ -2,11 +2,11 @@ module common;
 
 public struct Camera
 {
-    public float4x4 viewProject;
+    public float4x4 viewProjectMatrix;
 };
 
 public struct ObjectTransform
 {
-    public float4x4 model;
-    public float4x4 normal;
+    public float4x4 modelMatrix;
+    public float4x4 normalMatrix;
 };

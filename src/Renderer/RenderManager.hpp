@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 #include <Gfx/GraphicsDevice.hpp>
+#include "Renderer/RenderWorld.hpp"
 
 namespace Bonsai
 {
@@ -33,6 +34,10 @@ namespace Bonsai
         /// @return The stored graphics device.
         GraphicsDevice* GetGraphicsDevice() { return _graphicsDevice; }
 
+        /// @brief Get the active render world.
+        /// @return The render world.
+        RenderWorld& GetRenderWorld() { return _renderWorld; }
+
         /// @brief Get the current window resolution.
         /// @return The current window resolution in pixels.
         Extent2D GetWindowResolution() const;
@@ -42,6 +47,7 @@ namespace Bonsai
         GraphicsDevice* _graphicsDevice = nullptr;
         GraphicsSwapchain* _swapchain = nullptr;
         FrameContext* _activeFrame = nullptr;
+        RenderWorld _renderWorld; // TODO(nemjit001): buffer render worlds on frame in flight count
     };
 } // namespace Bonsai
 
