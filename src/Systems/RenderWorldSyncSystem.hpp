@@ -17,6 +17,15 @@ namespace Bonsai
         void Run(entt::registry& registry) override final;
 
     private:
+        /// @brief Update the render world render object usages.
+        /// @param registry Registry to use for tracking render object usages.
+        void UpdateRenderObjectUsages(entt::registry const& registry);
+
+        /// @brief Update the render world geometry cache.
+        /// @param registry Registry to use for geometry cache updates.
+        void UpdateGeometryCache(entt::registry const& registry);
+
+    private:
         RenderManager* _renderManager = nullptr;
     };
 } // namespace Bonsai

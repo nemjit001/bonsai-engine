@@ -130,7 +130,7 @@ namespace std
         size_t operator()(Bonsai::AssetHandle<AssetType> const& key) const
         {
             // Simply hashing the asset ID should be enough
-            return hash(key.GetAssetId());
+            return hash<uint32_t>()(key.GetAssetId());
         }
     };
 } // namespace std

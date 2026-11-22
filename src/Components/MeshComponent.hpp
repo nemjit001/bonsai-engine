@@ -10,7 +10,7 @@ namespace Bonsai
     /// @brief The Mesh Component stores a host-side mesh for an entity.
     struct MeshComponent
     {
-        AssetHandle<Mesh> MeshHandle = AssetHandle<Mesh>();
+        AssetHandle<Mesh> meshHandle = AssetHandle<Mesh>();
     };
 } // namespace Bonsai
 
