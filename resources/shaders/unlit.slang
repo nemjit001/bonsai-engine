@@ -21,18 +21,24 @@ struct PixelOutput
     float4 color : SV_Target0;
 };
 
-[[vk::binding(0, 0)]] ConstantBuffer<Camera> CameraCB : register(b0, space0);
-[[vk::binding(0, 1)]] ConstantBuffer<ObjectTransform> ObjectTransformCB : register(b0, space1);
+[[vk::binding(0, 0)]] StructuredBuffer<Camera> _cameras : register(u0, space0);
+[[vk::binding(1, 0)]] StructuredBuffer<RenderObject> _renderObjects : register(u1, space0);
+[[vk::binding(2, 0)]] StructuredBuffer<ObjectTransform> _objectTransforms : register(u2, space0);
+[[vk::push_constant]] ConstantBuffer<DrawParams> _drawParams : register(b0);
 
 [shader("vertex")]
 VertexOutput VSUnlitMain(VertexInput input)
 {
-    float4 position = mul(ObjectTransformCB.modelMatrix, float4(input.position, 1.0));
-    float4 normal = mul(ObjectTransformCB.normalMatrix, float4(input.normal, 0.0));
-    float4 tangent = mul(ObjectTransformCB.normalMatrix, float4(input.tangent, 0.0));
+    Camera camera = _cameras[_drawParams.cameraId];
+    RenderObject renderObject = _renderObjects[_drawParams.objectId];
+    ObjectTransform objectTransform = _objectTransforms[renderObject.objectId];
+
+    float4 position = mul(objectTransform.modelMatrix, float4(input.position, 1.0));
+    float4 normal = mul(objectTransform.normalMatrix, float4(input.normal, 0.0));
+    float4 tangent = mul(objectTransform.normalMatrix, float4(input.tangent, 0.0));
 
     VertexOutput result = (VertexOutput)0;
-    result.position = mul(CameraCB.viewProjectMatrix, position);
+    result.position = mul(camera.viewProjectMatrix, position);
     result.normal = normal;
     result.tangent = tangent;
     result.texCoords = input.texCoords;

@@ -25,6 +25,13 @@ namespace Bonsai::Shader
         alignas(16) glm::mat4 modelMatrix;
         alignas(16) glm::mat4 normalMatrix;
     };
+
+    /// @brief Constant draw parameters.
+    struct DrawParams
+    {
+        alignas(4) uint32_t cameraId;
+        alignas(4) uint32_t objectId;
+    };
 } // namespace Bonsai::Shader
 
 #endif //BONSAI_OBJECT_TRANSFROM_HPP

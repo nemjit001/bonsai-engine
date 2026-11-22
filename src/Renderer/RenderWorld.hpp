@@ -31,7 +31,6 @@ namespace Bonsai
         std::vector<RenderObjectId> renderObjectFreeList;
         std::unordered_map<entt::entity, RenderObjectId> renderObjectCache; //< Cache of entity ids mapped to stable render object ids
         std::unordered_map<AssetHandle<Mesh>, RenderMesh> geometryCache;    //< Cache of scene geometry currently in use
-        std::vector<bool> dirtyRenderObjectData;                            //< Dirty bits for render object data
 
         //-- host side data buffers --//
         std::vector<Shader::Camera> cameras;                    //< Camera shader data
@@ -39,9 +38,12 @@ namespace Bonsai
         std::vector<Shader::ObjectTransform> objectTransforms;  //< Object transform shader data
 
         //-- device side data buffers --//
-        GraphicsBuffer* cameraBuffer;
-        GraphicsBuffer* renderObjectBuffer;
-        GraphicsBuffer* objectTransformBuffer;
+        size_t cameraBufferSize = 0;
+        size_t renderObjectBufferSize = 0;
+        size_t objectTransformBufferSize = 0;
+        GraphicsBuffer* cameraBuffer = nullptr;
+        GraphicsBuffer* renderObjectBuffer = nullptr;
+        GraphicsBuffer* objectTransformBuffer = nullptr;
     };
 } // namespace Bonsai
 

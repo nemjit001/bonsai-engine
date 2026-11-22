@@ -13,4 +13,9 @@ namespace Bonsai
             }
         }
     }
+
+    void SystemRegistry::Clear()
+    {
+        _systems.clear();
+    }
 } // namespace Bonsai

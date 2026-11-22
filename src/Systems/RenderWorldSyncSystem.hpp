@@ -2,6 +2,7 @@
 #ifndef BONSAI_RENDER_WORLD_SYNC_SYSTEM_HPP
 #define BONSAI_RENDER_WORLD_SYNC_SYSTEM_HPP
 
+#include <Gfx/GraphicsTypes.hpp>
 #include "Systems/ECSSystem.hpp"
 
 namespace Bonsai
@@ -14,6 +15,7 @@ namespace Bonsai
     {
     public:
         RenderWorldSyncSystem(RenderManager* renderManager);
+        ~RenderWorldSyncSystem() override;
 
         void Run(entt::registry& registry) override final;
 
@@ -38,8 +40,21 @@ namespace Bonsai
         /// @param registry Registry to use for render object data updates.
         void UpdateRenderObjectData(RenderWorld& renderWorld, entt::registry const& registry);
 
+        /// @brief Upload the render world geometry to device memory.
+        /// @param renderWorld Render world to use for upload.
+        void UploadGeometry(RenderWorld& renderWorld);
+
+        /// @brief Upload the render world scene data to device memory.
+        /// @param renderWorld Render world to use for upload.
+        void UploadSceneData(RenderWorld& renderWorld);
+
     private:
+        /// @brief Increment size for upload buffer reallocations
+        static constexpr size_t UploadBufferIncrementSize = 4096;
+
         RenderManager* _renderManager = nullptr;
+        size_t _sceneDataUploadBufferSize = 0;
+        GraphicsBuffer* _sceneDataUploadBuffer = nullptr;
     };
 } // namespace Bonsai
 

@@ -51,6 +51,7 @@ namespace Bonsai
     void Application::Shutdown()
     {
         _isRunning = false;
+        _systemRegistry.Clear();
         _sceneManager.Shutdown();
         _renderManager.Shutdown();
         SDL_Quit();

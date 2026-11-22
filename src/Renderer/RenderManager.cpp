@@ -59,7 +59,25 @@ namespace Bonsai
 
     void RenderManager::Shutdown()
     {
+        // Wait for device to be idle
+        _graphicsDevice->WaitForIdle();
+
+        // Clean up render world geometry cache
+        for (auto const& [ _, renderMesh ] : _renderWorld.geometryCache)
+        {
+            _graphicsDevice->DestroyBuffer(renderMesh.vertexBuffer);
+            _graphicsDevice->DestroyBuffer(renderMesh.indexBuffer);
+        }
+
+        // Clean up render world buffers
+        _graphicsDevice->DestroyBuffer(_renderWorld.cameraBuffer);
+        _graphicsDevice->DestroyBuffer(_renderWorld.renderObjectBuffer);
+        _graphicsDevice->DestroyBuffer(_renderWorld.objectTransformBuffer);
+
+        // Clean up swapchain
         _graphicsDevice->DestroySwapchain(_swapchain);
+
+        // Clean up device
         Bonsai::GraphicsDevice::Destroy(_graphicsDevice);
         SDL_DestroyWindow(_window);
     }
