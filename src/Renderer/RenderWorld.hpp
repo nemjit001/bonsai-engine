@@ -26,10 +26,22 @@ namespace Bonsai
     class RenderWorld
     {
     public:
-        RenderObjectId nextObjectId = 0;
+        //-- render object and geometry tracking --//
+        RenderObjectId maxRenderObjectId = 0;
         std::vector<RenderObjectId> renderObjectFreeList;
         std::unordered_map<entt::entity, RenderObjectId> renderObjectCache; //< Cache of entity ids mapped to stable render object ids
         std::unordered_map<AssetHandle<Mesh>, RenderMesh> geometryCache;    //< Cache of scene geometry currently in use
+        std::vector<bool> dirtyRenderObjectData;                            //< Dirty bits for render object data
+
+        //-- host side data buffers --//
+        std::vector<Shader::Camera> cameras;                    //< Camera shader data
+        std::vector<Shader::RenderObject> renderObjects;        //< Render object shader data
+        std::vector<Shader::ObjectTransform> objectTransforms;  //< Object transform shader data
+
+        //-- device side data buffers --//
+        GraphicsBuffer* cameraBuffer;
+        GraphicsBuffer* renderObjectBuffer;
+        GraphicsBuffer* objectTransformBuffer;
     };
 } // namespace Bonsai
 

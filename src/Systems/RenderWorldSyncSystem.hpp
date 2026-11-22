@@ -7,6 +7,7 @@
 namespace Bonsai
 {
     class RenderManager;
+    class RenderWorld;
 
     /// @brief The RenderWorldSyncSystem synchronizes the ECS scene with the render world.
     class RenderWorldSyncSystem : public ECSSystem
@@ -17,13 +18,25 @@ namespace Bonsai
         void Run(entt::registry& registry) override final;
 
     private:
-        /// @brief Update the render world render object usages.
-        /// @param registry Registry to use for tracking render object usages.
-        void UpdateRenderObjectUsages(entt::registry const& registry);
+        /// @brief Update the render world render object cache.
+        /// @param renderWorld Render world to update.
+        /// @param registry Registry to use for tracking render objects.
+        void UpdateRenderObjectCache(RenderWorld& renderWorld, entt::registry const& registry);
 
         /// @brief Update the render world geometry cache.
+        /// @param renderWorld Render world to update.
         /// @param registry Registry to use for geometry cache updates.
-        void UpdateGeometryCache(entt::registry const& registry);
+        void UpdateGeometryCache(RenderWorld& renderWorld, entt::registry const& registry);
+
+        /// @brief Update the render world camera data.
+        /// @param renderWorld Render world to update.
+        /// @param registry Registry to use for camera data updates.
+        void UpdateCameraData(RenderWorld& renderWorld, entt::registry const& registry);
+
+        /// @brief Update the render world render object data.
+        /// @param renderWorld Render world to update.
+        /// @param registry Registry to use for render object data updates.
+        void UpdateRenderObjectData(RenderWorld& renderWorld, entt::registry const& registry);
 
     private:
         RenderManager* _renderManager = nullptr;
