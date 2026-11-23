@@ -35,12 +35,12 @@ VertexOutput VSUnlitMain(VertexInput input)
     RenderObject renderObject = _renderObjects[_drawParams.objectId];
     ObjectTransform objectTransform = _objectTransforms[renderObject.objectId];
 
-    float4 position = mul(objectTransform.modelMatrix, float4(input.position, 1.0));
-    float4 normal = mul(objectTransform.normalMatrix, float4(input.normal, 0.0));
-    float4 tangent = mul(objectTransform.normalMatrix, float4(input.tangent, 0.0));
+    float4 position = mul(float4(input.position, 1.0), objectTransform.modelMatrix);
+    float4 normal = mul(float4(input.normal, 0.0), objectTransform.normalMatrix);
+    float4 tangent = mul(float4(input.tangent, 0.0), objectTransform.normalMatrix);
 
     VertexOutput result = (VertexOutput)0;
-    result.position = mul(camera.viewProjectMatrix, position);
+    result.position = mul(position, camera.viewProjectMatrix);
     result.normal = normal;
     result.tangent = tangent;
     result.texCoords = input.texCoords;
@@ -50,7 +50,12 @@ VertexOutput VSUnlitMain(VertexInput input)
 [shader("pixel")]
 PixelOutput PSUnlitMain(VertexOutput input)
 {
+    // Reorthogonalize normal and tangent
+    float3 N = normalize(input.normal.xyz);
+    float3 T = normalize(input.tangent.xyz + dot(input.tangent.xyz, N) * N);
+    float3 B = cross(N, T);
+
     PixelOutput result = (PixelOutput)0;
-    result.color = float4(input.texCoords, 0.0, 1.0);
+    result.color = float4(0.5 + 0.5 * N, 1.0);
     return result;
 }

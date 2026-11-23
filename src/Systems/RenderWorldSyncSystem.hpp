@@ -10,7 +10,7 @@ namespace Bonsai
     class RenderManager;
     class RenderWorld;
 
-    /// @brief The RenderWorldSyncSystem synchronizes the ECS scene with the render world.
+    /// @brief The RenderWorldSyncSystem synchronizes the render world with the ECS scene.
     class RenderWorldSyncSystem : public ECSSystem
     {
     public:
@@ -33,7 +33,7 @@ namespace Bonsai
         /// @brief Update the render world camera data.
         /// @param renderWorld Render world to update.
         /// @param registry Registry to use for camera data updates.
-        void UpdateCameraData(RenderWorld& renderWorld, entt::registry const& registry);
+        void UpdateCameraData(RenderWorld& renderWorld, entt::registry& registry);
 
         /// @brief Update the render world render object data.
         /// @param renderWorld Render world to update.
@@ -47,6 +47,11 @@ namespace Bonsai
         /// @brief Upload the render world scene data to device memory.
         /// @param renderWorld Render world to use for upload.
         void UploadSceneData(RenderWorld& renderWorld);
+
+        /// @brief Record the render world draw list.
+        /// @param renderWorld Render world to update.
+        /// @param registry Registry to use for draw list recording.
+        void RecordDrawList(RenderWorld& renderWorld, entt::registry const& registry);
 
     private:
         /// @brief Increment size for upload buffer reallocations

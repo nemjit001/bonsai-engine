@@ -22,7 +22,7 @@ VertexOutput VSFullscreenQuadMain(uint vertexID : SV_VertexID)
 
     VertexOutput result = (VertexOutput)0;
     result.position = float4(screenPositions, 0, 1);
-    result.screenUV = screenUV;
+    result.screenUV = screenUV * float2(1, -1); // Flip V component to adhere to clip space reqs of Bonsai
     return result;
 }
 

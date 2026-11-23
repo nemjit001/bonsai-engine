@@ -45,21 +45,26 @@ namespace Bonsai
                 {
                     // Calculate data offsets based on index
                     tinyobj::index_t const& index = shape.mesh.indices[faceBaseIndex + faceVertexIndex];
-                    uint32_t const vertIndex = index.vertex_index * 3;
-                    uint32_t const normalIndex = index.normal_index * 3;
-                    uint32_t const texCoordIndex = index.texcoord_index * 2;
+                    int32_t const vertIndex = index.vertex_index * 3;
+                    int32_t const normalIndex = index.normal_index * 3;
+                    int32_t const texCoordIndex = index.texcoord_index * 2;
                     
                     // Read in vertex data
-                    glm::vec3 const position = { attributes.vertices[vertIndex], attributes.vertices[vertIndex + 1], attributes.vertices[vertIndex + 2] };
-                    glm::vec3 const normal = { attributes.normals[normalIndex], attributes.normals[normalIndex + 1], attributes.normals[normalIndex + 2] };
-                    glm::vec2 const texCoords = { attributes.texcoords[texCoordIndex], attributes.texcoords[texCoordIndex + 1] };
-
-                    // Set vertex data
                     Vertex vertex{};
-                    vertex.position = position;
-                    vertex.normal = normal;
-                    vertex.tangent = {}; // FIXME(nemjit001): Set this after mesh loading, during post processing steps
-                    vertex.texCoords = texCoords;
+                    vertex.position = { attributes.vertices[vertIndex], attributes.vertices[vertIndex + 1], attributes.vertices[vertIndex + 2] };
+                    vertex.normal = {}; // Optionally set during import
+                    vertex.tangent = {}; // Tangents will be calculated after import
+                    vertex.texCoords = {}; // Optionally set during import
+
+                    // Optionally read in vertex normals
+                    if (normalIndex >= 0) {
+                       vertex.normal = { attributes.normals[normalIndex], attributes.normals[normalIndex + 1], attributes.normals[normalIndex + 2] };
+                    }
+
+                    // Optionally read in vertex texture coords
+                    if (texCoordIndex >= 0) {
+                        vertex.texCoords = { attributes.texcoords[texCoordIndex], attributes.texcoords[texCoordIndex + 1] };
+                    }
 
                     // Store vertex data in mesh buffers
                     vertices.push_back(vertex);

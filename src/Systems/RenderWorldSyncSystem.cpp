@@ -34,15 +34,18 @@ namespace Bonsai
         UpdateCameraData(renderWorld, registry);
         UpdateRenderObjectData(renderWorld, registry);
 
-        // Upload data
+        // Upload scene data
         UploadGeometry(renderWorld);
         UploadSceneData(renderWorld);
+
+        // Record draw list for the render world
+        RecordDrawList(renderWorld, registry);
     }
 
     void RenderWorldSyncSystem::UpdateRenderObjectCache(RenderWorld& renderWorld, entt::registry const& registry)
     {
         // Get relevant ECS view
-        auto const renderObjectView = registry.view<TransformComponent, MeshComponent>();
+        auto const& renderObjectView = registry.view<TransformComponent, MeshComponent>();
 
         // Mark unused render objects as free, also erasing them from the object cache
         std::vector<entt::entity> eraseList;
@@ -94,7 +97,7 @@ namespace Bonsai
     void RenderWorldSyncSystem::UpdateGeometryCache(RenderWorld& renderWorld, entt::registry const& registry)
     {
         // Get relevant ECS view
-        auto const meshView = registry.view<MeshComponent>();
+        auto const& meshView = registry.view<MeshComponent>();
 
         // Insert new geometry into geometry cache
         for (auto const& [ _, meshComponent ] : meshView.each())
@@ -111,15 +114,23 @@ namespace Bonsai
         }
     }
 
-    void RenderWorldSyncSystem::UpdateCameraData(RenderWorld& renderWorld, entt::registry const& registry)
+    void RenderWorldSyncSystem::UpdateCameraData(RenderWorld& renderWorld, entt::registry& registry)
     {
         // Get relevant ECS view
-        auto const cameraView = registry.view<TransformComponent, CameraComponent>();
+        auto const& cameraView = registry.view<TransformComponent, CameraComponent>();
+
+        // Get window aspect ratio
+        Extent2D const windowResolution = _renderManager->GetWindowResolution();
+        float const aspectRatio = static_cast<float>(windowResolution.width) / static_cast<float>(windowResolution.height);
 
         // Update cameras in the scene
         renderWorld.cameras.clear();
         for (auto const& [ entity, transformComponent, cameraComponent ] : cameraView.each())
         {
+            // Update camera aspect ratio
+            // TODO(nemjit001): Do this in separate system, only for cameras that track window size
+            cameraComponent.camera.SetAspectRatio(aspectRatio);
+
             // Get camera matrices
             glm::mat4 const viewMatrix = glm::inverse(transformComponent.GetMatrix());
             glm::mat4 const projectionMatrix = cameraComponent.camera.GetProjectionMatrix();
@@ -134,7 +145,7 @@ namespace Bonsai
     void RenderWorldSyncSystem::UpdateRenderObjectData(RenderWorld& renderWorld, entt::registry const& registry)
     {
         // Get relevant ECS view
-        auto const renderObjectView = registry.view<TransformComponent, MeshComponent>();
+        auto const& renderObjectView = registry.view<TransformComponent, MeshComponent>();
 
         // Resize and update render object buffers
         renderWorld.renderObjects.resize(renderWorld.maxRenderObjectId);
@@ -361,5 +372,31 @@ namespace Bonsai
         graphicsDevice->SubmitTransferCommands(transferBatch, transferCommandBuffer);
         graphicsDevice->SubmitTransferBatch(transferBatch);
         graphicsDevice->WaitForTransferBatch(transferBatch);
+    }
+
+    void RenderWorldSyncSystem::RecordDrawList(RenderWorld& renderWorld, entt::registry const& registry)
+    {
+        // Get relevant ECS views
+        auto const cameraView = registry.view<TransformComponent, CameraComponent>();
+        auto const renderObjectView = registry.view<TransformComponent, MeshComponent>();
+
+        // Collect mesh draws
+        renderWorld.drawList.clear();
+        uint32_t cameraId = 0;
+        for (auto const& [ _, cameraTransformComponent, cameraComponent ] : cameraView.each())
+        {
+            for (auto const& [ renderObjectEntity, renderObjectTransformComponent, meshComponent ] : renderObjectView.each())
+            {
+                MeshDrawCommand meshDrawCommand{};
+                meshDrawCommand.cameraId = cameraId;
+                meshDrawCommand.objectId = renderWorld.renderObjectCache.at(renderObjectEntity);
+                meshDrawCommand.meshHandle = meshComponent.meshHandle;
+                meshDrawCommand.renderMesh = renderWorld.geometryCache.at(meshComponent.meshHandle);
+
+                renderWorld.drawList.push_back(meshDrawCommand);
+            }
+
+            cameraId++;
+        }
     }
 } // namespace Bonsai

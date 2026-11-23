@@ -217,7 +217,7 @@ namespace Bonsai
             depthStencilAttachmentInfo.renderTarget = _depthStencilTargetView;
             depthStencilAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
             depthStencilAttachmentInfo.storeOp = GraphicsStoreOp_DontCare;
-            depthStencilAttachmentInfo.clearValue.depthStencil = GraphicsClearDepthStencilValue{ 1.0F, 0 };
+            depthStencilAttachmentInfo.clearValue.depthStencil = GraphicsClearDepthStencilValue{ 1.0F, 0u };
 
             Rect2D renderArea{};
             renderArea.offset = Offset2D{ 0, 0 };
@@ -246,7 +246,33 @@ namespace Bonsai
             commandBuffer->BindRenderDescriptorSets(_renderPipelineLayout, 0, &sceneDescriptorSet, 1);
 
             // Record draw commands
-            // TODO(nemjit001): Record draws using cameraId:objectId pairs
+            for (auto const& meshDraw : renderWorld.drawList)
+            {
+                // Get mesh for draw
+                auto const mesh = meshDraw.meshHandle.Get();
+                if (mesh == nullptr)
+                {
+                    SPDLOG_WARN("Mesh handle is invalid for draw {}:{}", meshDraw.cameraId, meshDraw.objectId);
+                    continue;
+                }
+
+                // Push draw params
+                Shader::DrawParams drawParams{};
+                drawParams.cameraId = meshDraw.cameraId;
+                drawParams.objectId = meshDraw.objectId;
+
+                commandBuffer->PushConstants(_renderPipelineLayout, GraphicsShaderStage_Vertex, 0, sizeof(drawParams), &drawParams);
+
+                // Bind mesh buffers
+                size_t offsets[] = { 0 };
+                commandBuffer->BindVertexBuffers(0, &meshDraw.renderMesh.vertexBuffer, 1, offsets);
+                commandBuffer->BindIndexBuffer(meshDraw.renderMesh.indexBuffer, 0, GraphicsIndexType_UInt32);
+
+                // Draw submeshes based on offsets
+                for (auto const& subMesh : mesh->GetSubmeshes()) {
+                    commandBuffer->DrawIndexed(subMesh.indexCount, 1, subMesh.indexOffset, subMesh.vertexOffset, 0);
+                }
+            }
 
             // End render pass
             commandBuffer->EndRendering();
@@ -514,7 +540,7 @@ namespace Bonsai
         unlitPipelineDesc.blendState.renderTargets[0].blendEnable = false;
         unlitPipelineDesc.blendState.renderTargets[0].colorWriteMask = GraphicsColorComponent_All;
         unlitPipelineDesc.renderTargetCount = 1;
-        unlitPipelineDesc.renderTargetFormats[0] = GraphicsFormat_RGBA32_SFloat;
+        unlitPipelineDesc.renderTargetFormats[0] = GraphicsFormat_RGBA16_SFloat;
         unlitPipelineDesc.depthStencilFormat = GraphicsFormat_D24_UNorm_S8_UInt;
 
         _unlitRenderPipeline = _graphicsDevice->CreateRenderPipeline(unlitPipelineDesc);

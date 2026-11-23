@@ -285,12 +285,17 @@ namespace Bonsai
         } break;
         case GraphicsCommandType_SetViewport: {
             GraphicsCommandSetViewport const& commandData = command.data.commandSetViewport;
+            
+            // Convert from Vulkan to OpenGL / DirectX clip space conventions
+            float const yAdjusted = commandData.viewport.height - commandData.viewport.y;
+            float const heightAdjusted = -commandData.viewport.height;
 
+            // Set up viewport
             VkViewport viewport{};
             viewport.x = commandData.viewport.x;
-            viewport.y = commandData.viewport.y;
+            viewport.y = yAdjusted;
             viewport.width = commandData.viewport.width;
-            viewport.height = commandData.viewport.height;
+            viewport.height = heightAdjusted;
             viewport.minDepth = commandData.viewport.minDepth;
             viewport.maxDepth = commandData.viewport.maxDepth;
 

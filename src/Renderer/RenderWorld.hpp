@@ -22,6 +22,15 @@ namespace Bonsai
         GraphicsBuffer* indexBuffer;
     };
 
+    /// @brief Draw command for dispatching a mesh draw.
+    struct MeshDrawCommand
+    {
+        uint32_t cameraId;
+        uint32_t objectId;
+        AssetHandle<Mesh> meshHandle;
+        RenderMesh renderMesh;
+    };
+
     /// @brief The RenderWorld contains GPU render data.
     class RenderWorld
     {
@@ -44,6 +53,9 @@ namespace Bonsai
         GraphicsBuffer* cameraBuffer = nullptr;
         GraphicsBuffer* renderObjectBuffer = nullptr;
         GraphicsBuffer* objectTransformBuffer = nullptr;
+
+        //-- Draw command tracking --//
+        std::vector<MeshDrawCommand> drawList;
     };
 } // namespace Bonsai
 
