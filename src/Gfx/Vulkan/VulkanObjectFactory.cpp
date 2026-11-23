@@ -352,6 +352,7 @@ namespace Bonsai
             VkPipelineShaderStageCreateInfo& vertexShaderStage = stages[stageCount];
             vertexShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             vertexShaderStage.pNext = nullptr;
+            vertexShaderStage.flags = 0;
             vertexShaderStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
             vertexShaderStage.module = compiledStages->vertexShader;
             vertexShaderStage.pName = renderPipelineDesc.vertexShaderEntrypoint.name;
@@ -364,6 +365,7 @@ namespace Bonsai
             VkPipelineShaderStageCreateInfo& tessControlShaderStage = stages[stageCount];
             tessControlShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             tessControlShaderStage.pNext = nullptr;
+            tessControlShaderStage.flags = 0;
             tessControlShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
             tessControlShaderStage.module = compiledStages->tessControlShader;
             tessControlShaderStage.pName = renderPipelineDesc.tessControlShaderEntrypoint.name;
@@ -376,6 +378,7 @@ namespace Bonsai
             VkPipelineShaderStageCreateInfo& tessEvalShaderStage = stages[stageCount];
             tessEvalShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             tessEvalShaderStage.pNext = nullptr;
+            tessEvalShaderStage.flags = 0;
             tessEvalShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
             tessEvalShaderStage.module = compiledStages->tessEvalShader;
             tessEvalShaderStage.pName = renderPipelineDesc.tessEvalShaderEntrypoint.name;
@@ -388,6 +391,7 @@ namespace Bonsai
             VkPipelineShaderStageCreateInfo& fragmentShaderStage = stages[stageCount];
             fragmentShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             fragmentShaderStage.pNext = nullptr;
+            fragmentShaderStage.flags = 0;
             fragmentShaderStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
             fragmentShaderStage.module = compiledStages->fragmentShader;
             fragmentShaderStage.pName = renderPipelineDesc.fragmentShaderEntrypoint.name;

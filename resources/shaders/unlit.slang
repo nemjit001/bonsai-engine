@@ -21,10 +21,10 @@ struct PixelOutput
     float4 color : SV_Target0;
 };
 
-[[vk::binding(0, 0)]] StructuredBuffer<Camera> _cameras : register(u0, space0);
-[[vk::binding(1, 0)]] StructuredBuffer<RenderObject> _renderObjects : register(u1, space0);
-[[vk::binding(2, 0)]] StructuredBuffer<ObjectTransform> _objectTransforms : register(u2, space0);
-[[vk::push_constant]] ConstantBuffer<DrawParams> _drawParams : register(b0);
+[[vk::binding(0, 0)]] StructuredBuffer<Camera> _cameras : register(t0, space0);
+[[vk::binding(1, 0)]] StructuredBuffer<RenderObject> _renderObjects : register(t1, space0);
+[[vk::binding(2, 0)]] StructuredBuffer<ObjectTransform> _objectTransforms : register(t2, space0);
+[[vk::push_constant]] ConstantBuffer<DrawParams> _drawParams : register(b0, space1);
 
 [shader("vertex")]
 VertexOutput VSUnlitMain(VertexInput input)

@@ -833,4 +833,13 @@ namespace Bonsai
     }
 } // namespace Bonsai
 
+/// @brief Convert a cstring to a GraphicsShaderEntrypoint.
+/// @param name Target cstring.
+/// @param size Target cstring length.
+/// @return The graphics shader entrypoint.
+static constexpr Bonsai::GraphicsShaderEntrypoint operator""_entrypoint(char const* name, size_t size)
+{
+    return Bonsai::GraphicsShaderEntrypoint{ name, size };
+}
+
 #endif //BONSAI_GRAPHICS_TYPES_HPP
