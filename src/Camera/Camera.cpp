@@ -18,6 +18,19 @@ namespace Bonsai
         //
     }
 
+    void Camera::SetAspectRatio(float aspectRatio)
+    {
+        if (_cameraType == CameraType::Perspective)
+        {
+            _cameraPerspectiveParams.aspectRatio = aspectRatio;
+        }
+
+        if (_cameraType == CameraType::Perspective)
+        {
+            _cameraOrthographicParams.aspectRatio = aspectRatio;
+        }
+    }
+
     glm::mat4 Camera::GetProjectionMatrix() const
     {
         if (_cameraType == CameraType::Perspective)
@@ -29,10 +42,10 @@ namespace Bonsai
                 _cameraPerspectiveParams.zFar
             );
         }
-        else if (_cameraType == CameraType::Orthographic)
+        
+        if (_cameraType == CameraType::Orthographic)
         {
             float const xMag = _cameraOrthographicParams.yMag * _cameraOrthographicParams.aspectRatio;
-
             return glm::ortho(
                 -0.5F * xMag,
                 0.5F * xMag,

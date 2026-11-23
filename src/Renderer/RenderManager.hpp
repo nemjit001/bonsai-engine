@@ -4,6 +4,8 @@
 
 #include <SDL3/SDL.h>
 #include <Gfx/GraphicsDevice.hpp>
+#include <Gfx/ShaderCompiler.hpp>
+#include "Renderer/RenderWorld.hpp"
 
 namespace Bonsai
 {
@@ -33,15 +35,59 @@ namespace Bonsai
         /// @return The stored graphics device.
         GraphicsDevice* GetGraphicsDevice() { return _graphicsDevice; }
 
+        /// @brief Get the active render world.
+        /// @return The render world.
+        RenderWorld& GetRenderWorld() { return _renderWorld; }
+
         /// @brief Get the current window resolution.
         /// @return The current window resolution in pixels.
         Extent2D GetWindowResolution() const;
+
+    private:
+        void HandleWindowResize(Extent2D const& windowSize);
+
+        /// @brief Create render targets.
+        /// @param extent Render target extent.
+        /// @return A boolean indicating success.
+        bool CreateRenderTargets(Extent2D const& extent);
+
+        /// @brief Create render pipelines.
+        /// @param shaderCompiler Shader compiler to use for shader compilation.
+        /// @return A boolean indicating success.
+        bool CreatePipelines(ShaderCompiler* shaderCompiler);
+
+        /// @brief Destroy a render world and clean up resources.
+        /// @param renderWorld Render world to destroy.
+        void DestroyRenderWorld(RenderWorld const& renderWorld);
+
+        /// @brief Destroy render targets.
+        void DestroyRenderTargets();
+
+        /// @brief Destroy render pipelines.
+        void DestroyPipelines();
 
     private:
         SDL_Window* _window = nullptr;
         GraphicsDevice* _graphicsDevice = nullptr;
         GraphicsSwapchain* _swapchain = nullptr;
         FrameContext* _activeFrame = nullptr;
+        RenderWorld _renderWorld; // TODO(nemjit001): buffer render worlds on frame in flight count
+
+        //-- Render targets --//
+        GraphicsTexture* _colorTarget = nullptr;
+        GraphicsTexture* _depthStencilTarget = nullptr;
+        GraphicsTextureView* _colorTargetView = nullptr;
+        GraphicsTextureView* _depthStencilTargetView = nullptr;
+
+        //-- Render pipelines --//
+        GraphicsDescriptorSetLayout* _sceneDataDescriptorSetLayout = nullptr;
+        GraphicsPipelineLayout* _renderPipelineLayout = nullptr;
+        GraphicsRenderPipeline* _unlitRenderPipeline = nullptr;
+
+        GraphicsSampler* _fullscreenSampler = nullptr;
+        GraphicsDescriptorSetLayout* _presentDescriptorSetLayout = nullptr;
+        GraphicsPipelineLayout* _presentPipelineLayout = nullptr;
+        GraphicsRenderPipeline* _presentRenderPipeline = nullptr;
     };
 } // namespace Bonsai
 

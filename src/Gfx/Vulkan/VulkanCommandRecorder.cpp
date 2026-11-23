@@ -285,12 +285,17 @@ namespace Bonsai
         } break;
         case GraphicsCommandType_SetViewport: {
             GraphicsCommandSetViewport const& commandData = command.data.commandSetViewport;
+            
+            // Convert from Vulkan to OpenGL / DirectX clip space conventions
+            float const yAdjusted = commandData.viewport.height - commandData.viewport.y;
+            float const heightAdjusted = -commandData.viewport.height;
 
+            // Set up viewport
             VkViewport viewport{};
             viewport.x = commandData.viewport.x;
-            viewport.y = commandData.viewport.y;
+            viewport.y = yAdjusted;
             viewport.width = commandData.viewport.width;
-            viewport.height = commandData.viewport.height;
+            viewport.height = heightAdjusted;
             viewport.minDepth = commandData.viewport.minDepth;
             viewport.maxDepth = commandData.viewport.maxDepth;
 
@@ -415,6 +420,17 @@ namespace Bonsai
                 VulkanGraphicsHelpers::GetVulkanIndexType(commandData.indexType)
             );
         } break;
+        case GraphicsCommandType_Draw: {
+            GraphicsCommandDraw const& commandData = command.data.commandDraw;
+
+            vkCmdDraw(
+                commandBuffer,
+                commandData.vertexCount,
+                commandData.instanceCount,
+                commandData.firstVertex,
+                commandData.firstInstance
+            );
+        } break;
         case GraphicsCommandType_DrawIndexed: {
             GraphicsCommandDrawIndexed const& commandData = command.data.commandDrawIndexed;
 
@@ -494,15 +510,15 @@ namespace Bonsai
             {
                 GraphicsRenderAttachmentInfo const& depthStencilAttachmentInfo = commandData.depthStencilAttachment;
                 auto* vulkanRenderTarget = static_cast<VulkanTextureView*>(depthStencilAttachmentInfo.renderTarget);
-                auto* vulkanResolveTarget = static_cast<VulkanTextureView*>(depthStencilAttachmentInfo.renderTarget);
+                auto* vulkanResolveTarget = static_cast<VulkanTextureView*>(depthStencilAttachmentInfo.resolveTarget);
 
                 depthStencilAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
                 depthStencilAttachment.pNext = nullptr;
                 depthStencilAttachment.imageView = vulkanRenderTarget->GetImageView();
-                depthStencilAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                depthStencilAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 depthStencilAttachment.resolveMode = vulkanResolveTarget != nullptr ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE;
                 depthStencilAttachment.resolveImageView = vulkanResolveTarget != nullptr ? vulkanResolveTarget->GetImageView() : VK_NULL_HANDLE;
-                depthStencilAttachment.resolveImageLayout = vulkanResolveTarget != nullptr ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
+                depthStencilAttachment.resolveImageLayout = vulkanResolveTarget != nullptr ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
                 depthStencilAttachment.loadOp = VulkanGraphicsHelpers::GetVulkanAttachmentLoadOp(depthStencilAttachmentInfo.loadOp);
                 depthStencilAttachment.storeOp = VulkanGraphicsHelpers::GetVulkanAttachmentStoreOp(depthStencilAttachmentInfo.storeOp);
                 depthStencilAttachment.clearValue.depthStencil = VkClearDepthStencilValue{

@@ -36,6 +36,7 @@ namespace Bonsai
         GraphicsCommandType_BindVertexBuffers,
         GraphicsCommandType_BindIndexBuffer,
 
+        GraphicsCommandType_Draw,
         GraphicsCommandType_DrawIndexed,
         GraphicsCommandType_DrawIndexedIndirect,
 
@@ -179,6 +180,14 @@ namespace Bonsai
         GraphicsIndexType indexType;
     };
 
+    struct GraphicsCommandDraw
+    {
+        uint32_t vertexCount;
+        uint32_t instanceCount;
+        uint32_t firstVertex;
+        uint32_t firstInstance;
+    };
+
     struct GraphicsCommandDrawIndexed
     {
         uint32_t indexCount;
@@ -248,6 +257,7 @@ namespace Bonsai
             GraphicsCommandBindDescriptorSets commandBindDescriptorSets;
             GraphicsCommandBindVertexBuffers commandBindVertexBuffers;
             GraphicsCommandBindIndexBuffer commandBindIndexBuffer;
+            GraphicsCommandDraw commandDraw;
             GraphicsCommandDrawIndexed commandDrawIndexed;
             GraphicsCommandDrawIndexedIndirect commandDrawIndexedIndirect;
             GraphicsCommandDispatch commandDispatch;

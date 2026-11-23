@@ -3,8 +3,7 @@
 #include <SDL3/SDL.h>
 #include "Core/Logger.hpp"
 #include "Systems/CameraInitSystem.hpp"
-#include "Systems/CameraUploadSystem.hpp"
-#include "Systems/MeshUploadSystem.hpp"
+#include "Systems/RenderWorldSyncSystem.hpp"
 #include "Application/FileDropHandler.hpp"
 
 namespace Bonsai
@@ -41,8 +40,7 @@ namespace Bonsai
 
         // Register ECS systems
         _systemRegistry.AddSystem<CameraInitSystem>();
-        _systemRegistry.AddSystem<CameraUploadSystem>(&_renderManager);
-        _systemRegistry.AddSystem<MeshUploadSystem>(&_renderManager);
+        _systemRegistry.AddSystem<RenderWorldSyncSystem>(&_renderManager);
 
         // Initialized!
         SPDLOG_INFO("Initialized Bonsai!");
@@ -53,6 +51,7 @@ namespace Bonsai
     void Application::Shutdown()
     {
         _isRunning = false;
+        _systemRegistry.Clear();
         _sceneManager.Shutdown();
         _renderManager.Shutdown();
         SDL_Quit();

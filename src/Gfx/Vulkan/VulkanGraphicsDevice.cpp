@@ -549,6 +549,15 @@ namespace Bonsai
             }
 
             // Check if all required features are supported
+            if (physicalDeviceInfo.physicalDeviceVulkan11Features.shaderDrawParameters != VK_TRUE)
+            {
+                SPDLOG_WARN("Physical device does not support the shader draw parameters feature: \"{}\" ({})",
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceName,
+                    physicalDeviceInfo.physicalDeviceProperties2.properties.deviceID
+                );
+                physicalDeviceInfo.isSupported = false;
+            }
+
             if (physicalDeviceInfo.physicalDeviceVulkan13Features.dynamicRendering != VK_TRUE)
             {
                 SPDLOG_WARN("Physical device does not support the dynamic rendering feature: \"{}\" ({})",
@@ -637,6 +646,9 @@ namespace Bonsai
         physicalDeviceVulkan12Features.pNext = &physicalDeviceVulkan13Features;
         physicalDeviceVulkan13Features.pNext = nullptr;
 
+        if (physicalDeviceInfo.physicalDeviceVulkan11Features.shaderDrawParameters == VK_TRUE) {
+            physicalDeviceVulkan11Features.shaderDrawParameters = VK_TRUE;
+        }
         if (physicalDeviceInfo.physicalDeviceVulkan13Features.dynamicRendering == VK_TRUE) {
             physicalDeviceVulkan13Features.dynamicRendering = VK_TRUE;
         }

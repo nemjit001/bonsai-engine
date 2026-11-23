@@ -16,10 +16,15 @@ namespace Bonsai
             return;
         }
 
+        // Set up default camera transform
+        TransformComponent transformComponent{};
+        transformComponent.translation = glm::vec3(0.0F, 5.0F, -5.0F);
+        transformComponent.rotation = glm::quatLookAt(Math::WorldForward, Math::WorldUp);
+
         // Create camera entity
         entt::entity camera = registry.create();
-        registry.emplace<TransformComponent>(camera, TransformComponent{});
-        registry.emplace<CameraComponent>(camera, CameraComponent{});
+        registry.emplace<TransformComponent>(camera, transformComponent);
+        registry.emplace<CameraComponent>(camera);
 
         SPDLOG_TRACE("Spawned default camera entity");
     }

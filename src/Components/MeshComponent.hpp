@@ -3,15 +3,14 @@
 #define BONSAI_MESH_COMPONENT_HPP
 
 #include "Assets/AssetManager.hpp"
+#include "Assets/Mesh.hpp"
 
 namespace Bonsai
 {
-    class Mesh;
-
     /// @brief The Mesh Component stores a host-side mesh for an entity.
     struct MeshComponent
     {
-        AssetHandle<Mesh> MeshHandle = AssetHandle<Mesh>();
+        AssetHandle<Mesh> meshHandle = AssetHandle<Mesh>();
     };
 } // namespace Bonsai
 

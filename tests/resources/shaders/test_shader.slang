@@ -15,14 +15,14 @@ struct PixelOutput
 
 [shader("vertex")]
 VertexOutput VSMain(VertexInput input) {
-    VertexOutput result = {0};
+    VertexOutput result = (VertexOutput)0;
     result.position = float4(input.position, 1.0);
     return result;
 }
 
 [shader("pixel")]
 PixelOutput PSMain(VertexOutput input) {
-    PixelOutput result = {0};
+    PixelOutput result = (PixelOutput)0;
     result.color = input.position;
     return result;
 }

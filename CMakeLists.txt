@@ -6,6 +6,7 @@ enable_testing()
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
 
 # Enable global options
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
 
 # Include cmake helpers
@@ -134,20 +135,20 @@ target_sources(BonsaiEngineLib
     FILES
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
+        src/Assets/AssetManager.inl
         src/Assets/AssetType.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
-        src/Renderer/CameraConstantBuffer.hpp
         src/Renderer/RenderManager.hpp
+        src/Renderer/RenderWorld.hpp
+        src/Renderer/ShaderTypes.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
-        src/Components/RenderMeshComponent.hpp
         src/Components/TransformComponent.hpp
         src/Systems/CameraInitSystem.hpp
-        src/Systems/CameraUploadSystem.hpp
         src/Systems/ECSSystem.hpp
-        src/Systems/MeshUploadSystem.hpp
+        src/Systems/RenderWorldSyncSystem.hpp
         src/Systems/SystemRegistry.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
@@ -155,18 +156,16 @@ target_sources(BonsaiEngineLib
         src/Application.hpp
     PRIVATE
         src/Assets/AssetImporter.cpp
-        src/Assets/AssetManager.cpp
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
         src/Renderer/RenderManager.cpp
+        src/Renderer/RenderWorld.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
-        src/Components/RenderMeshComponent.cpp
         src/Components/TransformComponent.cpp
         src/Systems/CameraInitSystem.cpp
-        src/Systems/CameraUploadSystem.cpp
-        src/Systems/MeshUploadSystem.cpp
+        src/Systems/RenderWorldSyncSystem.cpp
         src/Systems/SystemRegistry.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
@@ -204,6 +203,11 @@ target_compile_features(BonsaiEngine
 target_link_libraries(BonsaiEngine
     PRIVATE
         BonsaiEngine::Lib
+)
+target_copy_resource_files(BonsaiEngine
+    resources/shaders/common.slang
+    resources/shaders/fullscreen_quad.slang
+    resources/shaders/unlit.slang
 )
 
 if (BONSAI_BUILD_TESTS)

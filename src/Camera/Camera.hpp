@@ -40,7 +40,11 @@ namespace Bonsai
         Camera() = default;
         explicit Camera(CameraPerspectiveParameters const& parameters);
         explicit Camera(CameraOrthographicParameters const& parameters);
-        
+
+        /// @brief Set the camera aspect ratio.
+        /// @param aspectRatio New aspect ratio.
+        void SetAspectRatio(float aspectRatio);
+
         /// @brief Get the camera projection matrix.
         /// @return The projection matrix for this camera, based on its camera type.
         glm::mat4 GetProjectionMatrix() const;

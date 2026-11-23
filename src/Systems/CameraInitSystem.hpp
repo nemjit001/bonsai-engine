@@ -10,7 +10,7 @@ namespace Bonsai
     class CameraInitSystem : public ECSSystem
     {
     public:
-        void Run(entt::registry& registry) override;
+        void Run(entt::registry& registry) override final;
     };
 } // namespace Bonsai
 

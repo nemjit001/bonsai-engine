@@ -445,6 +445,26 @@ namespace Bonsai
         _commands.push_back(command);
     }
 
+    void GraphicsCommandBufferImpl::Draw(
+        uint32_t vertexCount,
+        uint32_t instanceCount,
+        uint32_t firstVertex,
+        uint32_t firstInstance
+    )
+    {
+        GraphicsCommandDraw commandDraw{};
+        commandDraw.vertexCount = vertexCount;
+        commandDraw.instanceCount = instanceCount;
+        commandDraw.firstVertex = firstVertex;
+        commandDraw.firstInstance = firstInstance;
+
+        GraphicsCommand command{};
+        command.type = GraphicsCommandType_Draw;
+        command.data.commandDraw = commandDraw;
+
+        _commands.push_back(command);
+    }
+
     void GraphicsCommandBufferImpl::DrawIndexed(
         uint32_t indexCount,
         uint32_t instanceCount,

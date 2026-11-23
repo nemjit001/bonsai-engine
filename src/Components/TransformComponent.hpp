@@ -22,7 +22,7 @@ namespace Bonsai
     inline glm::mat4 TransformComponent::GetMatrix() const
     {
         glm::mat4 const translated = glm::translate(glm::identity<glm::mat4>(), translation);
-        glm::mat4 const rotated = glm::mat4_cast(rotation) * translated;
+        glm::mat4 const rotated = translated * glm::mat4_cast(rotation);
         glm::mat4 const scaled = glm::scale(rotated, scale);
         return scaled;
     }

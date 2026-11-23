@@ -170,16 +170,20 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     bufferDescriptorInfo.buffer = buffer;
     bufferDescriptorInfo.offset = 0;
     bufferDescriptorInfo.range = Bonsai::Graphics::WholeSize;
+
+    Bonsai::GraphicsDescriptorSetBinding bufferDescriptorBinding{};
+    bufferDescriptorBinding.binding = 0;
+    bufferDescriptorBinding.arrayElement = 0;
+    bufferDescriptorBinding.descriptorCount = 1;
+    bufferDescriptorBinding.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
+    bufferDescriptorBinding.bufferInfos = &bufferDescriptorInfo;
+    bufferDescriptorBinding.imageInfos = nullptr;
     
     Bonsai::GraphicsDescriptorSetDesc descriptorSetDesc{};
     descriptorSetDesc.descriptorSetLayout = descriptorSetLayout;
-    descriptorSetDesc.binding = 0;
-    descriptorSetDesc.arrayElement = 0;
-    descriptorSetDesc.descriptorCount = 1;
-    descriptorSetDesc.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
-    descriptorSetDesc.bufferInfos = &bufferDescriptorInfo;
-    descriptorSetDesc.imageInfos = nullptr;
-
+    descriptorSetDesc.bindingCount = 1;
+    descriptorSetDesc.bindings = &bufferDescriptorBinding;
+    
     auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(frame, descriptorSetDesc);
     ASSERT_NE(descriptorSet, nullptr);
     
@@ -218,8 +222,8 @@ TEST_F(GraphicsDeviceTests, TestCreateRenderPipeline)
     Bonsai::GraphicsRenderPipelineDesc renderPipelineDesc{};
     renderPipelineDesc.pipelineLayout = pipelineLayout;
 
-    renderPipelineDesc.vertexShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "VSMain", 6 };
-    renderPipelineDesc.fragmentShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "PSMain", 6 };
+    renderPipelineDesc.vertexShaderEntrypoint = "VSMain"_entrypoint;
+    renderPipelineDesc.fragmentShaderEntrypoint = "PSMain"_entrypoint;
     renderPipelineDesc.vertexShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
     renderPipelineDesc.fragmentShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
 
@@ -284,7 +288,7 @@ TEST_F(GraphicsDeviceTests, TestCreateComputePipeline)
     // Create compute pipeline
     Bonsai::GraphicsComputePipelineDesc computePipelineDesc{};
     computePipelineDesc.pipelineLayout = pipelineLayout;
-    computePipelineDesc.computeShaderEntrypoint = Bonsai::GraphicsShaderEntrypoint{ "CSMain", 6 };
+    computePipelineDesc.computeShaderEntrypoint = "CSMain"_entrypoint;
     computePipelineDesc.computeShaderBytecode = Bonsai::GraphicsShaderBytecode{ bytecode->getBufferPointer(), bytecode->getBufferSize() };
 
     auto computePipeline = _graphicsDevice->CreateComputePipeline(computePipelineDesc);

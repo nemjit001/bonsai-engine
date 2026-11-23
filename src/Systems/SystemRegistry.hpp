@@ -24,6 +24,9 @@ namespace Bonsai
         /// @param registry Registry to run the systems on.
         void RunSystems(entt::registry& registry) const;
 
+        /// @brief Clear all systems from the registry.
+        void Clear();
+
     private:
         std::vector<std::unique_ptr<ECSSystem>> _systems{};
     };

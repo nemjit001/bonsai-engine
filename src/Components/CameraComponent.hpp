@@ -2,7 +2,6 @@
 #ifndef BONSAI_CAMERA_COMPONENT_HPP
 #define BONSAI_CAMERA_COMPONENT_HPP
 
-#include <Gfx/GraphicsTypes.hpp>
 #include "Camera/Camera.hpp"
 
 namespace Bonsai
@@ -11,8 +10,7 @@ namespace Bonsai
     /// It contains the camera parameters and related graphics resources.
     struct CameraComponent
     {
-        Camera camera = Camera();        
-        GraphicsBuffer* cameraConstantBuffer = nullptr;
+        Camera camera = Camera();
     };
 } // namespace Bonsai
 
