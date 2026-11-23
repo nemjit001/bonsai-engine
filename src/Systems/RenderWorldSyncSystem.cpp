@@ -257,10 +257,10 @@ namespace Bonsai
         // Get graphics device
         GraphicsDevice* graphicsDevice = _renderManager->GetGraphicsDevice();
 
-        // Calculate shader buffer sizes
-        size_t const cameraBufferSize = renderWorld.cameras.size() * sizeof(Shader::Camera);
-        size_t const renderObjectBufferSize = renderWorld.renderObjects.size() * sizeof(Shader::RenderObject);
-        size_t const objectTransformBufferSize = renderWorld.objectTransforms.size() * sizeof(Shader::ObjectTransform);
+        // Calculate shader buffer sizes (allocate 1 more to avoid empty buffers)
+        size_t const cameraBufferSize = (renderWorld.cameras.size() + 1) * sizeof(Shader::Camera);
+        size_t const renderObjectBufferSize = (renderWorld.renderObjects.size() + 1) * sizeof(Shader::RenderObject);
+        size_t const objectTransformBufferSize = (renderWorld.objectTransforms.size() + 1) * sizeof(Shader::ObjectTransform);
         size_t const requiredUploadBufferSize = cameraBufferSize + renderObjectBufferSize + objectTransformBufferSize;
 
         // Set up render world buffers
@@ -331,27 +331,30 @@ namespace Bonsai
         size_t uploadBufferPointer = 0;
 
         // Copy camera data
-        if (renderWorld.cameraBuffer != nullptr)
+        size_t const cameraBufferCopySize = renderWorld.cameras.size() * sizeof(Shader::Camera);
+        if (renderWorld.cameraBuffer != nullptr && cameraBufferCopySize != 0)
         {
-            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.cameras.data(), cameraBufferSize, uploadBufferPointer);
-            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.cameraBuffer, cameraBufferSize, uploadBufferPointer, 0);
-            uploadBufferPointer += cameraBufferSize;
+            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.cameras.data(), cameraBufferCopySize, uploadBufferPointer);
+            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.cameraBuffer, cameraBufferCopySize, uploadBufferPointer, 0);
+            uploadBufferPointer += cameraBufferCopySize;
         }
 
         // Copy render object data
-        if (renderWorld.renderObjectBuffer != nullptr)
+        size_t const renderObjectBufferCopySize = renderWorld.renderObjects.size() * sizeof(Shader::RenderObject);
+        if (renderWorld.renderObjectBuffer != nullptr && renderObjectBufferCopySize != 0)
         {
-            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.renderObjects.data(), renderObjectBufferSize, uploadBufferPointer);
-            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.renderObjectBuffer, renderObjectBufferSize, uploadBufferPointer, 0);
-            uploadBufferPointer += renderObjectBufferSize;
+            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.renderObjects.data(), renderObjectBufferCopySize, uploadBufferPointer);
+            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.renderObjectBuffer, renderObjectBufferCopySize, uploadBufferPointer, 0);
+            uploadBufferPointer += renderObjectBufferCopySize;
         }
 
         // Copy object transform data
-        if (renderWorld.objectTransformBuffer != nullptr)
+        size_t const objectTransformBufferCopySize = renderWorld.objectTransforms.size() * sizeof(Shader::ObjectTransform);
+        if (renderWorld.objectTransformBuffer != nullptr && objectTransformBufferCopySize != 0)
         {
-            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransforms.data(), objectTransformBufferSize, uploadBufferPointer);
-            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransformBuffer, objectTransformBufferSize, uploadBufferPointer, 0);
-            uploadBufferPointer += objectTransformBufferSize;
+            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransforms.data(), objectTransformBufferCopySize, uploadBufferPointer);
+            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransformBuffer, objectTransformBufferCopySize, uploadBufferPointer, 0);
+            uploadBufferPointer += objectTransformBufferCopySize;
         }
 
         // Submit transfer batch

@@ -108,27 +108,218 @@ namespace Bonsai
 
     void RenderManager::RenderFrame()
     {
+        // Get render world
+        RenderWorld const& renderWorld = GetRenderWorld();
+
+        // Create scene descriptor set
+        GraphicsDescriptorSet* sceneDescriptorSet = nullptr;
+        {
+            GraphicsDescriptorBufferInfo cameraBufferInfo{};
+            cameraBufferInfo.buffer = renderWorld.cameraBuffer;
+            cameraBufferInfo.offset = 0;
+            cameraBufferInfo.range = renderWorld.cameraBufferSize;
+
+            GraphicsDescriptorBufferInfo renderObjectBufferInfo{};
+            renderObjectBufferInfo.buffer = renderWorld.renderObjectBuffer;
+            renderObjectBufferInfo.offset = 0;
+            renderObjectBufferInfo.range =  renderWorld.renderObjectBufferSize;
+
+            GraphicsDescriptorBufferInfo objectTransformBufferInfo{};
+            objectTransformBufferInfo.buffer = renderWorld.objectTransformBuffer;
+            objectTransformBufferInfo.offset = 0;
+            objectTransformBufferInfo.range =  renderWorld.objectTransformBufferSize;
+
+            GraphicsDescriptorSetBinding sceneDescriptorSetBindings[] = {
+                GraphicsDescriptorSetBinding{ 0, 0, 1, GraphicsDescriptorType_StorageBuffer, &cameraBufferInfo, nullptr },
+                GraphicsDescriptorSetBinding{ 1, 0, 1, GraphicsDescriptorType_StorageBuffer, &renderObjectBufferInfo, nullptr },
+                GraphicsDescriptorSetBinding{ 2, 0, 1, GraphicsDescriptorType_StorageBuffer, &objectTransformBufferInfo, nullptr },
+            };
+
+            GraphicsDescriptorSetDesc sceneDescriptorSetDesc{};
+            sceneDescriptorSetDesc.descriptorSetLayout = _sceneDataDescriptorSetLayout;
+            sceneDescriptorSetDesc.bindingCount = std::size(sceneDescriptorSetBindings);
+            sceneDescriptorSetDesc.bindings = sceneDescriptorSetBindings;
+
+            sceneDescriptorSet = _graphicsDevice->CreateDescriptorSet(_activeFrame, sceneDescriptorSetDesc);
+            if (sceneDescriptorSet == nullptr) {
+                SPDLOG_WARN("Failed to create scene descriptor set");
+            }
+        }
+
+        // Create present descriptor set
+        GraphicsDescriptorSet* presentDescriptorSet = nullptr;
+        {
+            GraphicsDescriptorImageInfo screenTextureImageInfo{};
+            screenTextureImageInfo.sampler = _fullscreenSampler;
+            screenTextureImageInfo.textureView = _colorTargetView;
+            screenTextureImageInfo.textureLayout = GraphicsTextureLayout_ShaderReadOnly;
+
+            GraphicsDescriptorSetBinding presentDescriptorSetBindings[] = {
+                GraphicsDescriptorSetBinding{ 0, 0, 1, GraphicsDescriptorType_CombinedImageSampler, nullptr, &screenTextureImageInfo },
+            };
+
+            GraphicsDescriptorSetDesc presentDescriptorSetDesc{};
+            presentDescriptorSetDesc.descriptorSetLayout = _presentDescriptorSetLayout;
+            presentDescriptorSetDesc.bindingCount = std::size(presentDescriptorSetBindings);
+            presentDescriptorSetDesc.bindings = presentDescriptorSetBindings;
+
+            presentDescriptorSet = _graphicsDevice->CreateDescriptorSet(_activeFrame, presentDescriptorSetDesc);
+            if (presentDescriptorSet == nullptr) {
+                SPDLOG_WARN("Failed to create present descriptor set");
+            }
+        }
+
         // Record frame commands
         GraphicsCommandBuffer* commandBuffer = _graphicsDevice->BeginCommandBuffer();
-        GraphicsTextureView* swapTextureView = _graphicsDevice->GetSwapchainBackbufferView(_swapchain);
 
-        GraphicsRenderAttachmentInfo colorAttachmentInfo{};
-        colorAttachmentInfo.renderTarget = swapTextureView;
-        colorAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
-        colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
-        colorAttachmentInfo.clearValue = GraphicsClearValue{{{ 0.5F, 0.5, 0.5F, 0.5F }}};
+        // Prepare render targets for write
+        {
+            GraphicsTextureBarrier colorTargetWriteBarrier{};
+            colorTargetWriteBarrier.texture = _colorTarget;
+            colorTargetWriteBarrier.srcLayout = GraphicsTextureLayout_Undefined;
+            colorTargetWriteBarrier.srcResourceState = GraphicsResourceState_RenderTarget_Read;
+            colorTargetWriteBarrier.dstLayout = GraphicsTextureLayout_RenderTarget;
+            colorTargetWriteBarrier.dstResourceState = GraphicsResourceState_RenderTarget_Write;
+            colorTargetWriteBarrier.subresource.aspectMask = GraphicsTextureAspect_Color;
+            colorTargetWriteBarrier.subresource.baseMipLevel = 0;
+            colorTargetWriteBarrier.subresource.levelCount = 1;
+            colorTargetWriteBarrier.subresource.baseArrayLayer = 0;
+            colorTargetWriteBarrier.subresource.layerCount = 1;
 
-        Rect2D renderArea{};
-        renderArea.offset = Offset2D{ 0, 0 };
-        renderArea.extent = _graphicsDevice->GetSwapchainExtent(_swapchain);
+            GraphicsTextureBarrier depthStencilTargetWriteBarrier{};
+            depthStencilTargetWriteBarrier.texture = _depthStencilTarget;
+            depthStencilTargetWriteBarrier.srcLayout = GraphicsTextureLayout_Undefined;
+            depthStencilTargetWriteBarrier.srcResourceState = GraphicsResourceState_DepthStencilTarget_Read;
+            depthStencilTargetWriteBarrier.dstLayout = GraphicsTextureLayout_DepthStencilTarget;
+            depthStencilTargetWriteBarrier.dstResourceState = GraphicsResourceState_DepthStencilTarget_Write;
+            depthStencilTargetWriteBarrier.subresource.aspectMask = GraphicsTextureAspect_Depth | GraphicsTextureAspect_Stencil;
+            depthStencilTargetWriteBarrier.subresource.baseMipLevel = 0;
+            depthStencilTargetWriteBarrier.subresource.levelCount = 1;
+            depthStencilTargetWriteBarrier.subresource.baseArrayLayer = 0;
+            depthStencilTargetWriteBarrier.subresource.layerCount = 1;
 
-        commandBuffer->BeginRendering(renderArea, &colorAttachmentInfo, 1, nullptr);
-        commandBuffer->EndRendering();
-        _graphicsDevice->SubmitFrameCommands(_activeFrame, commandBuffer);
+            GraphicsTextureBarrier renderAttachmentBarriers[] = { colorTargetWriteBarrier, depthStencilTargetWriteBarrier };
+            commandBuffer->PipelineBarrier(nullptr, 0, nullptr, 0, renderAttachmentBarriers, std::size(renderAttachmentBarriers));
+        }
+
+        // Unlit render pass
+        {
+            Extent2D const renderExtent = GetWindowResolution();
+
+            // Begin render pass
+            GraphicsRenderAttachmentInfo colorAttachmentInfo{};
+            colorAttachmentInfo.renderTarget = _colorTargetView;
+            colorAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
+            colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
+            colorAttachmentInfo.clearValue.color = GraphicsClearColorValue{{ 0.25F, 0.25F, 0.25F, 0.25F }};
+
+            GraphicsRenderAttachmentInfo depthStencilAttachmentInfo{};
+            depthStencilAttachmentInfo.renderTarget = _depthStencilTargetView;
+            depthStencilAttachmentInfo.loadOp = GraphicsLoadOp_Clear;
+            depthStencilAttachmentInfo.storeOp = GraphicsStoreOp_DontCare;
+            depthStencilAttachmentInfo.clearValue.depthStencil = GraphicsClearDepthStencilValue{ 1.0F, 0 };
+
+            Rect2D renderArea{};
+            renderArea.offset = Offset2D{ 0, 0 };
+            renderArea.extent = renderExtent;
+
+            commandBuffer->BeginRendering(renderArea, &colorAttachmentInfo, 1, &depthStencilAttachmentInfo);
+
+            // Set viewport and scissor
+            GraphicsViewport viewport{};
+            viewport.x = 0.0F;
+            viewport.y = 0.0F;
+            viewport.width = static_cast<float>(renderExtent.width);
+            viewport.height = static_cast<float>(renderExtent.height);
+            viewport.minDepth = 0.0F;
+            viewport.maxDepth = 1.0F;
+            
+            Rect2D scissorRect{};
+            scissorRect.offset = Offset2D{ 0, 0 };
+            scissorRect.extent = renderExtent;
+
+            commandBuffer->SetViewport(viewport);
+            commandBuffer->SetScissorRect(scissorRect);
+
+            // Bind pipeline state
+            commandBuffer->BindRenderPipeline(_unlitRenderPipeline);
+            commandBuffer->BindRenderDescriptorSets(_renderPipelineLayout, 0, &sceneDescriptorSet, 1);
+
+            // Record draw commands
+            // TODO(nemjit001): Record draws using cameraId:objectId pairs
+
+            // End render pass
+            commandBuffer->EndRendering();
+        }
+
+        // Prepare color target for read
+        {
+            GraphicsTextureBarrier colorTargetShaderReadBarrier{};
+            colorTargetShaderReadBarrier.texture = _colorTarget;
+            colorTargetShaderReadBarrier.srcLayout = GraphicsTextureLayout_RenderTarget;
+            colorTargetShaderReadBarrier.srcResourceState = GraphicsResourceState_RenderTarget_Write;
+            colorTargetShaderReadBarrier.dstLayout = GraphicsTextureLayout_ShaderReadOnly;
+            colorTargetShaderReadBarrier.dstResourceState = GraphicsResourceState_PixelShader_Read;
+            colorTargetShaderReadBarrier.subresource.aspectMask = GraphicsTextureAspect_Color;
+            colorTargetShaderReadBarrier.subresource.baseMipLevel = 0;
+            colorTargetShaderReadBarrier.subresource.levelCount = 1;
+            colorTargetShaderReadBarrier.subresource.baseArrayLayer = 0;
+            colorTargetShaderReadBarrier.subresource.layerCount = 1;
+
+            GraphicsTextureBarrier shaderReadBarriers[] = { colorTargetShaderReadBarrier };
+            commandBuffer->PipelineBarrier(nullptr, 0, nullptr, 0, shaderReadBarriers, std::size(shaderReadBarriers));
+        }
+
+        // Swap present pass
+        {
+            Extent2D const swapExtent = _graphicsDevice->GetSwapchainExtent(_swapchain);
+
+            // Begin render pass
+            GraphicsTextureView* swapTextureView = _graphicsDevice->GetSwapchainBackbufferView(_swapchain);
+            GraphicsRenderAttachmentInfo colorAttachmentInfo{};
+            colorAttachmentInfo.renderTarget = swapTextureView;
+            colorAttachmentInfo.loadOp = GraphicsLoadOp_DontCare; // Render to fullscreen quad doesn't care about previous contents
+            colorAttachmentInfo.storeOp = GraphicsStoreOp_Store;
+            colorAttachmentInfo.clearValue.color = GraphicsClearColorValue{{ 0.0F, 0.0F, 0.0F, 0.0F }};
+
+            Rect2D renderArea{};
+            renderArea.offset = Offset2D{ 0, 0 };
+            renderArea.extent = swapExtent;
+
+            commandBuffer->BeginRendering(renderArea, &colorAttachmentInfo, 1, nullptr);
+
+            // Set viewport and scissor
+            GraphicsViewport viewport{};
+            viewport.x = 0.0F;
+            viewport.y = 0.0F;
+            viewport.width = static_cast<float>(swapExtent.width);
+            viewport.height = static_cast<float>(swapExtent.height);
+            viewport.minDepth = 0.0F;
+            viewport.maxDepth = 1.0F;
+            
+            Rect2D scissorRect{};
+            scissorRect.offset = Offset2D{ 0, 0 };
+            scissorRect.extent = swapExtent;
+
+            commandBuffer->SetViewport(viewport);
+            commandBuffer->SetScissorRect(scissorRect);
+
+            // Bind pipeline state and draw
+            commandBuffer->BindRenderPipeline(_presentRenderPipeline);
+            commandBuffer->BindRenderDescriptorSets(_presentPipelineLayout, 0, &presentDescriptorSet, 1);
+            commandBuffer->Draw(3, 1, 0, 0);
+
+            // End render pass
+            commandBuffer->EndRendering();
+        }
 
         // Submit the active frame
-        _graphicsDevice->DestroyTextureView(swapTextureView);
+        _graphicsDevice->SubmitFrameCommands(_activeFrame, commandBuffer);
         _graphicsDevice->SubmitFrame(_activeFrame);
+
+        // Perform cleanup
+        _graphicsDevice->DestroyDescriptorSet(presentDescriptorSet);
+        _graphicsDevice->DestroyDescriptorSet(sceneDescriptorSet);
     }
 
     void RenderManager::HandlePlatformEvent(SDL_Event const& event)
@@ -170,6 +361,11 @@ namespace Bonsai
 
     bool RenderManager::CreateRenderTargets(Extent2D const& extent)
     {
+        SPDLOG_TRACE("Creating render targets");
+        if (extent.width == 0 || extent.height == 0) {
+            return false;
+        }
+
         // Ensure old targets are destroyed
         DestroyRenderTargets();
 
@@ -184,7 +380,7 @@ namespace Bonsai
         colorTargetDesc.mipLevels = 1;
         colorTargetDesc.sampleCount = 1;
         colorTargetDesc.tilingMode = GraphicsTextureTiling_Optimal;
-        colorTargetDesc.usage = GraphicsTextureUsage_RenderTarget;
+        colorTargetDesc.usage = GraphicsTextureUsage_RenderTarget | GraphicsTextureUsage_SampledImage;
 
         GraphicsTextureDesc depthStencilTargetDesc{};
         depthStencilTargetDesc.heapType = GraphicsHeapType_Default;
@@ -240,11 +436,12 @@ namespace Bonsai
 
     bool RenderManager::CreatePipelines(ShaderCompiler* shaderCompiler)
     {
+        SPDLOG_TRACE("Creating render pipelines");
         if (shaderCompiler == nullptr) {
             return false;
         }
 
-        // Create descriptor set layout
+        // Create scene data descriptor set layout
         GraphicsDescriptorSetLayoutBinding sceneDataDescriptorBindings[] = {
             GraphicsDescriptorSetLayoutBinding{ 0, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Vertex, nullptr },
             GraphicsDescriptorSetLayoutBinding{ 1, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Vertex, nullptr },
@@ -260,19 +457,19 @@ namespace Bonsai
             return false;
         }
 
-        // Set up pipeline layout
+        // Set up render pipeline layout
         GraphicsPushConstantRange pushConstantRanges[] = {
             GraphicsPushConstantRange{ GraphicsShaderStage_Vertex, 0, sizeof(Shader::DrawParams) },
         };
 
-        GraphicsPipelineLayoutDesc pipelineLayoutDesc{};
-        pipelineLayoutDesc.descriptorSetLayoutCount = 1;
-        pipelineLayoutDesc.descriptorSetLayouts = &_sceneDataDescriptorSetLayout;
-        pipelineLayoutDesc.pushConstantRangeCount = std::size(pushConstantRanges);
-        pipelineLayoutDesc.pushConstantRanges = pushConstantRanges;
+        GraphicsPipelineLayoutDesc renderPipelineLayoutDesc{};
+        renderPipelineLayoutDesc.descriptorSetLayoutCount = 1;
+        renderPipelineLayoutDesc.descriptorSetLayouts = &_sceneDataDescriptorSetLayout;
+        renderPipelineLayoutDesc.pushConstantRangeCount = std::size(pushConstantRanges);
+        renderPipelineLayoutDesc.pushConstantRanges = pushConstantRanges;
 
-        _pipelineLayout = _graphicsDevice->CreatePipelineLayout(pipelineLayoutDesc);
-        if (_pipelineLayout == nullptr) {
+        _renderPipelineLayout = _graphicsDevice->CreatePipelineLayout(renderPipelineLayoutDesc);
+        if (_renderPipelineLayout == nullptr) {
             return false;
         }
 
@@ -296,7 +493,7 @@ namespace Bonsai
 
         // Create unlit render pipeline
         GraphicsRenderPipelineDesc unlitPipelineDesc{};
-        unlitPipelineDesc.pipelineLayout = _pipelineLayout;
+        unlitPipelineDesc.pipelineLayout = _renderPipelineLayout;
         unlitPipelineDesc.vertexShaderEntrypoint = "VSUnlitMain"_entrypoint;
         unlitPipelineDesc.fragmentShaderEntrypoint = "PSUnlitMain"_entrypoint;
         unlitPipelineDesc.vertexShaderBytecode = GraphicsShaderBytecode{ unlitShader->getBufferPointer(), unlitShader->getBufferSize() };
@@ -309,12 +506,11 @@ namespace Bonsai
         unlitPipelineDesc.stripCutValue = GraphicsIndexBufferStripCutValue_None;
         unlitPipelineDesc.rasterState.polygonMode = GraphicsPolygonMode_Fill;
         unlitPipelineDesc.rasterState.cullMode = GraphicsCullMode_None;
-        unlitPipelineDesc.rasterState.frontCounterClockwise = true;
+        unlitPipelineDesc.rasterState.frontCounterClockwise = false;
         unlitPipelineDesc.multisampleState.sampleCount = 1;
         unlitPipelineDesc.depthStencilState.depthTest = true;
         unlitPipelineDesc.depthStencilState.depthWrite = true;
         unlitPipelineDesc.depthStencilState.depthCompareOp = GraphicsCompareOp_Less;
-        unlitPipelineDesc.blendState.logicOp = GraphicsLogicOp_Undefined;
         unlitPipelineDesc.blendState.renderTargets[0].blendEnable = false;
         unlitPipelineDesc.blendState.renderTargets[0].colorWriteMask = GraphicsColorComponent_All;
         unlitPipelineDesc.renderTargetCount = 1;
@@ -323,6 +519,73 @@ namespace Bonsai
 
         _unlitRenderPipeline = _graphicsDevice->CreateRenderPipeline(unlitPipelineDesc);
         if (_unlitRenderPipeline == nullptr) {
+            return false;
+        }
+
+        // Create fullscreen sampler
+        GraphicsSamplerDesc fullscreenSamplerDesc{};
+        fullscreenSamplerDesc.magFilter = GraphicsFilter_Linear;
+        fullscreenSamplerDesc.minFilter = GraphicsFilter_Linear;
+        fullscreenSamplerDesc.mipmapMode = GraphicsSamplerMipmapMode_Linear;
+
+        _fullscreenSampler = _graphicsDevice->CreateSampler(fullscreenSamplerDesc);
+        if (!_fullscreenSampler) {
+            return false;
+        }
+
+        // Create present descriptor set layout
+        GraphicsDescriptorSetLayoutBinding presentDescriptorBindings[] = {
+            GraphicsDescriptorSetLayoutBinding{ 0, GraphicsDescriptorType_CombinedImageSampler, 1, GraphicsShaderStage_Fragment, nullptr },
+        };
+
+        GraphicsDescriptorSetLayoutDesc presentDescriptorSetLayoutDesc{};
+        presentDescriptorSetLayoutDesc.bindingCount = std::size(presentDescriptorBindings);
+        presentDescriptorSetLayoutDesc.bindings = presentDescriptorBindings;
+
+        _presentDescriptorSetLayout = _graphicsDevice->CreateDescriptorSetLayout(presentDescriptorSetLayoutDesc);
+        if (_presentDescriptorSetLayout == nullptr) {
+            return false;
+        }
+
+        // Set up present pipeline layout
+        GraphicsPipelineLayoutDesc presentPipelineLayoutDesc{};
+        presentPipelineLayoutDesc.descriptorSetLayoutCount = 1;
+        presentPipelineLayoutDesc.descriptorSetLayouts = &_presentDescriptorSetLayout;
+        presentPipelineLayoutDesc.pushConstantRangeCount = 0;
+        presentPipelineLayoutDesc.pushConstantRanges = nullptr;
+
+        _presentPipelineLayout = _graphicsDevice->CreatePipelineLayout(presentPipelineLayoutDesc);
+        if (_presentPipelineLayout == nullptr) {
+            return false;
+        }
+
+        // Compile present pipeline shader
+        Slang::ComPtr<slang::IBlob> const presentShader = shaderCompiler->CompileShaderFromFile(Filesystem::GetResourcePath("resources/shaders/fullscreen_quad.slang"));
+        if (presentShader == nullptr) {
+            return false;
+        }
+
+        // Create present render pipeline
+        GraphicsRenderPipelineDesc presentPipelineDesc{};
+        presentPipelineDesc.pipelineLayout = _presentPipelineLayout;
+        presentPipelineDesc.vertexShaderEntrypoint = "VSFullscreenQuadMain"_entrypoint;
+        presentPipelineDesc.fragmentShaderEntrypoint = "PSFullscreenQuadMain"_entrypoint;
+        presentPipelineDesc.vertexShaderBytecode = GraphicsShaderBytecode{ presentShader->getBufferPointer(), presentShader->getBufferSize() };
+        presentPipelineDesc.fragmentShaderBytecode = GraphicsShaderBytecode{ presentShader->getBufferPointer(), presentShader->getBufferSize() };
+        presentPipelineDesc.primitiveTopology = GraphicsPrimitiveTopology_TriangleList;
+        presentPipelineDesc.stripCutValue = GraphicsIndexBufferStripCutValue_None;
+        presentPipelineDesc.rasterState.polygonMode = GraphicsPolygonMode_Fill;
+        presentPipelineDesc.rasterState.cullMode = GraphicsCullMode_None;
+        presentPipelineDesc.rasterState.frontCounterClockwise = false;
+        presentPipelineDesc.multisampleState.sampleCount = 1;
+        presentPipelineDesc.blendState.renderTargets[0].blendEnable = false;
+        presentPipelineDesc.blendState.renderTargets[0].colorWriteMask = GraphicsColorComponent_All;
+        presentPipelineDesc.renderTargetCount = 1;
+        presentPipelineDesc.renderTargetFormats[0] = _graphicsDevice->GetSwapchainFormat(_swapchain);
+        presentPipelineDesc.depthStencilFormat = GraphicsFormat_Unknown;
+
+        _presentRenderPipeline = _graphicsDevice->CreateRenderPipeline(presentPipelineDesc);
+        if (_presentRenderPipeline == nullptr) {
             return false;
         }
 
@@ -354,8 +617,13 @@ namespace Bonsai
 
     void RenderManager::DestroyPipelines()
     {
+        _graphicsDevice->DestroyRenderPipeline(_presentRenderPipeline);
+        _graphicsDevice->DestroyPipelineLayout(_presentPipelineLayout);
+        _graphicsDevice->DestroyDescriptorSetLayout(_presentDescriptorSetLayout);
+        _graphicsDevice->DestroySampler(_fullscreenSampler);
+
         _graphicsDevice->DestroyRenderPipeline(_unlitRenderPipeline);
-        _graphicsDevice->DestroyPipelineLayout(_pipelineLayout);
+        _graphicsDevice->DestroyPipelineLayout(_renderPipelineLayout);
         _graphicsDevice->DestroyDescriptorSetLayout(_sceneDataDescriptorSetLayout);
     }
 } // namespace Bonsai

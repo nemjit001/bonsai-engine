@@ -1,3 +1,5 @@
+module unlit;
+
 import common;
 
 struct VertexInput

@@ -206,6 +206,7 @@ target_link_libraries(BonsaiEngine
 )
 target_copy_resource_files(BonsaiEngine
     resources/shaders/common.slang
+    resources/shaders/fullscreen_quad.slang
     resources/shaders/unlit.slang
 )
 

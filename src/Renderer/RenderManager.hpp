@@ -81,8 +81,13 @@ namespace Bonsai
 
         //-- Render pipelines --//
         GraphicsDescriptorSetLayout* _sceneDataDescriptorSetLayout = nullptr;
-        GraphicsPipelineLayout* _pipelineLayout = nullptr;
+        GraphicsPipelineLayout* _renderPipelineLayout = nullptr;
         GraphicsRenderPipeline* _unlitRenderPipeline = nullptr;
+
+        GraphicsSampler* _fullscreenSampler = nullptr;
+        GraphicsDescriptorSetLayout* _presentDescriptorSetLayout = nullptr;
+        GraphicsPipelineLayout* _presentPipelineLayout = nullptr;
+        GraphicsRenderPipeline* _presentRenderPipeline = nullptr;
     };
 } // namespace Bonsai
 
