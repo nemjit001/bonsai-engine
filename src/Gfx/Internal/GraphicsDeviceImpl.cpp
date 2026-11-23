@@ -147,9 +147,16 @@ namespace Bonsai
         }
 
         // Return the backbuffer view
-        GraphicsTextureView* backbufferView = swapchain->GetBackbufferView();
-        backbufferView->AddRef();
-        return backbufferView;
+        return swapchain->GetBackbufferView();
+    }
+
+    GraphicsFormat GraphicsDeviceImpl::GetSwapchainFormat(GraphicsSwapchain* swapchain)
+    {
+        if (swapchain == nullptr) {
+            return GraphicsFormat_Unknown;
+        }
+
+        return swapchain->GetFormat();
     }
 
     Extent2D GraphicsDeviceImpl::GetSwapchainExtent(GraphicsSwapchain* swapchain)

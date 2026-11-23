@@ -170,16 +170,20 @@ TEST_F(GraphicsDeviceTests, TestCreateDescriptorSet)
     bufferDescriptorInfo.buffer = buffer;
     bufferDescriptorInfo.offset = 0;
     bufferDescriptorInfo.range = Bonsai::Graphics::WholeSize;
+
+    Bonsai::GraphicsDescriptorSetBinding bufferDescriptorBinding{};
+    bufferDescriptorBinding.binding = 0;
+    bufferDescriptorBinding.arrayElement = 0;
+    bufferDescriptorBinding.descriptorCount = 1;
+    bufferDescriptorBinding.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
+    bufferDescriptorBinding.bufferInfos = &bufferDescriptorInfo;
+    bufferDescriptorBinding.imageInfos = nullptr;
     
     Bonsai::GraphicsDescriptorSetDesc descriptorSetDesc{};
     descriptorSetDesc.descriptorSetLayout = descriptorSetLayout;
-    descriptorSetDesc.binding = 0;
-    descriptorSetDesc.arrayElement = 0;
-    descriptorSetDesc.descriptorCount = 1;
-    descriptorSetDesc.descriptorType = Bonsai::GraphicsDescriptorType_UniformBuffer;
-    descriptorSetDesc.bufferInfos = &bufferDescriptorInfo;
-    descriptorSetDesc.imageInfos = nullptr;
-
+    descriptorSetDesc.bindingCount = 1;
+    descriptorSetDesc.bindings = &bufferDescriptorBinding;
+    
     auto* descriptorSet = _graphicsDevice->CreateDescriptorSet(frame, descriptorSetDesc);
     ASSERT_NE(descriptorSet, nullptr);
     

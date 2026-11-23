@@ -33,6 +33,7 @@ namespace Bonsai
 
         GraphicsTexture* GetSwapchainBackbuffer(GraphicsSwapchain* swapchain) override;
         GraphicsTextureView* GetSwapchainBackbufferView(GraphicsSwapchain* swapchain) override;
+        GraphicsFormat GetSwapchainFormat(GraphicsSwapchain* swapchain) override;
         Extent2D GetSwapchainExtent(GraphicsSwapchain* swapchain) override;
 
     private:

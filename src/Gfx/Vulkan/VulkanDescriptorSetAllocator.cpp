@@ -22,7 +22,9 @@ namespace Bonsai
 
     VulkanDescriptorSetAllocator::~VulkanDescriptorSetAllocator()
     {
-        //
+        for (auto const& pool : _descriptorPools) {
+            vkDestroyDescriptorPool(_device, pool, nullptr);
+        }
     }
 
     VulkanDescriptorSetAllocator* VulkanDescriptorSetAllocator::TryCreate(VkDevice device, VulkanDescriptorPoolSizeInfo const& poolSizeInfo)

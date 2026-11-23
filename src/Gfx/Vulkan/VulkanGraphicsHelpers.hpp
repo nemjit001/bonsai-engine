@@ -64,6 +64,11 @@ namespace Bonsai::VulkanGraphicsHelpers
     /// @return The Vulkan image type.
     [[nodiscard]] VkImageType GetVulkanImageType(GraphicsTextureType const& textureType);
 
+    /// @brief Get the Vulkan image view type for a given graphics texture view type.
+    /// @param textureViewType Texture view type to translate.
+    /// @return The Vulkan image view type.
+    [[nodiscard]] VkImageViewType GetVulkanImageViewType(GraphicsTextureViewType const& textureViewType);
+
     /// @brief Get the Vulkan image layout for a given graphics texture layout.
     /// @param textureLayout Texture layout to translate.
     /// @return The Vulkan image layout.

@@ -243,6 +243,29 @@ namespace Bonsai::VulkanGraphicsHelpers
 
         return VK_IMAGE_TYPE_1D;
     }
+    
+    VkImageViewType GetVulkanImageViewType(GraphicsTextureViewType const& textureViewType)
+    {
+        switch (textureViewType)
+        {
+        case GraphicsTextureViewType_1D:
+            return VK_IMAGE_VIEW_TYPE_1D;
+        case GraphicsTextureViewType_2D:
+            return VK_IMAGE_VIEW_TYPE_2D;
+        case GraphicsTextureViewType_3D:
+            return VK_IMAGE_VIEW_TYPE_3D;
+        case GraphicsTextureViewType_Cube:
+            return VK_IMAGE_VIEW_TYPE_CUBE;
+        case GraphicsTextureViewType_1DArray:
+            return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        case GraphicsTextureViewType_2DArray:
+            return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+        default:
+            break;
+        }
+
+        return VK_IMAGE_VIEW_TYPE_1D;
+    }
 
     VkImageLayout GetVulkanImageLayout(GraphicsTextureLayout const& textureLayout)
     {

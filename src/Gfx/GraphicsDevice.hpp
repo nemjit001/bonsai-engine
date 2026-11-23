@@ -176,6 +176,11 @@ namespace Bonsai
         /// @return The graphics texture view for the swapchain backbuffer.
         virtual GraphicsTextureView* GetSwapchainBackbufferView(GraphicsSwapchain* swapchain) = 0;
 
+        /// @brief Get the graphics format for a swapchain.
+        /// @param swapchain Swapchain to query format for.
+        /// @return The swapchain format.
+        virtual GraphicsFormat GetSwapchainFormat(GraphicsSwapchain* swapchain) = 0;
+
         /// @brief Get the extent for a swapchain.
         /// @param swapchain Swapchain to query extent for.
         /// @return The swapchain extent.

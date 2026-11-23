@@ -171,12 +171,20 @@ namespace Bonsai
         ~GraphicsSwapchain();
 
     public:
+        /// @brief Get the swapchain format.
+        /// @return The current swapchain format.
+        virtual GraphicsFormat GetFormat() const { return _format; }
+
+        /// @brief Set the swapchain format.
+        /// @param format The new format.
+        virtual void SetFormat(GraphicsFormat const& format) { _format = format; }
+
         /// @brief Get the swapchain extent.
         /// @return The current swapchain extent.
         virtual Extent2D GetExtent() const { return _extent; }
         
         /// @brief Set the swapchain extent.
-        /// @param extent New extent.
+        /// @param extent The new extent.
         virtual void SetExtent(Extent2D const& extent) { _extent = extent; }
 
         /// @brief Get the backbuffer texture view for the swapchain.
@@ -193,6 +201,7 @@ namespace Bonsai
         virtual void SetBackbufferData(GraphicsTexture* texture, GraphicsTextureView* textureView) final { _backbuffer = texture; _backbufferView = textureView; }
 
     protected:
+        GraphicsFormat _format = GraphicsFormat_Unknown;
         Extent2D _extent = { 0, 0 };
         GraphicsTexture* _backbuffer = nullptr;
         GraphicsTextureView* _backbufferView = nullptr;

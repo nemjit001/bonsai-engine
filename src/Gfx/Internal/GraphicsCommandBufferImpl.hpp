@@ -149,6 +149,13 @@ namespace Bonsai
             GraphicsIndexType indexType
         ) override final;
 
+        void Draw(
+            uint32_t vertexCount,
+            uint32_t instanceCount,
+            uint32_t firstVertex,
+            uint32_t firstInstance
+        ) override final;
+
         void DrawIndexed(
             uint32_t indexCount,
             uint32_t instanceCount,

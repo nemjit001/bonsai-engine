@@ -545,6 +545,17 @@ namespace Bonsai
         GraphicsTextureLayout textureLayout;
     };
 
+    /// @brief Binding element for descriptor sets.
+    struct GraphicsDescriptorSetBinding
+    {
+        uint32_t binding;
+        uint32_t arrayElement;
+        uint32_t descriptorCount;
+        GraphicsDescriptorType descriptorType;
+        GraphicsDescriptorBufferInfo const* bufferInfos;
+        GraphicsDescriptorImageInfo const* imageInfos;
+    };
+
     /// @brief Shader entrypoint for shader pipelines.
     struct GraphicsShaderEntrypoint
     {
@@ -757,12 +768,8 @@ namespace Bonsai
     struct GraphicsDescriptorSetDesc
     {
         GraphicsDescriptorSetLayout* descriptorSetLayout = nullptr;
-        uint32_t binding = 0;
-        uint32_t arrayElement = 0;
-        uint32_t descriptorCount = 0;
-        GraphicsDescriptorType descriptorType = GraphicsDescriptorType_Sampler;
-        GraphicsDescriptorBufferInfo const* bufferInfos = nullptr;
-        GraphicsDescriptorImageInfo const* imageInfos = nullptr;
+        size_t bindingCount = 0;
+        GraphicsDescriptorSetBinding const* bindings = nullptr;
     };
 
     /// @brief Graphics pipeline layout description.

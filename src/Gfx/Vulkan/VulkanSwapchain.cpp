@@ -110,7 +110,8 @@ namespace Bonsai
         _currentSwapchainDesc = swapchainDesc;
         _swapchainData = swapchainData;
 
-        // Cache actual swap image extent
+        // Cache swap format and extent
+        SetFormat(_swapchainData->swapFormat);
         SetExtent(Extent2D{ _currentSwapchainDesc->width, _currentSwapchainDesc->height });
 
         SPDLOG_TRACE("Configured swapchain");

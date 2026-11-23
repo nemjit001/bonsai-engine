@@ -193,6 +193,7 @@ namespace Bonsai
         imageViewCreateInfo.pNext = nullptr;
         imageViewCreateInfo.flags = 0;
         imageViewCreateInfo.image = vulkanTexture->GetImage();
+        imageViewCreateInfo.viewType = VulkanGraphicsHelpers::GetVulkanImageViewType(textureViewDesc.viewType);
         imageViewCreateInfo.format = VulkanGraphicsHelpers::GetVulkanFormat(textureViewDesc.viewFormat);
         imageViewCreateInfo.components = components;
         imageViewCreateInfo.subresourceRange = subresourceRange;
@@ -728,60 +729,71 @@ namespace Bonsai
             return;
         }
 
-        // Set up descriptor set write
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.pNext = nullptr;
-        descriptorWrite.dstSet = descriptorSet->GetDescriptorSet();
-        descriptorWrite.dstBinding = descriptorSetDesc.binding;
-        descriptorWrite.dstArrayElement = descriptorSetDesc.arrayElement;
-        descriptorWrite.descriptorCount = descriptorSetDesc.descriptorCount;
-        descriptorWrite.descriptorType = VulkanGraphicsHelpers::GetVulkanDescriptorType(descriptorSetDesc.descriptorType);
-        descriptorWrite.pBufferInfo = nullptr;
-        descriptorWrite.pImageInfo = nullptr;
-        descriptorWrite.pTexelBufferView = nullptr;
+        // Ensure binding count does not exceed allowed maximum
+        size_t const bindingCount = std::min(descriptorSetDesc.bindingCount, static_cast<size_t>(Graphics::MaxDescriptorSetBindings));
 
-        // Set up optional buffer infos
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        if (descriptorSetDesc.bufferInfos != nullptr)
+        // Set up descriptor set write state
+        std::array<VkWriteDescriptorSet, Graphics::MaxDescriptorSetBindings> descriptorWrites;
+        std::array<std::vector<VkDescriptorBufferInfo>, Graphics::MaxDescriptorSetBindings> descriptorBufferInfos;
+        std::array<std::vector<VkDescriptorImageInfo>, Graphics::MaxDescriptorSetBindings> descriptorImageInfos;
+        for (size_t i = 0; i < bindingCount; i++)
         {
-            bufferInfos.resize(descriptorSetDesc.descriptorCount);
-            for (size_t i = 0; i < descriptorSetDesc.descriptorCount; i++)
-            {
-                GraphicsDescriptorBufferInfo const& bufferInfo = descriptorSetDesc.bufferInfos[i];
-                auto* vulkanBuffer = static_cast<VulkanBuffer*>(bufferInfo.buffer);
+            GraphicsDescriptorSetBinding const& descriptorSetBinding = descriptorSetDesc.bindings[i];
 
-                VkDescriptorBufferInfo& vulkanBufferInfo = bufferInfos[i];
-                vulkanBufferInfo.buffer = vulkanBuffer->GetBuffer();
-                vulkanBufferInfo.offset = bufferInfo.offset;
-                vulkanBufferInfo.range = bufferInfo.range == Graphics::WholeSize ? VK_WHOLE_SIZE : bufferInfo.range;
+            VkWriteDescriptorSet& descriptorWrite = descriptorWrites[i];
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.pNext = nullptr;
+            descriptorWrite.dstSet = descriptorSet->GetDescriptorSet();
+            descriptorWrite.dstBinding = descriptorSetBinding.binding;
+            descriptorWrite.dstArrayElement = descriptorSetBinding.arrayElement;
+            descriptorWrite.descriptorCount = descriptorSetBinding.descriptorCount;
+            descriptorWrite.descriptorType = VulkanGraphicsHelpers::GetVulkanDescriptorType(descriptorSetBinding.descriptorType);
+            descriptorWrite.pBufferInfo = nullptr;
+            descriptorWrite.pImageInfo = nullptr;
+            descriptorWrite.pTexelBufferView = nullptr;
+
+            // Set up optional buffer infos
+            auto& bufferInfos = descriptorBufferInfos[i];
+            if (descriptorSetBinding.bufferInfos != nullptr)
+            {
+                bufferInfos.resize(descriptorSetBinding.descriptorCount);
+                for (size_t j = 0; j < descriptorSetBinding.descriptorCount; j++)
+                {
+                    GraphicsDescriptorBufferInfo const& bufferInfo = descriptorSetBinding.bufferInfos[j];
+                    auto* vulkanBuffer = static_cast<VulkanBuffer*>(bufferInfo.buffer);
+
+                    VkDescriptorBufferInfo& vulkanBufferInfo = bufferInfos[j];
+                    vulkanBufferInfo.buffer = vulkanBuffer != nullptr ? vulkanBuffer->GetBuffer() : VK_NULL_HANDLE;
+                    vulkanBufferInfo.offset = bufferInfo.offset;
+                    vulkanBufferInfo.range = bufferInfo.range == Graphics::WholeSize ? VK_WHOLE_SIZE : bufferInfo.range;
+                }
+
+                descriptorWrite.pBufferInfo = bufferInfos.data();
             }
 
-            descriptorWrite.pBufferInfo = bufferInfos.data();
-        }
-
-        // Set up optional image infos
-        std::vector<VkDescriptorImageInfo> imageInfos;
-        if (descriptorSetDesc.imageInfos != nullptr)
-        {
-            imageInfos.resize(descriptorSetDesc.descriptorCount);
-            for (size_t i = 0; i < descriptorSetDesc.descriptorCount; i++)
+            // Set up optional image infos
+            auto& imageInfos = descriptorImageInfos[i];
+            if (descriptorSetBinding.imageInfos != nullptr)
             {
-                GraphicsDescriptorImageInfo const& imageInfo = descriptorSetDesc.imageInfos[i];
-                auto* vulkanSampler = static_cast<VulkanSampler*>(imageInfo.sampler);
-                auto* vulkanTextureView = static_cast<VulkanTextureView*>(imageInfo.textureView);
+                imageInfos.resize(descriptorSetBinding.descriptorCount);
+                for (size_t j = 0; j < descriptorSetBinding.descriptorCount; j++)
+                {
+                    GraphicsDescriptorImageInfo const& imageInfo = descriptorSetBinding.imageInfos[j];
+                    auto* vulkanSampler = static_cast<VulkanSampler*>(imageInfo.sampler);
+                    auto* vulkanTextureView = static_cast<VulkanTextureView*>(imageInfo.textureView);
 
-                VkDescriptorImageInfo& vulkanImageInfo = imageInfos[i];
-                vulkanImageInfo.sampler = vulkanSampler != nullptr ? vulkanSampler->GetSampler() : nullptr;
-                vulkanImageInfo.imageView = vulkanTextureView != nullptr ? vulkanTextureView->GetImageView() : nullptr;
-                vulkanImageInfo.imageLayout = VulkanGraphicsHelpers::GetVulkanImageLayout(imageInfo.textureLayout);
+                    VkDescriptorImageInfo& vulkanImageInfo = imageInfos[j];
+                    vulkanImageInfo.sampler = vulkanSampler != nullptr ? vulkanSampler->GetSampler() : VK_NULL_HANDLE;
+                    vulkanImageInfo.imageView = vulkanTextureView != nullptr ? vulkanTextureView->GetImageView() : VK_NULL_HANDLE;
+                    vulkanImageInfo.imageLayout = VulkanGraphicsHelpers::GetVulkanImageLayout(imageInfo.textureLayout);
+                }
+
+                descriptorWrite.pImageInfo = imageInfos.data();
             }
-
-            descriptorWrite.pImageInfo = imageInfos.data();
         }
-
-        // Update descriptor set
-        vkUpdateDescriptorSets(_device, 1, &descriptorWrite, 0, nullptr);
+        
+        // Update descriptor set with descriptor writes
+        vkUpdateDescriptorSets(_device, bindingCount, descriptorWrites.data(), 0, nullptr);
     }
 
     std::optional<VulkanObjectFactory::CompiledRenderPipelineStages> VulkanObjectFactory::TryCompileRenderPipeline(GraphicsRenderPipelineDesc const& renderPipelineDesc)
