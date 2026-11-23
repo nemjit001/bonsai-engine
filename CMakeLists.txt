@@ -140,6 +140,7 @@ target_sources(BonsaiEngineLib
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
         src/Renderer/RenderManager.hpp
+        src/Renderer/RenderObjectCache.hpp
         src/Renderer/RenderWorld.hpp
         src/Renderer/ShaderTypes.hpp
         src/Components/CameraComponent.hpp
@@ -148,8 +149,9 @@ target_sources(BonsaiEngineLib
         src/Components/TransformComponent.hpp
         src/Systems/CameraInitSystem.hpp
         src/Systems/ECSSystem.hpp
-        src/Systems/RenderWorldSyncSystem.hpp
+        src/Systems/SyncRenderWorldSystem.hpp
         src/Systems/SystemRegistry.hpp
+        src/Systems/UploadRenderWorldSystem.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
         src/Application/FileDropHandler.hpp
@@ -159,14 +161,16 @@ target_sources(BonsaiEngineLib
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
         src/Renderer/RenderManager.cpp
+        src/Renderer/RenderObjectCache.cpp
         src/Renderer/RenderWorld.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
         src/Systems/CameraInitSystem.cpp
-        src/Systems/RenderWorldSyncSystem.cpp
+        src/Systems/SyncRenderWorldSystem.cpp
         src/Systems/SystemRegistry.cpp
+        src/Systems/UploadRenderWorldSystem.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Application/FileDropHandler.cpp

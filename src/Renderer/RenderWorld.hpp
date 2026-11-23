@@ -4,17 +4,14 @@
 
 #include <unordered_map>
 #include <vector>
-#include <entt/entt.hpp>
 #include <Gfx/GraphicsTypes.hpp>
 #include "Assets/AssetManager.hpp"
 #include "Assets/Mesh.hpp"
+#include "Renderer/RenderObjectCache.hpp"
 #include "Renderer/ShaderTypes.hpp"
 
 namespace Bonsai
 {
-    /// @brief The RenderObjectId is an internal ID for referencing render objects.
-    using RenderObjectId = uint32_t;
-
     /// @brief Render representation of a Bonsai mesh.
     struct RenderMesh
     {
@@ -22,24 +19,13 @@ namespace Bonsai
         GraphicsBuffer* indexBuffer;
     };
 
-    /// @brief Draw command for dispatching a mesh draw.
-    struct MeshDrawCommand
-    {
-        uint32_t cameraId;
-        uint32_t objectId;
-        AssetHandle<Mesh> meshHandle;
-        RenderMesh renderMesh;
-    };
-
     /// @brief The RenderWorld contains GPU render data.
     class RenderWorld
     {
     public:
         //-- render object and geometry tracking --//
-        RenderObjectId maxRenderObjectId = 0;
-        std::vector<RenderObjectId> renderObjectFreeList;
-        std::unordered_map<entt::entity, RenderObjectId> renderObjectCache; //< Cache of entity ids mapped to stable render object ids
-        std::unordered_map<AssetHandle<Mesh>, RenderMesh> geometryCache;    //< Cache of scene geometry currently in use
+        RenderObjectCache renderObjectCache;
+        std::unordered_map<AssetHandle<Mesh>, RenderMesh> geometryCache;
 
         //-- host side data buffers --//
         std::vector<Shader::Camera> cameras;                    //< Camera shader data
@@ -53,9 +39,6 @@ namespace Bonsai
         GraphicsBuffer* cameraBuffer = nullptr;
         GraphicsBuffer* renderObjectBuffer = nullptr;
         GraphicsBuffer* objectTransformBuffer = nullptr;
-
-        //-- Draw command tracking --//
-        std::vector<MeshDrawCommand> drawList;
     };
 } // namespace Bonsai
 

@@ -2,6 +2,7 @@
 
 #include <Core/Filesystem.hpp>
 #include <Core/Logger.hpp>
+#include <Gfx/GraphicsDevice.hpp>
 #include <Gfx/ShaderCompiler.hpp>
 
 namespace Bonsai
@@ -246,6 +247,7 @@ namespace Bonsai
             commandBuffer->BindRenderDescriptorSets(_renderPipelineLayout, 0, &sceneDescriptorSet, 1);
 
             // Record draw commands
+            #if 0
             for (auto const& meshDraw : renderWorld.drawList)
             {
                 // Get mesh for draw
@@ -273,6 +275,7 @@ namespace Bonsai
                     commandBuffer->DrawIndexed(subMesh.indexCount, 1, subMesh.indexOffset, subMesh.vertexOffset, 0);
                 }
             }
+            #endif
 
             // End render pass
             commandBuffer->EndRendering();

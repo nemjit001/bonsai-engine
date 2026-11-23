@@ -3,12 +3,13 @@
 #define BONSAI_RENDER_MANAGER_HPP
 
 #include <SDL3/SDL.h>
-#include <Gfx/GraphicsDevice.hpp>
-#include <Gfx/ShaderCompiler.hpp>
+#include <Gfx/GraphicsTypes.hpp>
 #include "Renderer/RenderWorld.hpp"
 
 namespace Bonsai
 {
+    class ShaderCompiler;
+
     /// @brief The RenderManager manages high level render resource management and frame execution.
     class RenderManager
     {

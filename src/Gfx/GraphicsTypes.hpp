@@ -21,6 +21,7 @@ namespace Bonsai
     class GraphicsCommandBuffer;
     class FrameContext;
     class TransferBatch;
+    class GraphicsDevice;
 
     namespace Graphics
     {
