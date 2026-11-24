@@ -31,6 +31,7 @@ namespace Bonsai::Shader
     {
         alignas(4) uint32_t cameraId;
         alignas(4) uint32_t objectId;
+        alignas(4) uint32_t meshId;
     };
 } // namespace Bonsai::Shader
 

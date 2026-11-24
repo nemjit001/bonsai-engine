@@ -247,35 +247,44 @@ namespace Bonsai
             commandBuffer->BindRenderDescriptorSets(_renderPipelineLayout, 0, &sceneDescriptorSet, 1);
 
             // Record draw commands
-            #if 0
-            for (auto const& meshDraw : renderWorld.drawList)
+            uint32_t lastObjectId = UINT32_MAX;
+            for (auto const& drawCommand : renderWorld.geometryRenderQueue)
             {
-                // Get mesh for draw
-                auto const mesh = meshDraw.meshHandle.Get();
-                if (mesh == nullptr)
+                // Get draw params
+                uint32_t const cameraId = drawCommand.sortKey.fields.cameraId;
+                uint32_t const objectId = drawCommand.sortKey.fields.objectId;
+                uint32_t const meshId = drawCommand.sortKey.fields.meshId;
+
+                // Validate render mesh
+                if (drawCommand.renderMesh.vertexBuffer == nullptr
+                    || drawCommand.renderMesh.indexBuffer == nullptr
+                )
                 {
-                    SPDLOG_WARN("Mesh handle is invalid for draw {}:{}", meshDraw.cameraId, meshDraw.objectId);
+                    SPDLOG_WARN("Invalid render mesh encountered for draw {}:{}:{}", cameraId, objectId, meshId);
                     continue;
                 }
 
                 // Push draw params
                 Shader::DrawParams drawParams{};
-                drawParams.cameraId = meshDraw.cameraId;
-                drawParams.objectId = meshDraw.objectId;
+                drawParams.cameraId = cameraId;
+                drawParams.objectId = objectId;
+                drawParams.meshId = meshId;
 
                 commandBuffer->PushConstants(_renderPipelineLayout, GraphicsShaderStage_Vertex, 0, sizeof(drawParams), &drawParams);
 
-                // Bind mesh buffers
-                size_t offsets[] = { 0 };
-                commandBuffer->BindVertexBuffers(0, &meshDraw.renderMesh.vertexBuffer, 1, offsets);
-                commandBuffer->BindIndexBuffer(meshDraw.renderMesh.indexBuffer, 0, GraphicsIndexType_UInt32);
+                // Bind new render mesh buffers when object changes
+                if (objectId != lastObjectId)
+                {
+                    size_t offsets[] = { 0 };
+                    commandBuffer->BindVertexBuffers(0, &drawCommand.renderMesh.vertexBuffer, 1, offsets);
+                    commandBuffer->BindIndexBuffer(drawCommand.renderMesh.indexBuffer, 0, GraphicsIndexType_UInt32);
 
-                // Draw submeshes based on offsets
-                for (auto const& subMesh : mesh->GetSubmeshes()) {
-                    commandBuffer->DrawIndexed(subMesh.indexCount, 1, subMesh.indexOffset, subMesh.vertexOffset, 0);
+                    lastObjectId = objectId;
                 }
+
+                // Draw submesh
+                commandBuffer->DrawIndexed(drawCommand.subMesh.indexCount, 1, drawCommand.subMesh.indexOffset, drawCommand.subMesh.vertexOffset, 0);
             }
-            #endif
 
             // End render pass
             commandBuffer->EndRendering();

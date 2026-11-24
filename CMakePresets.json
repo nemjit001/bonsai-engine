@@ -12,6 +12,10 @@
             "binaryDir": "${sourceDir}/build/${presetName}",
             "generator": "Ninja Multi-Config",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_VERIFY_INTERFACE_HEADER_SETS": true
+            },
             "architecture": {
                 "value": "x64",
                 "strategy": "external"

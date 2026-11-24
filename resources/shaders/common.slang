@@ -20,4 +20,5 @@ public struct DrawParams
 {
     public uint cameraId;
     public uint objectId;
+    public uint meshId;
 };

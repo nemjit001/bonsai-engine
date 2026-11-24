@@ -1,10 +1,11 @@
 #include "Application.hpp"
 
 #include <SDL3/SDL.h>
-#include "Core/Logger.hpp"
-#include "Systems/CameraInitSystem.hpp"
-#include "Systems/SyncRenderWorldSystem.hpp"
-#include "Systems/UploadRenderWorldSystem.hpp"
+#include <Core/Logger.hpp>
+#include "Systems/Internal/CameraInitSystem.hpp"
+#include "Systems/Internal/GeometryRenderSystem.hpp"
+#include "Systems/Internal/SyncRenderWorldSystem.hpp"
+#include "Systems/Internal/UploadRenderWorldSystem.hpp"
 #include "Application/FileDropHandler.hpp"
 
 namespace Bonsai
@@ -43,6 +44,7 @@ namespace Bonsai
         _systemRegistry.AddSystem<CameraInitSystem>();
         _systemRegistry.AddSystem<SyncRenderWorldSystem>(&_renderManager);
         _systemRegistry.AddSystem<UploadRenderWorldSystem>(&_renderManager);
+        _systemRegistry.AddSystem<GeometryRenderSystem>(&_renderManager);
 
         // Initialized!
         SPDLOG_INFO("Initialized Bonsai!");

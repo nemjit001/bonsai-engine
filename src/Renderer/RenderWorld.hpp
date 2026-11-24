@@ -19,6 +19,27 @@ namespace Bonsai
         GraphicsBuffer* indexBuffer;
     };
 
+    /// @brief Sort key for geometry draws in the render queue.
+    struct GeometryDrawSortKey
+    {
+        uint64_t cameraId       : 8;    // 2^8 cameras
+        uint64_t objectId       : 32;   // 2^32 render objects
+        uint64_t meshId         : 24;   // 2^24 meshes per object
+    };
+    static_assert(sizeof(GeometryDrawSortKey) == sizeof(uint64_t), "Size of the GeometryDrawSortKey is not 64 bits!");
+    
+    /// @brief Geometry draw command in the render queue.
+    struct GeometryDrawCommand
+    {
+        union SortKey
+        {
+            GeometryDrawSortKey fields;
+            uint64_t value;
+        } sortKey;
+        RenderMesh renderMesh;
+        SubMesh subMesh;
+    };
+
     /// @brief The RenderWorld contains GPU render data.
     class RenderWorld
     {
@@ -39,6 +60,9 @@ namespace Bonsai
         GraphicsBuffer* cameraBuffer = nullptr;
         GraphicsBuffer* renderObjectBuffer = nullptr;
         GraphicsBuffer* objectTransformBuffer = nullptr;
+
+        //-- Render queues --//
+        std::vector<GeometryDrawCommand> geometryRenderQueue;
     };
 } // namespace Bonsai
 
