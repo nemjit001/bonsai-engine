@@ -140,6 +140,9 @@ target_sources(BonsaiEngineLib
         src/Renderer/RenderObjectCache.hpp
         src/Renderer/RenderWorld.hpp
         src/Renderer/ShaderTypes.hpp
+        src/Renderer/Subrenderers/GeometryRenderer.hpp
+        src/Renderer/Subrenderers/PresentRenderer.hpp
+        src/Renderer/Subrenderers/Subrenderer.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
@@ -161,6 +164,8 @@ target_sources(BonsaiEngineLib
         src/Renderer/RenderManager.cpp
         src/Renderer/RenderObjectCache.cpp
         src/Renderer/RenderWorld.cpp
+        src/Renderer/Subrenderers/GeometryRenderer.cpp
+        src/Renderer/Subrenderers/PresentRenderer.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp

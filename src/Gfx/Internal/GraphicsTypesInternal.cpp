@@ -89,6 +89,40 @@ namespace Bonsai
             return format == GraphicsFormat_D24_UNorm_S8_UInt;
         }
 
+        GraphicsTextureViewType GetGraphicsTextureViewType(GraphicsTextureType const& textureType, size_t depthOrLayers)
+        {
+            if (depthOrLayers <= 1)
+            {
+                switch (textureType)
+                {
+                case GraphicsTextureType_1D:
+                    return GraphicsTextureViewType_1D;
+                case GraphicsTextureType_2D:
+                    return GraphicsTextureViewType_2D;
+                case GraphicsTextureType_3D:
+                    return GraphicsTextureViewType_3D;
+                default:
+                    break;
+                }
+            }
+            else
+            {
+                switch (textureType)
+                {
+                case GraphicsTextureType_1D:
+                    return GraphicsTextureViewType_1DArray;
+                case GraphicsTextureType_2D:
+                    return GraphicsTextureViewType_2DArray;                    
+                case GraphicsTextureType_3D:
+                    return GraphicsTextureViewType_3D; // 3D texture arrays are not supported
+                default:
+                    break;
+                }
+            }
+
+            return GraphicsTextureViewType_1D;
+        }
+
         GraphicsTextureAspectFlags GetGraphicsTextureAspectFlags(GraphicsFormat const& format)
         {
             GraphicsTextureAspectFlags output = 0;
