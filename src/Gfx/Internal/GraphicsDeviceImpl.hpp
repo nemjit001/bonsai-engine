@@ -13,6 +13,8 @@ namespace Bonsai
     public:
         GraphicsDeviceImpl();
 
+        GraphicsTextureView* CreateDefaultTextureView(GraphicsTexture* texture) override;
+
         void DestroyBuffer(GraphicsBuffer* buffer) override;
         void DestroyTexture(GraphicsTexture* texture) override;
         void DestroyTextureView(GraphicsTextureView* textureView) override;

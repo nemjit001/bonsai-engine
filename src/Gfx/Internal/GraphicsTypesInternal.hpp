@@ -246,6 +246,12 @@ namespace Bonsai
         /// @return A boolean indicating a stencil format.
         bool IsStencilFormat(GraphicsFormat const& format);
 
+        /// @brief Get the texture view type for a graphics texture type and texture depth or layers.
+        /// @param textureType Texture type to get view type for.
+        /// @param depthOrLayers Texture depth or layers.
+        /// @return The texture view type.
+        GraphicsTextureViewType GetGraphicsTextureViewType(GraphicsTextureType const& textureType, size_t depthOrLayers);
+
         /// @brief Get the texture aspect flags for a graphics format.
         /// @param format Format to get aspect flags for.
         /// @return The texture aspect flags.

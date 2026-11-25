@@ -12,6 +12,30 @@ namespace Bonsai
         //
     }
 
+    GraphicsTextureView* GraphicsDeviceImpl::CreateDefaultTextureView(GraphicsTexture* texture)
+    {
+        if (texture == nullptr) {
+            return nullptr;
+        }
+
+        GraphicsTextureDesc const& textureDesc = texture->GetDesc();
+
+        GraphicsTextureSubresourceRange subresourceRange{};
+        subresourceRange.aspectMask = GraphicsHelpers::GetGraphicsTextureAspectFlags(textureDesc.textureFormat);
+        subresourceRange.baseMipLevel = 0;
+        subresourceRange.levelCount = Graphics::RemainingMipLevels;
+        subresourceRange.baseArrayLayer = 0;
+        subresourceRange.layerCount = Graphics::RemainingArrayLayers;
+
+        GraphicsTextureViewDesc textureViewDesc{};
+        textureViewDesc.texture = texture;
+        textureViewDesc.viewFormat = textureDesc.textureFormat;
+        textureViewDesc.viewType = GraphicsHelpers::GetGraphicsTextureViewType(textureDesc.textureType, textureDesc.depthOrLayers);
+        textureViewDesc.subresourceRange = subresourceRange;
+
+        return CreateTextureView(textureViewDesc);
+    }
+
     void GraphicsDeviceImpl::DestroyBuffer(GraphicsBuffer* buffer)
     {
         if (buffer != nullptr) {

@@ -1,172 +1,37 @@
-#include "RenderWorldSyncSystem.hpp"
+#include "UploadRenderWorldSystem.hpp"
 
 #include <cassert>
 #include <Core/Logger.hpp>
+#include <Gfx/GraphicsDevice.hpp>
 #include "Renderer/RenderManager.hpp"
-#include "Components/CameraComponent.hpp"
-#include "Components/MeshComponent.hpp"
-#include "Components/TransformComponent.hpp"
 
 namespace Bonsai
 {
-    RenderWorldSyncSystem::RenderWorldSyncSystem(RenderManager* renderManager)
+    UploadRenderWorldSystem::UploadRenderWorldSystem(RenderManager* renderManager)
         :
         _renderManager(renderManager)
     {
         assert(_renderManager != nullptr && "renderManager was null!");
     }
 
-    RenderWorldSyncSystem::~RenderWorldSyncSystem()
+    UploadRenderWorldSystem::~UploadRenderWorldSystem()
     {
-        // Get graphics device
+        // Destroy upload buffer
         GraphicsDevice* graphicsDevice = _renderManager->GetGraphicsDevice();
         graphicsDevice->DestroyBuffer(_sceneDataUploadBuffer);
     }
 
-    void RenderWorldSyncSystem::Run(entt::registry& registry)
+    void UploadRenderWorldSystem::Run(entt::registry& registry)
     {
         // Get the render world
-        RenderWorld& renderWorld = _renderManager->GetRenderWorld();
-
-        // Update host side render world data
-        UpdateRenderObjectCache(renderWorld, registry);
-        UpdateGeometryCache(renderWorld, registry);
-        UpdateCameraData(renderWorld, registry);
-        UpdateRenderObjectData(renderWorld, registry);
+        RenderWorld& renderWorld = _renderManager->GetRenderWorld();        
 
         // Upload scene data
         UploadGeometry(renderWorld);
         UploadSceneData(renderWorld);
-
-        // Record draw list for the render world
-        RecordDrawList(renderWorld, registry);
     }
 
-    void RenderWorldSyncSystem::UpdateRenderObjectCache(RenderWorld& renderWorld, entt::registry const& registry)
-    {
-        // Get relevant ECS view
-        auto const& renderObjectView = registry.view<TransformComponent, MeshComponent>();
-
-        // Mark unused render objects as free, also erasing them from the object cache
-        std::vector<entt::entity> eraseList;
-        for (auto const& [ entity, renderObjectId ] : renderWorld.renderObjectCache)
-        {
-            // Check if the object still exists in the registry view
-            if (renderObjectView.contains(entity)) {
-                continue;
-            }
-
-            // Mark objects that no longer exist as free
-            renderWorld.renderObjectFreeList.push_back(renderObjectId);
-            eraseList.push_back(entity);
-            SPDLOG_TRACE("Freed unused render object (entity: {} objectId: {})", entt::to_integral(entity), renderObjectId);
-        }
-
-        for (auto const& entity : eraseList) {
-            renderWorld.renderObjectCache.erase(entity);
-        }
-
-        // Update render objects cache
-        for (auto const& [ entity, transformComponent, meshComponent ] : renderObjectView.each())
-        {
-            // Check if render object already has an ID
-            auto const iter = renderWorld.renderObjectCache.find(entity);
-            if (iter != renderWorld.renderObjectCache.end()) {
-                continue;
-            }
-
-            // Assign either a free object ID, or allocate a new render object ID
-            RenderObjectId renderObjectId = 0;
-            if (!renderWorld.renderObjectFreeList.empty())
-            {
-                renderObjectId = renderWorld.renderObjectFreeList.back();
-                renderWorld.renderObjectFreeList.pop_back();
-            }
-            else
-            {
-                renderObjectId = renderWorld.maxRenderObjectId;
-                renderWorld.maxRenderObjectId++;
-            }
-
-            // Insert new render object
-            renderWorld.renderObjectCache.insert({ entity, renderObjectId });
-            SPDLOG_TRACE("Inserted new render object (entity: {} objectId: {})", entt::to_integral(entity), renderObjectId);
-        }
-    }
-
-    void RenderWorldSyncSystem::UpdateGeometryCache(RenderWorld& renderWorld, entt::registry const& registry)
-    {
-        // Get relevant ECS view
-        auto const& meshView = registry.view<MeshComponent>();
-
-        // Insert new geometry into geometry cache
-        for (auto const& [ _, meshComponent ] : meshView.each())
-        {
-            // Check if mesh has already been inserted into the geometry cache
-            auto const iter = renderWorld.geometryCache.find(meshComponent.meshHandle);
-            if (iter != renderWorld.geometryCache.end()) {
-                continue;
-            }
-
-            // Insert new render mesh into the geometry cache
-            renderWorld.geometryCache.insert({ meshComponent.meshHandle, RenderMesh{} });
-            SPDLOG_TRACE("Inserted new mesh into geometry cache (asset id: {})", meshComponent.meshHandle.GetAssetId());
-        }
-    }
-
-    void RenderWorldSyncSystem::UpdateCameraData(RenderWorld& renderWorld, entt::registry& registry)
-    {
-        // Get relevant ECS view
-        auto const& cameraView = registry.view<TransformComponent, CameraComponent>();
-
-        // Get window aspect ratio
-        Extent2D const windowResolution = _renderManager->GetWindowResolution();
-        float const aspectRatio = static_cast<float>(windowResolution.width) / static_cast<float>(windowResolution.height);
-
-        // Update cameras in the scene
-        renderWorld.cameras.clear();
-        for (auto const& [ entity, transformComponent, cameraComponent ] : cameraView.each())
-        {
-            // Update camera aspect ratio
-            // TODO(nemjit001): Do this in separate system, only for cameras that track window size
-            cameraComponent.camera.SetAspectRatio(aspectRatio);
-
-            // Get camera matrices
-            glm::mat4 const viewMatrix = glm::inverse(transformComponent.GetMatrix());
-            glm::mat4 const projectionMatrix = cameraComponent.camera.GetProjectionMatrix();
-
-            // Set up camera data
-            Shader::Camera camera{};
-            camera.viewProjectMatrix = projectionMatrix * viewMatrix;
-            renderWorld.cameras.push_back(camera);
-        }
-    }
-
-    void RenderWorldSyncSystem::UpdateRenderObjectData(RenderWorld& renderWorld, entt::registry const& registry)
-    {
-        // Get relevant ECS view
-        auto const& renderObjectView = registry.view<TransformComponent, MeshComponent>();
-
-        // Resize and update render object buffers
-        renderWorld.renderObjects.resize(renderWorld.maxRenderObjectId);
-        renderWorld.objectTransforms.resize(renderWorld.maxRenderObjectId);
-        for (auto const& [ entity, transformComponent, meshComponent ] : renderObjectView.each())
-        {
-            // Get render object ID from cache
-            RenderObjectId const& objectId = renderWorld.renderObjectCache.at(entity);
-
-            // Update render object data
-            Shader::RenderObject& renderObject = renderWorld.renderObjects[objectId];
-            renderObject.objectId = objectId;
-
-            // Update object transform
-            Shader::ObjectTransform& objectTransform = renderWorld.objectTransforms[objectId];
-            objectTransform.modelMatrix = transformComponent.GetMatrix();
-            objectTransform.normalMatrix = glm::inverse(glm::transpose(glm::mat3(objectTransform.modelMatrix)));
-        }
-    }
-
-    void RenderWorldSyncSystem::UploadGeometry(RenderWorld& renderWorld)
+    void UploadRenderWorldSystem::UploadGeometry(RenderWorld& renderWorld)
     {
         // Get graphics device
         GraphicsDevice* graphicsDevice = _renderManager->GetGraphicsDevice();
@@ -263,7 +128,7 @@ namespace Bonsai
         SPDLOG_TRACE("Completed geometry upload ({} MiB | {} KiB | {} Bytes)", requiredUploadBufferSize >> 20, requiredUploadBufferSize >> 10, requiredUploadBufferSize);
     }
 
-    void RenderWorldSyncSystem::UploadSceneData(RenderWorld& renderWorld)
+    void UploadRenderWorldSystem::UploadSceneData(RenderWorld& renderWorld)
     {
         // Get graphics device
         GraphicsDevice* graphicsDevice = _renderManager->GetGraphicsDevice();
@@ -372,31 +237,5 @@ namespace Bonsai
         graphicsDevice->SubmitTransferCommands(transferBatch, transferCommandBuffer);
         graphicsDevice->SubmitTransferBatch(transferBatch);
         graphicsDevice->WaitForTransferBatch(transferBatch);
-    }
-
-    void RenderWorldSyncSystem::RecordDrawList(RenderWorld& renderWorld, entt::registry const& registry)
-    {
-        // Get relevant ECS views
-        auto const cameraView = registry.view<TransformComponent, CameraComponent>();
-        auto const renderObjectView = registry.view<TransformComponent, MeshComponent>();
-
-        // Collect mesh draws
-        renderWorld.drawList.clear();
-        uint32_t cameraId = 0;
-        for (auto const& [ _, cameraTransformComponent, cameraComponent ] : cameraView.each())
-        {
-            for (auto const& [ renderObjectEntity, renderObjectTransformComponent, meshComponent ] : renderObjectView.each())
-            {
-                MeshDrawCommand meshDrawCommand{};
-                meshDrawCommand.cameraId = cameraId;
-                meshDrawCommand.objectId = renderWorld.renderObjectCache.at(renderObjectEntity);
-                meshDrawCommand.meshHandle = meshComponent.meshHandle;
-                meshDrawCommand.renderMesh = renderWorld.geometryCache.at(meshComponent.meshHandle);
-
-                renderWorld.drawList.push_back(meshDrawCommand);
-            }
-
-            cameraId++;
-        }
     }
 } // namespace Bonsai

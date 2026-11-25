@@ -4,10 +4,7 @@ enable_testing()
 
 # Project options
 option(BONSAI_BUILD_TESTS "Build unit tests for Bonsai" ON)
-
-# Enable global options
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_VERIFY_INTERFACE_HEADER_SETS ON)
+option(BONSAI_BUILD_ENGINE "Build the Bonsai Engine library and binary targets" ON)
 
 # Include cmake helpers
 include(cmake/dependencies.cmake)
@@ -140,16 +137,22 @@ target_sources(BonsaiEngineLib
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
         src/Renderer/RenderManager.hpp
+        src/Renderer/RenderObjectCache.hpp
         src/Renderer/RenderWorld.hpp
         src/Renderer/ShaderTypes.hpp
+        src/Renderer/Subrenderers/GeometryRenderer.hpp
+        src/Renderer/Subrenderers/PresentRenderer.hpp
+        src/Renderer/Subrenderers/Subrenderer.hpp
         src/Components/CameraComponent.hpp
         src/Components/MeshComponent.hpp
         src/Components/ParentComponent.hpp
         src/Components/TransformComponent.hpp
-        src/Systems/CameraInitSystem.hpp
         src/Systems/ECSSystem.hpp
-        src/Systems/RenderWorldSyncSystem.hpp
         src/Systems/SystemRegistry.hpp
+        src/Systems/Internal/CameraInitSystem.hpp
+        src/Systems/Internal/GeometryRenderSystem.hpp
+        src/Systems/Internal/SyncRenderWorldSystem.hpp
+        src/Systems/Internal/UploadRenderWorldSystem.hpp
         src/Scene/Scene.hpp
         src/Scene/SceneManager.hpp
         src/Application/FileDropHandler.hpp
@@ -159,14 +162,19 @@ target_sources(BonsaiEngineLib
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
         src/Renderer/RenderManager.cpp
+        src/Renderer/RenderObjectCache.cpp
         src/Renderer/RenderWorld.cpp
+        src/Renderer/Subrenderers/GeometryRenderer.cpp
+        src/Renderer/Subrenderers/PresentRenderer.cpp
         src/Components/CameraComponent.cpp
         src/Components/MeshComponent.cpp
         src/Components/ParentComponent.cpp
         src/Components/TransformComponent.cpp
-        src/Systems/CameraInitSystem.cpp
-        src/Systems/RenderWorldSyncSystem.cpp
         src/Systems/SystemRegistry.cpp
+        src/Systems/Internal/CameraInitSystem.cpp
+        src/Systems/Internal/GeometryRenderSystem.cpp
+        src/Systems/Internal/SyncRenderWorldSystem.cpp
+        src/Systems/Internal/UploadRenderWorldSystem.cpp
         src/Scene/Scene.cpp
         src/Scene/SceneManager.cpp
         src/Application/FileDropHandler.cpp

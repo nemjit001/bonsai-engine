@@ -40,6 +40,12 @@ namespace Bonsai
         /// @return A new graphics texture view, or nullptr on failure.
         [[nodiscard]] virtual GraphicsTextureView* CreateTextureView(GraphicsTextureViewDesc const& textureViewDesc) = 0;
 
+        /// @brief Create a default texture view using this graphics device.
+        /// The default texture view will contain a valid aspect mask for the texture and the entire subresource range of the texture.
+        /// @param texture Texture to use for creating the default view
+        /// @return A new graphics texture view, or nullptr on failure.
+        [[nodiscard]] virtual GraphicsTextureView* CreateDefaultTextureView(GraphicsTexture* texture) = 0;
+
         /// @brief Create a sampler using this graphics device.
         /// @param samplerDesc Sampler description.
         /// @return A new graphics sampler, or nullptr on failure.
