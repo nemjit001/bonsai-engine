@@ -240,6 +240,8 @@ namespace Bonsai
         _graphicsDevice->DestroyBuffer(renderWorld.cameraBuffer);
         _graphicsDevice->DestroyBuffer(renderWorld.renderObjectBuffer);
         _graphicsDevice->DestroyBuffer(renderWorld.objectTransformBuffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.subMeshBuffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.materialBuffer);
     }
 
     void RenderManager::DestroyRenderTargets()

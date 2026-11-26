@@ -137,7 +137,9 @@ namespace Bonsai
         size_t const cameraBufferSize = (renderWorld.cameras.size() + 1) * sizeof(Shader::Camera);
         size_t const renderObjectBufferSize = (renderWorld.renderObjects.size() + 1) * sizeof(Shader::RenderObject);
         size_t const objectTransformBufferSize = (renderWorld.objectTransforms.size() + 1) * sizeof(Shader::ObjectTransform);
-        size_t const requiredUploadBufferSize = cameraBufferSize + renderObjectBufferSize + objectTransformBufferSize;
+        size_t const subMeshBufferSize = (renderWorld.subMeshes.size() + 1) * sizeof(Shader::SubMesh);
+        size_t const materialBufferSize = (renderWorld.materials.size() + 1) * sizeof(Shader::Material);
+        size_t const requiredUploadBufferSize = cameraBufferSize + renderObjectBufferSize + objectTransformBufferSize + subMeshBufferSize + materialBufferSize;
 
         // Set up render world buffers
         if (cameraBufferSize > renderWorld.cameraBufferSize)
@@ -177,6 +179,32 @@ namespace Bonsai
             graphicsDevice->DestroyBuffer(renderWorld.objectTransformBuffer);
             renderWorld.objectTransformBuffer = graphicsDevice->CreateBuffer(objectTransformBufferDesc);
             renderWorld.objectTransformBufferSize = objectTransformBufferSize;
+        }
+
+        if (subMeshBufferSize > renderWorld.subMeshBufferSize)
+        {
+            // Create sub mesh buffer
+            GraphicsBufferDesc subMeshBufferDesc{};
+            subMeshBufferDesc.heapType = GraphicsHeapType_Default;
+            subMeshBufferDesc.size = subMeshBufferSize;
+            subMeshBufferDesc.usage = GraphicsBufferUsage_StorageBuffer | GraphicsBufferUsage_TransferDst;
+
+            graphicsDevice->DestroyBuffer(renderWorld.subMeshBuffer);
+            renderWorld.subMeshBuffer = graphicsDevice->CreateBuffer(subMeshBufferDesc);
+            renderWorld.subMeshBufferSize = subMeshBufferSize;
+        }
+
+        if (materialBufferSize > renderWorld.materialBufferSize)
+        {
+            // Create sub mesh buffer
+            GraphicsBufferDesc materialBufferDesc{};
+            materialBufferDesc.heapType = GraphicsHeapType_Default;
+            materialBufferDesc.size = materialBufferSize;
+            materialBufferDesc.usage = GraphicsBufferUsage_StorageBuffer | GraphicsBufferUsage_TransferDst;
+
+            graphicsDevice->DestroyBuffer(renderWorld.materialBuffer);
+            renderWorld.materialBuffer = graphicsDevice->CreateBuffer(materialBufferDesc);
+            renderWorld.materialBufferSize = materialBufferSize;
         }
 
         // Check if upload is required
@@ -231,6 +259,24 @@ namespace Bonsai
             graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransforms.data(), objectTransformBufferCopySize, uploadBufferPointer);
             transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.objectTransformBuffer, objectTransformBufferCopySize, uploadBufferPointer, 0);
             uploadBufferPointer += objectTransformBufferCopySize;
+        }
+
+        // Copy sub mesh data
+        size_t const subMeshBufferCopySize = renderWorld.subMeshes.size() * sizeof(Shader::SubMesh);
+        if (renderWorld.subMeshBuffer != nullptr && subMeshBufferCopySize != 0)
+        {
+            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.subMeshes.data(), subMeshBufferCopySize, uploadBufferPointer);
+            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.subMeshBuffer, subMeshBufferCopySize, uploadBufferPointer, 0);
+            uploadBufferPointer += subMeshBufferCopySize;
+        }
+
+        // Copy material data
+        size_t const materialBufferCopySize = renderWorld.materials.size() * sizeof(Shader::Material);
+        if (renderWorld.materialBuffer != nullptr && materialBufferCopySize != 0)
+        {
+            graphicsDevice->CopyToBuffer(_sceneDataUploadBuffer, renderWorld.materials.data(), materialBufferCopySize, uploadBufferPointer);
+            transferCommandBuffer->CopyBufferToBuffer(_sceneDataUploadBuffer, renderWorld.materialBuffer, materialBufferCopySize, uploadBufferPointer, 0);
+            uploadBufferPointer += materialBufferCopySize;
         }
 
         // Submit transfer batch

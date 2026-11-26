@@ -37,7 +37,7 @@ namespace Bonsai
 
         // Set up render pipeline layout
         GraphicsPushConstantRange pushConstantRanges[] = {
-            GraphicsPushConstantRange{ GraphicsShaderStage_Vertex, 0, sizeof(Shader::DrawParams) },
+            GraphicsPushConstantRange{ GraphicsShaderStage_Vertex | GraphicsShaderStage_Fragment, 0, sizeof(Shader::DrawParams) },
         };
 
         GraphicsPipelineLayoutDesc renderPipelineLayoutDesc{};
@@ -266,7 +266,7 @@ namespace Bonsai
                 drawParams.objectId = objectId;
                 drawParams.meshId = meshId;
 
-                commandBuffer->PushConstants(_renderPipelineLayout, GraphicsShaderStage_Vertex, 0, sizeof(drawParams), &drawParams);
+                commandBuffer->PushConstants(_renderPipelineLayout, GraphicsShaderStage_Vertex | GraphicsShaderStage_Fragment, 0, sizeof(drawParams), &drawParams);
 
                 // Bind new render mesh buffers when object changes
                 if (objectId != lastObjectId)
