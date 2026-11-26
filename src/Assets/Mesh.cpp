@@ -1,8 +1,11 @@
 #include "Mesh.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
+
 #include <tiny_obj_loader.h>
+#include <Core/Logger.hpp>
 #include "Assets/AssetImporter.hpp"
+#include "Assets/Material.hpp"
 
 namespace Bonsai
 {
@@ -21,25 +24,79 @@ namespace Bonsai
 
         // Get OBJ data
         std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+        std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); 
         tinyobj::attrib_t const& attributes = reader.GetAttrib();
 
-        // Read shapes into bonsai mesh data
+        // Read wavefront materials into Bonsai material data
+        // TODO(nemjit001): Store materials in asset manager during import step
+        std::vector<Material> bonsaiMaterials{};
+        for (auto const& material : materials)
+        {
+            SPDLOG_TRACE("Reading wavefront material: {}", material.name);
+
+            // Read material parameters
+            glm::vec3 const albedo = { material.diffuse[0], material.diffuse[1], material.diffuse[2], };
+            float const metallic = material.metallic;
+            float const roughness = material.roughness;
+
+            // Set up new material
+            Material const bonsaiMaterial(albedo, metallic, roughness);
+            bonsaiMaterials.push_back(bonsaiMaterial);
+        }
+
+        // Read shapes into Bonsai mesh data
         std::vector<Vertex> vertices{};
         std::vector<uint32_t> indices{};
         std::vector<SubMesh> subMeshes{};
         for (auto const& shape : shapes)
         {
+            SPDLOG_TRACE("Reading wavefront shape: {}", shape.name);
+
+            // Skip loading empty mesh shapes
+            if (shape.mesh.num_face_vertices.empty())
+            {
+                SPDLOG_WARN("Shape {} has 0 faces!", shape.name);
+                continue;
+            }
+
+            // Get active material ID for tracking sub mesh materials
+            int32_t activeMaterialId = shape.mesh.material_ids[0];
+
             // Start new sub mesh
             SubMesh subMesh{};
+            subMesh.materialId = static_cast<uint32_t>(activeMaterialId);
             subMesh.vertexOffset = static_cast<uint32_t>(vertices.size());
             subMesh.indexOffset = static_cast<uint32_t>(indices.size());
             subMesh.vertexCount = 0;
             subMesh.indexCount = 0;
 
             // Read shape face data
+            size_t faceIndex = 0;
             uint32_t faceBaseIndex = 0;
             for (auto const& faceVertexCount : shape.mesh.num_face_vertices)
             {
+                // Get material
+                int32_t const materialId = shape.mesh.material_ids[faceIndex];
+
+                // If material changed, save current sub-mesh and begin next sub-mesh
+                if (materialId != activeMaterialId)
+                {
+                    // Store the next active material ID
+                    activeMaterialId = materialId;
+
+                    // Save previous sub-mesh state
+                    subMesh.vertexCount = static_cast<uint32_t>(vertices.size()) - subMesh.vertexOffset;
+                    subMesh.indexCount = static_cast<uint32_t>(indices.size()) - subMesh.indexOffset;
+                    subMeshes.push_back(subMesh);
+
+                    // Start new sub-mesh state
+                    subMesh.materialId = static_cast<uint32_t>(activeMaterialId);
+                    subMesh.vertexOffset = static_cast<uint32_t>(vertices.size());
+                    subMesh.indexOffset = static_cast<uint32_t>(indices.size());
+                    subMesh.vertexCount = 0;
+                    subMesh.indexCount = 0;
+                }
+
                 // Parse face vertices
                 for (uint32_t faceVertexIndex = 0; faceVertexIndex < faceVertexCount; faceVertexIndex++)
                 {
@@ -73,24 +130,31 @@ namespace Bonsai
 
                 // Increment base index for next face
                 faceBaseIndex += faceVertexCount;
+
+                // Increment face index
+                faceIndex++;
             }
 
-            // Set vertex and index counts for sub mesh
+            // Save sub-mesh state
             subMesh.vertexCount = static_cast<uint32_t>(vertices.size()) - subMesh.vertexOffset;
             subMesh.indexCount = static_cast<uint32_t>(indices.size()) - subMesh.indexOffset;
-
-            // Store sub mesh
             subMeshes.push_back(subMesh);
         }
 
-        return std::make_shared<Mesh>(vertices, indices, subMeshes);
+        return std::make_shared<Mesh>(vertices, indices, subMeshes, bonsaiMaterials);
     }
 
-    Mesh::Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<SubMesh> const& subMeshes)
+    Mesh::Mesh(
+        std::vector<Vertex> const& vertices,
+        std::vector<uint32_t> const& indices,
+        std::vector<SubMesh> const& subMeshes,
+        std::vector<Material> const& materials
+    )
         :
         _vertices(vertices),
         _indices(indices),
-        _subMeshes(subMeshes)
+        _subMeshes(subMeshes),
+        _materials(materials)
     {
         //
     }

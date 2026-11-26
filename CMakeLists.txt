@@ -134,6 +134,7 @@ target_sources(BonsaiEngineLib
         src/Assets/AssetManager.hpp
         src/Assets/AssetManager.inl
         src/Assets/AssetType.hpp
+        src/Assets/Material.hpp
         src/Assets/Mesh.hpp
         src/Camera/Camera.hpp
         src/Renderer/RenderManager.hpp
@@ -159,6 +160,7 @@ target_sources(BonsaiEngineLib
         src/Application.hpp
     PRIVATE
         src/Assets/AssetImporter.cpp
+        src/Assets/Material.cpp
         src/Assets/Mesh.cpp
         src/Camera/Camera.cpp
         src/Renderer/RenderManager.cpp

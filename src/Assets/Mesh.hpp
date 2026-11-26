@@ -9,6 +9,8 @@
 
 namespace Bonsai
 {
+    class Material;
+
     /// @brief Vertex layout for bonsai meshes.
     struct Vertex
     {
@@ -21,18 +23,24 @@ namespace Bonsai
     /// @brief The SubMesh represents a range of mesh data that represents a loose mesh part.
     struct SubMesh
     {
+        uint32_t materialId;
         uint32_t vertexOffset;
         uint32_t indexOffset;
         uint32_t vertexCount;
         uint32_t indexCount;
     };
 
-    /// @brief The Mesh class contains a host-side mesh data for rendering.
+    /// @brief The Mesh asset type contains host-side mesh data for rendering.
     class Mesh : public IAssetType
     {
     public:
         Mesh() = default;
-        Mesh(std::vector<Vertex> const& vertices, std::vector<uint32_t> const& indices, std::vector<SubMesh> const& subMeshes);
+        Mesh(
+            std::vector<Vertex> const& vertices,
+            std::vector<uint32_t> const& indices,
+            std::vector<SubMesh> const& subMeshes,
+            std::vector<Material> const& materials
+        );
 
         /// @brief Get the dirty flag for the mesh. This will be set when host-side data is updated.
         /// @return The dirty flag for the mesh.
@@ -54,11 +62,16 @@ namespace Bonsai
         /// @return The list of submeshes.
         std::vector<SubMesh> const& GetSubmeshes() const { return _subMeshes; }
 
+        /// @brief Get the materials that are attached to the mesh.
+        /// @return The list of materials.
+        std::vector<Material> const& GetMaterials() const { return _materials; }
+
     private:
         bool _isDirty = true;
         std::vector<Vertex> _vertices;
         std::vector<uint32_t> _indices;
         std::vector<SubMesh> _subMeshes;
+        std::vector<Material> _materials;
     };
 } // namespace Bonsai
 
