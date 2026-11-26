@@ -2,37 +2,12 @@
 #ifndef BONSAI_ASSET_MANAGER_INL
 #define BONSAI_ASSET_MANAGER_INL
 
-#include "AssetManager.hpp"
+#include "Assets/AssetHandle.hpp"
+#include "Assets/AssetManager.hpp"
+#include "Assets/AssetImporter.hpp"
 
 namespace Bonsai
 {
-    template<typename AssetType>
-    std::shared_ptr<AssetType> AssetHandle<AssetType>::Get() const
-    {
-        return _owner->GetAsset<AssetType>(*this);
-    }
-
-
-    template<typename AssetType>
-    std::optional<Filesystem::Path> AssetHandle<AssetType>::GetAssetPath() const
-    {
-        return _owner->GetAssetPath(*this);
-    }
-
-    template<typename AssetType>
-    uint32_t const& AssetHandle<AssetType>::GetAssetId() const
-    {
-        return _id;
-    }
-
-    template<typename AssetType>
-    bool AssetHandle<AssetType>::IsValid() const
-    {
-        return _id != INVALID_ASSET_ID
-            && _owner != nullptr
-            && _owner->AssetExists(*this);
-    }
-
     template<typename AssetType>
     AssetHandle<AssetType> AssetManager::Load(Filesystem::Path const& path)
     {
@@ -46,7 +21,7 @@ namespace Bonsai
         }
 
         // Import asset using templated asset importer.
-        std::shared_ptr<AssetType> assetPtr = AssetImporter<AssetType>::Import(path);
+        std::shared_ptr<AssetType> assetPtr = AssetImporter<AssetType>::Import(*this, path);
         if (!assetPtr) {
             return {};
         }

@@ -130,6 +130,8 @@ target_sources(BonsaiEngineLib
     FILE_SET HEADERS
     BASE_DIRS src
     FILES
+        src/Assets/AssetHandle.hpp
+        src/Assets/AssetHandle.inl
         src/Assets/AssetImporter.hpp
         src/Assets/AssetManager.hpp
         src/Assets/AssetManager.inl

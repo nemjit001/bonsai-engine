@@ -2,7 +2,7 @@
 #ifndef BONSAI_MESH_COMPONENT_HPP
 #define BONSAI_MESH_COMPONENT_HPP
 
-#include "Assets/AssetManager.hpp"
+#include "Assets/AssetHandle.hpp"
 #include "Assets/Mesh.hpp"
 
 namespace Bonsai

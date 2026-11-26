@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <Gfx/GraphicsTypes.hpp>
-#include "Assets/AssetManager.hpp"
+#include "Assets/AssetHandle.hpp"
 #include "Assets/Mesh.hpp"
 #include "Renderer/RenderObjectCache.hpp"
 #include "Renderer/ShaderTypes.hpp"

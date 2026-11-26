@@ -5,12 +5,13 @@
 #include <tiny_obj_loader.h>
 #include <Core/Logger.hpp>
 #include "Assets/AssetImporter.hpp"
+#include "Assets/AssetManager.hpp"
 #include "Assets/Material.hpp"
 
 namespace Bonsai
 {
     template<>
-    std::shared_ptr<Mesh> AssetImporter<Mesh>::Import(std::filesystem::path const& path)
+    std::shared_ptr<Mesh> AssetImporter<Mesh>::Import(AssetManager& assetManager, std::filesystem::path const& path)
     {
         // Read OBJ file
         tinyobj::ObjReaderConfig config{};
@@ -28,8 +29,7 @@ namespace Bonsai
         tinyobj::attrib_t const& attributes = reader.GetAttrib();
 
         // Read wavefront materials into Bonsai material data
-        // TODO(nemjit001): Store materials in asset manager during import step
-        std::vector<Material> bonsaiMaterials{};
+        std::vector<AssetHandle<Material>> bonsaiMaterials{};
         for (auto const& material : materials)
         {
             SPDLOG_TRACE("Reading wavefront material: {}", material.name);
@@ -39,8 +39,8 @@ namespace Bonsai
             float const metallic = material.metallic;
             float const roughness = material.roughness;
 
-            // Set up new material
-            Material const bonsaiMaterial(albedo, metallic, roughness);
+            // Create new material in asset manager and store in material vector
+            AssetHandle<Material> bonsaiMaterial = assetManager.Create<Material>(albedo, metallic, roughness);
             bonsaiMaterials.push_back(bonsaiMaterial);
         }
 
@@ -148,7 +148,7 @@ namespace Bonsai
         std::vector<Vertex> const& vertices,
         std::vector<uint32_t> const& indices,
         std::vector<SubMesh> const& subMeshes,
-        std::vector<Material> const& materials
+        std::vector<AssetHandle<Material>> const& materials
     )
         :
         _vertices(vertices),

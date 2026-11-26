@@ -6,6 +6,7 @@
 #include <vector>
 #include <Math/Math.hpp>
 #include "Assets/AssetType.hpp"
+#include "Assets/AssetHandle.hpp"
 
 namespace Bonsai
 {
@@ -39,7 +40,7 @@ namespace Bonsai
             std::vector<Vertex> const& vertices,
             std::vector<uint32_t> const& indices,
             std::vector<SubMesh> const& subMeshes,
-            std::vector<Material> const& materials
+            std::vector<AssetHandle<Material>> const& materials
         );
 
         /// @brief Get the dirty flag for the mesh. This will be set when host-side data is updated.
@@ -64,14 +65,14 @@ namespace Bonsai
 
         /// @brief Get the materials that are attached to the mesh.
         /// @return The list of materials.
-        std::vector<Material> const& GetMaterials() const { return _materials; }
+        std::vector<AssetHandle<Material>> const& GetMaterials() const { return _materials; }
 
     private:
         bool _isDirty = true;
         std::vector<Vertex> _vertices;
         std::vector<uint32_t> _indices;
         std::vector<SubMesh> _subMeshes;
-        std::vector<Material> _materials;
+        std::vector<AssetHandle<Material>> _materials;
     };
 } // namespace Bonsai
 

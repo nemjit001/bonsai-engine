@@ -8,6 +8,8 @@
 
 namespace Bonsai
 {
+    class AssetManager;
+
     /// @brief The Asset Importer static class allows for asset importing using its static import function.
     /// Importing behaviour can be automatically added for asset types by providing a template specialization for the asset importer.
     /// @tparam AssetType Asset type to provide import behaviour for.
@@ -18,9 +20,10 @@ namespace Bonsai
         
     public:
         /// @brief Import an asset type using this importer.
+        /// @param assetManager Asset manager to use for loading asset dependencies.
         /// @param path Path to the asset to import.
         /// @return A pointer to the imported asset.
-        static std::shared_ptr<AssetType> Import(Filesystem::Path const& path);
+        static std::shared_ptr<AssetType> Import(AssetManager& assetManager, Filesystem::Path const& path);
     };
 } // namespace Bonsai
 
