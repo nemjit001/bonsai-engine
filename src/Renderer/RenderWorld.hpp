@@ -52,14 +52,20 @@ namespace Bonsai
         std::vector<Shader::Camera> cameras;                    //< Camera shader data
         std::vector<Shader::RenderObject> renderObjects;        //< Render object shader data
         std::vector<Shader::ObjectTransform> objectTransforms;  //< Object transform shader data
+        std::vector<Shader::SubMesh> subMeshes;                 //< SubMesh shader data
+        std::vector<Shader::Material> materials;                //< Material shader data
 
         //-- device side data buffers --//
         size_t cameraBufferSize = 0;
         size_t renderObjectBufferSize = 0;
         size_t objectTransformBufferSize = 0;
+        size_t subMeshBufferSize = 0;
+        size_t materialBufferSize = 0;
         GraphicsBuffer* cameraBuffer = nullptr;
         GraphicsBuffer* renderObjectBuffer = nullptr;
         GraphicsBuffer* objectTransformBuffer = nullptr;
+        GraphicsBuffer* subMeshBuffer = nullptr;
+        GraphicsBuffer* materialBuffer = nullptr;
 
         //-- Render queues --//
         std::vector<GeometryDrawCommand> geometryRenderQueue;

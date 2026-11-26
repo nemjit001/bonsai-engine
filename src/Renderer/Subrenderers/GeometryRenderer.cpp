@@ -22,6 +22,8 @@ namespace Bonsai
             GraphicsDescriptorSetLayoutBinding{ 0, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Vertex, nullptr },
             GraphicsDescriptorSetLayoutBinding{ 1, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Vertex, nullptr },
             GraphicsDescriptorSetLayoutBinding{ 2, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Vertex, nullptr },
+            GraphicsDescriptorSetLayoutBinding{ 3, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Fragment, nullptr },
+            GraphicsDescriptorSetLayoutBinding{ 4, GraphicsDescriptorType_StorageBuffer, 1, GraphicsShaderStage_Fragment, nullptr },
         };
 
         GraphicsDescriptorSetLayoutDesc sceneDataDescriptorSetLayoutDesc{};
@@ -130,10 +132,22 @@ namespace Bonsai
         objectTransformBufferInfo.offset = 0;
         objectTransformBufferInfo.range =  renderWorld.objectTransformBufferSize;
 
+        GraphicsDescriptorBufferInfo subMeshBufferInfo{};
+        subMeshBufferInfo.buffer = renderWorld.subMeshBuffer;
+        subMeshBufferInfo.offset = 0;
+        subMeshBufferInfo.range = renderWorld.subMeshBufferSize;
+
+        GraphicsDescriptorBufferInfo materialBufferInfo{};
+        materialBufferInfo.buffer = renderWorld.materialBuffer;
+        materialBufferInfo.offset = 0;
+        materialBufferInfo.range = renderWorld.materialBufferSize;
+
         GraphicsDescriptorSetBinding sceneDescriptorSetBindings[] = {
             GraphicsDescriptorSetBinding{ 0, 0, 1, GraphicsDescriptorType_StorageBuffer, &cameraBufferInfo, nullptr },
             GraphicsDescriptorSetBinding{ 1, 0, 1, GraphicsDescriptorType_StorageBuffer, &renderObjectBufferInfo, nullptr },
             GraphicsDescriptorSetBinding{ 2, 0, 1, GraphicsDescriptorType_StorageBuffer, &objectTransformBufferInfo, nullptr },
+            GraphicsDescriptorSetBinding{ 3, 0, 1, GraphicsDescriptorType_StorageBuffer, &subMeshBufferInfo, nullptr },
+            GraphicsDescriptorSetBinding{ 4, 0, 1, GraphicsDescriptorType_StorageBuffer, &materialBufferInfo, nullptr },
         };
 
         GraphicsDescriptorSetDesc sceneDescriptorSetDesc{};

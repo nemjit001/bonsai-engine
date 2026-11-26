@@ -26,6 +26,20 @@ namespace Bonsai::Shader
         alignas(16) glm::mat4 normalMatrix;
     };
 
+    /// @brief The SubMesh is a shader type that contains sub-mesh data.
+    struct SubMesh
+    {
+        alignas(4) uint32_t materialId;
+    };
+
+    /// @brief The Material is a shader type that contains material data.
+    struct Material
+    {
+        alignas(4) glm::vec3 albedo;
+        alignas(4) float metallic;
+        alignas(4) float roughness;
+    };
+
     /// @brief Constant draw parameters.
     struct DrawParams
     {
