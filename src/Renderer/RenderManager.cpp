@@ -237,11 +237,11 @@ namespace Bonsai
         }
 
         // Clean up render world buffers
-        _graphicsDevice->DestroyBuffer(renderWorld.cameraBuffer);
-        _graphicsDevice->DestroyBuffer(renderWorld.renderObjectBuffer);
-        _graphicsDevice->DestroyBuffer(renderWorld.objectTransformBuffer);
-        _graphicsDevice->DestroyBuffer(renderWorld.subMeshBuffer);
-        _graphicsDevice->DestroyBuffer(renderWorld.materialBuffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.cameraBuffer.buffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.renderObjectBuffer.buffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.objectTransformBuffer.buffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.subMeshBuffer.buffer);
+        _graphicsDevice->DestroyBuffer(renderWorld.materialBuffer.buffer);
     }
 
     void RenderManager::DestroyRenderTargets()

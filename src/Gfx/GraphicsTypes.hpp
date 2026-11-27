@@ -830,6 +830,13 @@ namespace Bonsai
         bool allowTearing;
     };
 
+    /// @brief Helper structure for storing a size with a graphics buffer.
+    struct SizedGraphicsBuffer
+    {
+        GraphicsBuffer* buffer;
+        size_t size;
+    };
+
     /// @brief Test if a bit is set in a bitflag type.
     /// @param flags Flags to test.
     /// @param bit Bit to test.

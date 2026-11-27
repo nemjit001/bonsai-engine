@@ -118,29 +118,29 @@ namespace Bonsai
 
         // Create scene descriptor set
         GraphicsDescriptorBufferInfo cameraBufferInfo{};
-        cameraBufferInfo.buffer = renderWorld.cameraBuffer;
+        cameraBufferInfo.buffer = renderWorld.cameraBuffer.buffer;
         cameraBufferInfo.offset = 0;
-        cameraBufferInfo.range = renderWorld.cameraBufferSize;
+        cameraBufferInfo.range = renderWorld.cameraBuffer.size;
 
         GraphicsDescriptorBufferInfo renderObjectBufferInfo{};
-        renderObjectBufferInfo.buffer = renderWorld.renderObjectBuffer;
+        renderObjectBufferInfo.buffer = renderWorld.renderObjectBuffer.buffer;
         renderObjectBufferInfo.offset = 0;
-        renderObjectBufferInfo.range =  renderWorld.renderObjectBufferSize;
+        renderObjectBufferInfo.range =  renderWorld.renderObjectBuffer.size;
 
         GraphicsDescriptorBufferInfo objectTransformBufferInfo{};
-        objectTransformBufferInfo.buffer = renderWorld.objectTransformBuffer;
+        objectTransformBufferInfo.buffer = renderWorld.objectTransformBuffer.buffer;
         objectTransformBufferInfo.offset = 0;
-        objectTransformBufferInfo.range =  renderWorld.objectTransformBufferSize;
+        objectTransformBufferInfo.range =  renderWorld.objectTransformBuffer.size;
 
         GraphicsDescriptorBufferInfo subMeshBufferInfo{};
-        subMeshBufferInfo.buffer = renderWorld.subMeshBuffer;
+        subMeshBufferInfo.buffer = renderWorld.subMeshBuffer.buffer;
         subMeshBufferInfo.offset = 0;
-        subMeshBufferInfo.range = renderWorld.subMeshBufferSize;
+        subMeshBufferInfo.range = renderWorld.subMeshBuffer.size;
 
         GraphicsDescriptorBufferInfo materialBufferInfo{};
-        materialBufferInfo.buffer = renderWorld.materialBuffer;
+        materialBufferInfo.buffer = renderWorld.materialBuffer.buffer;
         materialBufferInfo.offset = 0;
-        materialBufferInfo.range = renderWorld.materialBufferSize;
+        materialBufferInfo.range = renderWorld.materialBuffer.size;
 
         GraphicsDescriptorSetBinding sceneDescriptorSetBindings[] = {
             GraphicsDescriptorSetBinding{ 0, 0, 1, GraphicsDescriptorType_StorageBuffer, &cameraBufferInfo, nullptr },
